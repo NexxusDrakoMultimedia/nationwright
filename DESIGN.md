@@ -1,6 +1,6 @@
 # Nationwright — Design Document
 
-> Status: **Draft v0.4** · Last updated: 2026-09-25
+> Status: **Draft v0.5** · Last updated: 2026-09-25
 >
 > This document describes what Nationwright is, how the simulation works, and how the
 > software is structured. Settled decisions are listed in §0. Remaining open
@@ -18,7 +18,7 @@
 | D3 | Persistence | **SQLite**, one file per save | §6.3 |
 | D4 | Geography | **Procedurally generated map in v1** (Voronoi cells with terrain, climate, and rivers). Regions, provinces, borders, and adjacency all come from the map. *(Replaces v0.2's "schematic regions only".)* | §4.12 |
 | D5 | International layer | **Other countries exist** and exert pull on the simulation (trade, migration, investment, diplomacy, conflict, sport) | §4.10 |
-| D6 | Demographic depth | **Track everything:** cohorts carry age, sex, region, urban/rural, education, plus a joint ethnicity × religion matrix (D14) and language shares | §4.1 |
+| D6 | Demographic depth | **Track everything:** cohorts carry age, sex, region, urban/rural, education, plus a joint ethnicity × religion × language distribution (D14) | §4.1 |
 | D7 | Start date | **Current year only.** Every nation starts in the real-world current year; there are no historical start dates and no era system | §3.1 |
 | D8 | Reference data | **factbook.json** ([github.com/factbook/factbook.json](https://github.com/factbook/factbook.json), the public-domain World Factbook data used by OpenFactBook) is the calibration and validation source, used directly. It never appears in play directly: it drives procedural generation (D12) | §10.1 |
 | D9 | UI shell | **Electron** (React + Vite renderer). The engine and `better-sqlite3` run in the main/utility process | §9 |
@@ -26,11 +26,12 @@
 | D11 | Stale reference data | **Project forward.** Each reference value is projected from its estimate year to the start year | §10.1 |
 | D12 | World composition | **Completely fictional, procedurally generated world.** Every country (foreign and the player's) is invented: names, geography, borders, blocs, leaders. No real country appears in play. The factbook.json dataset supplies the **guiding variables**, the statistical distributions and correlations that generated nations are sampled from | §4.12, §10.1 |
 | D13 | World seed | **Random 64-bit seed, encoded as base64** (unpadded base64url, 11 characters). It is the only randomness input for world generation and simulation | §3.3 |
-| D14 | Ethnicity × religion | **Tracked jointly** per cohort cell (a share matrix, not independent vectors) | §4.1 |
+| D14 | Ethnicity × religion × language | **Tracked jointly** per cohort cell (one joint distribution, not independent vectors). How the three associate is **randomized** per country from the world seed, within the group counts and shares the guiding variables set | §4.1, §4.12.3 |
 | D15 | Nuclear weapons | **Banned.** They do not exist in the world. There are no arsenals, deterrence, or use, and warfare is conventional only. Nuclear *energy* remains | §4.11 |
 | D16 | Civilian harm | **An outcome, never an action.** It is computed from how wars are fought, with diplomatic, legal, and demographic consequences. No option targets civilians | §4.11.3 |
 | D17 | World size | **No hard limit.** The number of countries has a default (~195) and a recommended range (20–250) | §4.12 |
 | D18 | Backstory | **Keep the burn-in:** a ~30-year diplomacy-and-war pre-run generates history before the start date | §4.12.4 |
+| D19 | Performance targets | **None for now.** No target hardware and no world-creation or simulation time budget; performance is measured and reported, not gated | §1.1, §9 |
 
 ---
 
@@ -63,8 +64,9 @@ ask "why did this number change?" and get an answer.
   its statistics are sampled from real-world country data (factbook.json). A generated
   world should be statistically indistinguishable from the real one at the start year,
   and simulated outcomes are checked against the same data.
-- **Fast.** Simulating 100 years of a nation with ~50 cities and the full foreign-country
-  roster should take seconds, not minutes.
+- **Efficient.** The simulation should scale smoothly with world size and model detail.
+  There is **no fixed hardware or timing target** at this stage (D19). Performance is
+  measured and reported from M0 onward so targets can be set later from real numbers.
 
 ### 1.2 Non-goals (for v1)
 
@@ -257,27 +259,37 @@ mechanics**. Formulas are initial proposals; constants live in tuning files.
 | Age | 5-year bands, 0–4 … 100+ (21 bands) | cohort key |
 | Sex | female, male | cohort key |
 | Education | none, primary, secondary, vocational, tertiary | cohort key |
-| Ethnicity × Religion | generated/player-defined groups (religion incl. none) | **joint** share matrix per cohort cell |
-| Language | generated/player-defined groups | share vector per cohort cell |
+| Ethnicity × Religion × Language | generated/player-defined groups (religion incl. none) | **joint** distribution per cohort cell |
 
 - The key dimensions form a dense array: R × 2 × 21 × 2 × 5 = **420 cells per region**
   (8,400 for 20 regions). That is small enough to update every tick.
-- **Ethnicity and religion are tracked jointly (D14).** Each cell carries an E × R
-  share matrix, so "how many people of ethnic group A practise religion B, by age,
-  region, and education" is always answerable. With e.g. 8 ethnic groups × 6 religions,
-  that is 48 shares per cell, about 20,000 floats per region (`Float32Array`), which is
-  still cheap.
-  - The matrix is updated by births (children inherit the parents' joint distribution,
-    blended by intermarriage rates), conversion/secularization (moves mass between
-    religion columns within an ethnicity row, at rates depending on education,
-    urbanization, and age), and migration (migrants arrive with the origin country's
-    joint distribution).
-  - Party affinity (§4.4), unrest, and conflict events read the joint distribution, so
-    ethno-religious cleavages can drive politics and war (co-ethnic/co-religionist
-    claims, §4.11.2).
-- **Language** stays a separate share vector per cell. Language shift depends on
-  education and urbanization, and it correlates with ethnicity through the rules that
-  generate it rather than through a stored joint matrix.
+- **Ethnicity, religion, and language are tracked jointly (D14).** Each cell carries an
+  E × R × L joint distribution, so questions like "how many Arvani-speaking members of
+  ethnic group A practise religion B, aged 20–24, in region 3, with tertiary education"
+  always have an answer.
+  - **Sparse storage.** A dense E × R × L tensor (e.g. 8 × 6 × 6 = 288 shares) in every
+    cell would be large. Instead, each nation keeps a **combination table**: the
+    (ethnicity, religion, language) triples that actually occur, typically a few dozen.
+    Each cell stores shares only over that table (`Float32Array`, cells × combinations).
+    Triples that fall below a population threshold are pruned and folded into their
+    nearest neighbor. New triples are added when conversion, language shift, or
+    migration creates them.
+  - **Updates:**
+    - births: children inherit their parents' triple, blended by intermarriage rates,
+      with language inherited mostly from the household;
+    - conversion and secularization: mass moves along the religion axis, at rates set by
+      education, urbanization, and age;
+    - language shift: mass moves along the language axis toward the dominant or
+      official language, faster with schooling and urbanization and slower in
+      concentrated communities;
+    - migration: migrants arrive with the origin country's joint distribution.
+  - Party affinity (§4.4), unrest, and conflict read the joint distribution, so
+    ethnic, religious, and linguistic cleavages, and their overlaps, can drive politics
+    and war (co-ethnic, co-religionist, or co-linguistic claims, §4.11.2).
+  - **Initial associations are randomized (§4.12.3).** The world seed decides how
+    strongly each ethnicity lines up with each religion and language in each country.
+    In some countries the three nearly coincide; in others they cut across each other.
+    Only the numbers of groups and their overall shares are guided by the Factbook.
 - Additional tracked attributes per region: households and average household size,
   labor-force status by cohort (employed, unemployed, inactive, student, retired),
   foreign-born share by origin country (links to §4.10), disability/health-status index.
@@ -297,10 +309,8 @@ mechanics**. Formulas are initial proposals; constants live in tuning files.
   - *International:* **bilateral** flows with each foreign country (§4.10), driven by
     wage and stability gaps, distance/proximity, shared language, existing diaspora size,
     and both sides' immigration policies. Refugee surges come from foreign crises.
-- **Cultural change:** language shift toward the dominant/official language over
-  generations (rate set by education and urbanization), religious-affiliation drift
-  (secularization with income and education), and intermarriage blending ethnic shares in
-  newborn cohorts.
+- **Cultural change:** operates on the joint distribution described above (language
+  shift, religious drift, and intermarriage).
 
 **Outputs / indicators:** total population, growth rate, crude birth/death rates, TFR,
 life expectancy (by sex), infant mortality, median age, dependency ratio, population
@@ -792,7 +802,8 @@ Generator inputs:
 - the **world seed**: 64-bit, base64url (§3.3);
 - number of countries: **no hard limit (D17)**. The default ≈ the real number of
   sovereign states in the data (~195). The **recommended** range is 20–250. Outside it
-  the wizard shows a performance and realism note but allows the choice. The map's cell
+  the wizard shows a realism note (how far the world departs from Earth-like
+  proportions) and allows the choice. The map's cell
   budget, relation matrix (n² pairs), and war resolution scale with it;
 - land fraction, climate bias, and optional archetype mix overrides.
 
@@ -863,12 +874,26 @@ For each country, including the player's defaults:
 4. **Derive consistent values:** GDP = population × GDP per capita; the age structure
    comes from TFR and life expectancy (stable-population model); sector shares
    normalized to 1; budget and debt consistent with GDP.
-5. Categorical traits: government type, legislature, electoral system, number of
-   languages and religions, and fractionalization.
+5. Categorical traits: government type, legislature, electoral system, the number of
+   ethnic groups, languages, and religions, their overall shares, and fractionalization
+   (all from the guiding variables).
 6. **Culture pack:** generated names for the country, cities, people, parties,
    languages, ethnic groups, and religions (syllable/Markov generators per fictional
    culture family). Neighboring countries share culture families at a rate set by
-   spatial similarity.
+   spatial similarity. Groups can span borders, e.g. a neighbor's majority religion or
+   language appearing as a local minority.
+7. **Randomized culture associations (D14):** draw how ethnicity, religion, and
+   language combine, using the stream `worldgen/culture/<country>`:
+   - an **alignment** value in [0, 1] per pair of dimensions (E–R, E–L, R–L), where 0
+     means the groups cut across each other independently and 1 means they coincide
+     (each ethnicity has "its own" religion and language);
+   - random pairing of which ethnicity leans toward which religion and language;
+   - build a joint distribution that matches the three separate share vectors from
+     step 5 and whose associations match the drawn alignments. Iterative proportional
+     fitting starts from an aligned or independent seed table and rescales it to the
+     given totals.
+   - regional variation: minorities are concentrated in some regions, not spread evenly
+     (the degree of concentration is drawn per group).
 
 The player's nation goes through the same generator. The wizard's "randomize" and
 archetype templates (§8.1) draw from it.
@@ -1189,7 +1214,8 @@ Determinism notes for TypeScript:
   snapshot and guiding variables ship as read-only app resources.
 - The same engine package runs in plain Node for the CLI batch runner and tests.
 
-Performance fallback: if the M1 benchmark misses the target, hot loops (cohort update,
+Performance fallback: there is no performance target yet (D19). If measurements later
+show a need, hot loops (cohort update,
 war resolution, match simulation) can move to a Rust/WASM module behind the same
 TypeScript interface.
 
@@ -1293,7 +1319,7 @@ fetch (git clone/pull of factbook/factbook.json at a pinned commit)
   → project (to the target year; see above)
   → snapshot/<target-year>.sqlite + manifest.json (commit hash, field coverage)
   → fit guiding variables (marginals, copulas, archetypes, structure statistics,
-                           ethnicity × religion joint patterns)
+                           per-dimension culture group statistics)
   → guiding-variables.json + validation-bands.json (versioned together)
 ```
 
@@ -1304,10 +1330,11 @@ fetch (git clone/pull of factbook/factbook.json at a pinned commit)
 - **Parsing is the main work.** Values are free text with inconsistent notes and
   qualifiers. The parser uses per-field extractors with a test fixture for every field it
   reads, and it logs unparsed values instead of guessing.
-- **Joint ethnicity × religion (§4.1):** the Factbook lists ethnic groups and religions
-  separately, not cross-tabulated. Joint patterns are therefore *modelled*: an
-  association parameter between the two (from content data and tuning), constrained so
-  its marginals match the Factbook's per-country shares.
+- **Ethnicity, religion, and language (§4.1):** the Factbook lists these separately,
+  never cross-tabulated. The pipeline fits only their **separate** guiding variables:
+  the number of groups, the share distributions, and fractionalization. How they
+  associate within a country is **randomized** at world generation (§4.12.3), so no
+  association data source is needed.
 
 **Validation bands:** for each indicator mapped to a reference field, compute the
 distribution across real countries. Optionally narrow it to the nation's archetype.
@@ -1340,7 +1367,7 @@ screen still acknowledges the CIA World Factbook and the factbook.json project.
 |---|---|
 | **M0 — Skeleton** | TS monorepo, Electron shell with utility-process engine, tick loop, world seed codec + xoshiro256\*\*/SplitMix64 streams, SQLite save/load, indicator store, CLI batch runner. **Reference-data pipeline:** factbook.json ingest and parser, first snapshot, forward projection, validation bands |
 | **M1 — World Generation & Map** | Guiding-variable fitting (marginals, copulas, archetypes); map generator (cells, terrain, climate, rivers, countries, provinces, cities); culture/name packs; nation statistics sampling; generator statistical tests; map screen with political, physical, and choropleth layers |
-| **M2 — People & Places** | Demography (full cohort grid + culture shares), regions from the map, cities, internal migration, census report, population pyramid, validation against bands. Performance benchmark |
+| **M2 — People & Places** | Demography (full cohort grid + culture shares), regions from the map, cities, internal migration, census report, population pyramid, validation against bands. Performance measurements (world creation and simulation time by world size; reported, not gated) |
 | **M3 — Economy & World** | Sectors, labor market, public finance; foreign country mid-depth model, trade/commodities/migration/capital channels; economic survey, budget, and world comparison reports; flows map layer |
 | **M4 — Politics, Elections & Diplomacy** | Constitution, parties, approval, FPTP + list PR, government formation, election report; foreign governments and elections; pairwise relations, blocs, foreign-policy AI; foreign relations report |
 | **M5 — Military & War** | Armed forces, defense budget, path to war, theater graph and front resolution, occupation, casualties/displacement feeding demography, peace terms, territory transfer, civil wars, civilian-harm outcomes and consequences, burn-in backstory; war report, defense review, war map layer; war sanity tests |
@@ -1356,16 +1383,8 @@ Each milestone ends with a playable build and updated golden-master tests.
 
 ## 12. Open Questions
 
-Earlier questions were resolved as D1–D18 (§0). Remaining:
-
-1. **Joint culture dimensions beyond ethnicity × religion** (§4.1): should language
-   also join the joint matrix (E × R × L), or stay a separate vector? Recommendation:
-   separate for v1, and revisit after the M2 performance benchmark.
-2. **Ethno-religious association data** (§10.1): the Factbook lists ethnicity and
-   religion separately. Choose the content source or tuning method for the association
-   parameter that builds the joint matrix.
-3. **Very large worlds** (D17): the target hardware and acceptable world-creation time
-   for worlds well above the recommended range (e.g. 500+ countries).
+All questions raised so far are resolved as D1–D19 (§0). There are currently no open
+design questions. New ones are added here as implementation raises them.
 
 ---
 
