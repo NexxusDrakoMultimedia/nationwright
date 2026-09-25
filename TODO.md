@@ -72,6 +72,13 @@ off as they land; add new ones as work reveals them.
 - [ ] Development mode with hot reload (Vite dev server + `NATIONWRIGHT_RENDERER_URL`)
 - [ ] Ship only the current platform's `better-sqlite3` prebuild (all 8 are packaged now)
 - [ ] Code signing / notarization for macOS and Windows installers
+- [x] Deprecated electron-builder dependencies replaced through npm `overrides`:
+      `@electron/asar` 4 (drops `glob@7`/`inflight`), and `temp`'s `rimraf@2` mapped to
+      `tools/rimraf-compat` (the rimraf 2 API on `fs.rm`)
+- [ ] `boolean@3.2.0` deprecation warning: from `global-agent@3` via app-builder-lib's
+      `@electron/get@3`. global-agent 4 breaks Electron downloads behind a proxy, and
+      `@electron/get` 5 drops the got options app-builder-lib passes, so this waits on
+      electron-builder upgrading `@electron/get`; drop the overrides once it no longer needs them
 
 ### CLI
 - [x] Application layer: `WorldSession` (create/open/advance/autosave/branch) and the
@@ -220,6 +227,7 @@ off as they land; add new ones as work reveals them.
       profiles, plausibility review
 - [ ] Dashboards, world atlas, exports (CSV/JSON, SVG/PNG maps), comparative views
 - [ ] Credits/attribution screen; installers; onboarding
+- [ ] First versioned release: set every package to `1.0.0` and start Semantic Versioning (D24)
 
 ## v1.x
 - [ ] More electoral systems (two-round, MMP, IRV)
