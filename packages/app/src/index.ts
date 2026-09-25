@@ -15,3 +15,9 @@ export {
   type DemographySlice,
   type YearCounters,
 } from './systems/demography.ts';
+export {
+  citiesSystem,
+  CITY_INDICATORS,
+  type CitiesSlice,
+  type CityState,
+} from './systems/cities.ts';

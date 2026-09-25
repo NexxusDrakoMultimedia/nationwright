@@ -373,6 +373,15 @@ attached institutions (universities, stadiums, capital status).
 - Cities rank by size; the rank-size distribution is reported (Zipf check as a sanity
   indicator).
 
+**Implementation (M2):** the `cities` system keeps each named city's share of its
+region's urban population (from demography), so cities grow with urban growth. Shares
+drift by 2% a year per unit of attractiveness above the regional average (capital ×1.3,
+coastal ×1.05, river ×1.03, times the `cities.attractiveness` modifier at city scope),
+keeping each region's named-city total fixed; the rest of the urban population lives in
+smaller towns. Named cities never hold more than 95% of a region's urban population.
+Indicators: `city.population` per city, city count, largest-city share, share in named
+cities, and the rank-size exponent. Founding new settlements waits for infrastructure.
+
 **Outputs:** city population table, growth leaderboard, city profiles.
 
 ### 4.3 Economy

@@ -52,10 +52,31 @@ describe('demography system', () => {
     session.close();
   });
 
+  it('tracks the player’s cities as shares of their regions’ urban population', () => {
+    const session = create('e.nwsave');
+    session.advance(12);
+    const demography = session.engine.world.slices.demography!;
+    const { cities } = session.engine.world.slices.cities!;
+    const generated = session.engine.generated!;
+    expect(cities.map((c) => c.id)).toEqual(
+      generated.cities.filter((c) => c.country === demography.country).map((c) => c.id),
+    );
+    demography.regions.forEach((region, r) => {
+      const urban = summarize([region.cohorts]).urban;
+      const inCities = cities.filter((c) => c.region === r).reduce((s, c) => s + c.population, 0);
+      expect(inCities).toBeLessThanOrEqual(urban + 1e-6);
+    });
+    const capital = cities.find((c) => c.capital)!;
+    expect(session.engine.indicators.series('city.population', `city:${capital.id}`).ticks).toEqual(
+      [0, 11],
+    );
+    session.close();
+  });
+
   it('resumes from a save exactly as if it had never stopped', () => {
     const straight = create('c.nwsave');
     straight.advance(30);
-    const expected = JSON.stringify(straight.engine.world.slices.demography);
+    const expected = JSON.stringify(straight.engine.world.slices);
     straight.close();
 
     const first = create('d.nwsave');
@@ -63,7 +84,7 @@ describe('demography system', () => {
     first.close();
     const resumed = WorldSession.open(join(dir, 'd.nwsave'), { now });
     resumed.advance(17);
-    expect(JSON.stringify(resumed.engine.world.slices.demography)).toBe(expected);
+    expect(JSON.stringify(resumed.engine.world.slices)).toBe(expected);
     resumed.close();
   });
 });
