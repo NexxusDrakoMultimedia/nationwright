@@ -1540,7 +1540,9 @@ Determinism notes for TypeScript:
   (`packages/ui/src/shared/protocol.ts`) over a MessagePort that the main process brokers.
   The main process owns only native dialogs and a fixed allowlist of external links.
 - Packaging: electron-builder for Windows, macOS, and Linux installers. The reference
-  snapshot and guiding variables ship as read-only app resources.
+  snapshot and guiding variables ship as read-only app resources. CI builds the Linux
+  AppImage and the Windows NSIS installer, smoke-tests each packaged app, and keeps the
+  (unsigned) installers as workflow artifacts; macOS is not built in CI yet.
 - The same engine package runs in plain Node for the CLI batch runner and tests.
 
 Performance fallback: there is no performance target yet (D19). If measurements later

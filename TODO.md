@@ -65,8 +65,9 @@ off as they land; add new ones as work reveals them.
 - [x] `better-sqlite3` 13 (Node-API) loads in Electron without a rebuild, also when packaged
 - [x] Minimal UI: new world, open, advance, close, About (seed entry removed by D23)
 - [x] End-to-end smoke test (`npm run ui:smoke`), in CI with the sandbox on
-- [x] electron-builder config (`npm run ui:package`): Linux AppImage verified locally;
-      macOS dmg and Windows nsis configured but not yet built
+- [x] electron-builder config (`npm run ui:package`): Linux AppImage and Windows nsis
+      built and smoke-tested in CI (installers kept as workflow artifacts)
+- [ ] macOS dmg: configured but not yet built (add a `macos-latest` row to the CI matrix)
 - [ ] App icon (installers currently use Electron's default)
 - [ ] Development mode with hot reload (Vite dev server + `NATIONWRIGHT_RENDERER_URL`)
 - [ ] Ship only the current platform's `better-sqlite3` prebuild (all 8 are packaged now)

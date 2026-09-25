@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
@@ -21,8 +22,26 @@ jobs:
       - run: npm test
       - run: npm run licenses
 
+  # Builds, packages, and smoke-tests the desktop app on each platform: the development
+  # build, the packaged (unpacked) build, and the map screenshots. Installers are kept as
+  # workflow artifacts; they are unsigned and not published anywhere.
   electron:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: --linux AppImage
+            app: packages/ui/dist/linux-unpacked/nationwright
+            installer: packages/ui/dist/Nationwright-*.AppImage
+          - os: windows-latest
+            target: --win nsis
+            app: packages/ui/dist/win-unpacked/nationwright.exe
+            installer: packages/ui/dist/Nationwright*Setup*.exe
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -32,8 +51,24 @@ jobs:
       - run: npm ci
       # Ubuntu 24.04+ blocks the unprivileged user namespaces Chromium's sandbox uses;
       # allow them so the smoke test runs with the sandbox on.
-      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-      - run: npm run ui:build
+      - if: runner.os == 'Linux'
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      # ui:package runs ui:build first, so the development build is tested from the same out/.
+      - run: npm run ui:package -- ${{ matrix.target }}
       - run: npm run ui:smoke
+      - run: npm run ui:smoke -- --app ${{ matrix.app }}
       - run: npm run nw -- new "$RUNNER_TEMP/world.nwsave"
-      - run: npm run ui:smoke -- --ui "$RUNNER_TEMP/world.nwsave" --out "$RUNNER_TEMP"
+      - run: npm run ui:smoke -- --ui "$RUNNER_TEMP/world.nwsave" --out "$RUNNER_TEMP/screenshots"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nationwright-${{ runner.os }}
+          path: ${{ matrix.installer }}
+          if-no-files-found: error
+          retention-days: 14
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots-${{ runner.os }}
+          path: ${{ runner.temp }}/screenshots
+          if-no-files-found: ignore
+          retention-days: 14
