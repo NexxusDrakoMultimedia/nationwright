@@ -181,7 +181,7 @@ off as they land; add new ones as work reveals them.
 - [ ] Sports almanac
 
 ## M9 — Creation Wizard & Polish
-- [ ] Wizard: seed entry/reroll with live map preview, slot placement, archetype
+- [ ] Wizard: world reroll with live map preview (no seeds, D23), slot placement, archetype
       profiles, plausibility review
 - [ ] Dashboards, world atlas, exports (CSV/JSON, SVG/PNG maps), comparative views
 - [ ] Credits/attribution screen; installers; onboarding
