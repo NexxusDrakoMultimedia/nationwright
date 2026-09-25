@@ -1,6 +1,6 @@
 # Nationwright — Design Document
 
-> Status: **Draft v0.3** · Last updated: 2026-09-25
+> Status: **Draft v0.4** · Last updated: 2026-09-25
 >
 > This document describes what Nationwright is, how the simulation works, and how the
 > software is structured. Settled decisions are listed in §0. Remaining open
@@ -18,14 +18,19 @@
 | D3 | Persistence | **SQLite**, one file per save | §6.3 |
 | D4 | Geography | **Procedurally generated map in v1** (Voronoi cells with terrain, climate, and rivers). Regions, provinces, borders, and adjacency all come from the map. *(Replaces v0.2's "schematic regions only".)* | §4.12 |
 | D5 | International layer | **Other countries exist** and exert pull on the simulation (trade, migration, investment, diplomacy, conflict, sport) | §4.10 |
-| D12 | World composition | **Completely fictional, procedurally generated world.** Every country (foreign and the player's) is invented: names, geography, borders, blocs, leaders. No real country appears in play. OpenFactBook supplies the **guiding variables**, the statistical distributions and correlations that generated nations are sampled from | §4.12, §10.1 |
-| D6 | Demographic depth | **Track everything:** cohorts carry age, sex, region, urban/rural, education, plus ethnicity, language, and religion shares | §4.1 |
+| D6 | Demographic depth | **Track everything:** cohorts carry age, sex, region, urban/rural, education, plus a joint ethnicity × religion matrix (D14) and language shares | §4.1 |
 | D7 | Start date | **Current year only.** Every nation starts in the real-world current year; there are no historical start dates and no era system | §3.1 |
-| D8 | Reference data | **OpenFactBook** is the calibration and validation source. It never appears in play directly: it drives procedural generation (D12) | §10.1 |
+| D8 | Reference data | **factbook.json** ([github.com/factbook/factbook.json](https://github.com/factbook/factbook.json), the public-domain World Factbook data used by OpenFactBook) is the calibration and validation source, used directly. It never appears in play directly: it drives procedural generation (D12) | §10.1 |
 | D9 | UI shell | **Electron** (React + Vite renderer). The engine and `better-sqlite3` run in the main/utility process | §9 |
 | D10 | Wars & foreign relations | **Deep.** Full pairwise relations among all countries; foreign countries have governments, leaders, elections, and militaries and act on their own; wars are simulated at the operational level (forces, fronts, occupation, casualties, peace terms) | §4.10, §4.11 |
 | D11 | Stale reference data | **Project forward.** Each reference value is projected from its estimate year to the start year | §10.1 |
+| D12 | World composition | **Completely fictional, procedurally generated world.** Every country (foreign and the player's) is invented: names, geography, borders, blocs, leaders. No real country appears in play. The factbook.json dataset supplies the **guiding variables**, the statistical distributions and correlations that generated nations are sampled from | §4.12, §10.1 |
 | D13 | World seed | **Random 64-bit seed, encoded as base64** (unpadded base64url, 11 characters). It is the only randomness input for world generation and simulation | §3.3 |
+| D14 | Ethnicity × religion | **Tracked jointly** per cohort cell (a share matrix, not independent vectors) | §4.1 |
+| D15 | Nuclear weapons | **Banned.** They do not exist in the world. There are no arsenals, deterrence, or use, and warfare is conventional only. Nuclear *energy* remains | §4.11 |
+| D16 | Civilian harm | **An outcome, never an action.** It is computed from how wars are fought, with diplomatic, legal, and demographic consequences. No option targets civilians | §4.11.3 |
+| D17 | World size | **No hard limit.** The number of countries has a default (~195) and a recommended range (20–250) | §4.12 |
+| D18 | Backstory | **Keep the burn-in:** a ~30-year diplomacy-and-war pre-run generates history before the start date | §4.12.4 |
 
 ---
 
@@ -55,7 +60,7 @@ ask "why did this number change?" and get an answer.
 - **Moddable data.** Event definitions, name lists, sports, party ideologies, and tuning
   constants live in data files, not code.
 - **Fictional but grounded.** Every nation in the world is procedurally generated, and
-  its statistics are sampled from real-world country data (OpenFactBook). A generated
+  its statistics are sampled from real-world country data (factbook.json). A generated
   world should be statistically indistinguishable from the real one at the start year,
   and simulated outcomes are checked against the same data.
 - **Fast.** Simulating 100 years of a nation with ~50 cities and the full foreign-country
@@ -86,14 +91,14 @@ ask "why did this number change?" and get an answer.
 | **Nation** | The player's country. The main aggregate in a save. |
 | **World** | The root aggregate: the player's nation plus all foreign countries and global conditions. |
 | **Foreign country** | A procedurally generated fictional country (§4.12). It has its own government, diplomacy, and military, and reduced-form demography and economy (§4.10). |
-| **Guiding variables** | The statistical model fitted to OpenFactBook data (marginal distributions, correlations, category frequencies) that the world generator samples from (§4.12, §10.1). |
+| **Guiding variables** | The statistical model fitted to factbook.json data (marginal distributions, correlations, category frequencies) that the world generator samples from (§4.12, §10.1). |
 | **World seed** | A random 64-bit value, shown as 11 characters of base64url (e.g. `q3Zk1d0XbAc`), that determines the generated world and all simulation randomness (§3.3). |
 | **Province** | A war-relevant subdivision of a foreign country (border zones, heartland, capital) used for fronts and occupation (§4.11). The player's regions play the same role at home. |
 | **Front** | An active line of conflict between two belligerents across adjacent regions/provinces (§4.11). |
 | **Region** | Administrative subdivision (state/province). Contains cities and rural population. Every nation has at least one. |
 | **City** | A settlement with its own population, economy share, infrastructure, and institutions (e.g. universities, sports teams). |
 | **Cohort** | A population bucket keyed by region × urban/rural × age band × sex × education level, carrying ethnicity, language, and religion shares. The unit of demographic simulation. |
-| **Reference snapshot** | A versioned copy of OpenFactBook data projected to the start year. Used to fit the guiding variables and validation bands, never placed in the world directly (§10.1). |
+| **Reference snapshot** | A versioned copy of the factbook.json data projected to the start year. Used to fit the guiding variables and validation bands, never placed in the world directly (§10.1). |
 | **Tick** | One simulation step. The base tick is **one month**. Larger steps are repeated ticks. |
 | **System** | A self-contained simulation module (Demography, Economy, Politics…) that reads state and writes its own slice of state each tick. |
 | **Indicator** | A named, recorded time series (e.g. `population.total`, `economy.gdp_real`, `education.literacy_rate`). |
@@ -252,17 +257,27 @@ mechanics**. Formulas are initial proposals; constants live in tuning files.
 | Age | 5-year bands, 0–4 … 100+ (21 bands) | cohort key |
 | Sex | female, male | cohort key |
 | Education | none, primary, secondary, vocational, tertiary | cohort key |
-| Ethnicity | player-defined groups | share vector per cohort |
-| Language | player-defined groups | share vector per cohort |
-| Religion | player-defined groups, incl. none | share vector per cohort |
+| Ethnicity × Religion | generated/player-defined groups (religion incl. none) | **joint** share matrix per cohort cell |
+| Language | generated/player-defined groups | share vector per cohort cell |
 
 - The key dimensions form a dense array: R × 2 × 21 × 2 × 5 = **420 cells per region**
   (8,400 for 20 regions). That is small enough to update every tick.
-- Ethnicity, language, and religion are **share vectors** attached to each cell rather
-  than further key dimensions. A full cross-product (e.g. 6 × 4 × 5 groups) would
-  multiply state by 120 while adding little. The trade-off: correlations *between*
-  ethnicity and religion inside one cell are not tracked. This is acceptable for v1;
-  revisit if politics needs it.
+- **Ethnicity and religion are tracked jointly (D14).** Each cell carries an E × R
+  share matrix, so "how many people of ethnic group A practise religion B, by age,
+  region, and education" is always answerable. With e.g. 8 ethnic groups × 6 religions,
+  that is 48 shares per cell, about 20,000 floats per region (`Float32Array`), which is
+  still cheap.
+  - The matrix is updated by births (children inherit the parents' joint distribution,
+    blended by intermarriage rates), conversion/secularization (moves mass between
+    religion columns within an ethnicity row, at rates depending on education,
+    urbanization, and age), and migration (migrants arrive with the origin country's
+    joint distribution).
+  - Party affinity (§4.4), unrest, and conflict events read the joint distribution, so
+    ethno-religious cleavages can drive politics and war (co-ethnic/co-religionist
+    claims, §4.11.2).
+- **Language** stays a separate share vector per cell. Language shift depends on
+  education and urbanization, and it correlates with ethnicity through the rules that
+  generate it rather than through a stored joint matrix.
 - Additional tracked attributes per region: households and average household size,
   labor-force status by cohort (employed, unemployed, inactive, student, retired),
   foreign-born share by origin country (links to §4.10), disability/health-status index.
@@ -610,7 +625,9 @@ coalition's ideology as its goals.
 
 **Salience tiers (performance):** pairs involving neighbors, top-10 trade partners,
 allies, rivals, great powers, or active disputes update **monthly**. All other pairs
-update **annually**. That keeps the ~26,000-pair matrix cheap.
+update **annually**. That keeps the matrix cheap at the default world size (~19,000
+pairs for 195 countries). The matrix grows with n², and salience tiers keep the monthly
+work roughly linear in n.
 
 **Channels of pull on the player's nation:**
 
@@ -652,7 +669,6 @@ Every country (player's nation and foreign) has:
 | Defense industry | domestic production capacity; share imported (arms trade depends on relations) |
 | Logistics | supply capacity, tied to transport infrastructure (§4.7) and ports |
 | Doctrine | defensive, balanced, or expeditionary: modifies attack/defense and power projection |
-| Strategic deterrent | nuclear status (from reference/content data); affects AI escalation decisions only |
 | Morale | driven by legitimacy, war goals, casualties, and recent results |
 | Command | named generated commanders with skill ratings; purges and coups affect them |
 
@@ -660,8 +676,11 @@ Every country (player's nation and foreign) has:
 doctrine modifier × supply factor. Starting values are generated from the guiding
 variables (defense spending % GDP and personnel per capita, conditioned on GDP per
 capita, government type, and threat environment), then derived from ongoing budgets.
-Deterrent status is assigned to a small number of generated great powers, at a rate
-guided by the real-world share.
+
+**No nuclear weapons (D15).** Nuclear weapons do not exist in Nationwright's world. No
+country has them, can build them, or can use them, and there is no deterrent mechanic.
+Warfare is entirely conventional. Civilian nuclear *energy* remains an ordinary
+infrastructure category (§4.7).
 
 **Defense system (tick step 10):** the budget funds upkeep, procurement, and training.
 Underfunding erodes readiness and equipment. Conscription draws from the
@@ -675,7 +694,7 @@ military-age cohorts (§4.1), which removes labor from the economy.
         └─ de-escalation, mediation, bloc pressure, deterrence ◀┘       post-war period
 ```
 
-- **Casus belli:** territorial claims, protection of co-ethnics abroad, alliance
+- **Casus belli:** territorial claims, protection of co-ethnics or co-religionists abroad, alliance
   obligation, regime hostility, resource disputes, or an unprovoked attack (which costs
   large amounts of legitimacy and trust worldwide).
 - **War powers** follow each constitution: who can declare war (executive alone,
@@ -683,9 +702,10 @@ military-age cohorts (§4.1), which removes labor from the economy.
   war blocks the declaration, consistent with the overseer role (D2).
 - **Alliance calls:** defense pacts trigger calls to arms. Refusing breaks the treaty and
   damages trust.
-- **Escalation control:** AI weighs expected war score, costs, domestic support, and
-  the deterrent status of targets. Nuclear-armed states are very unlikely to be invaded
-  in their core provinces. Nuclear *use* is not simulated in v1.
+- **Escalation control:** AI weighs expected war score, costs, domestic support,
+  alliance backing of the target, and the global reaction. Without a nuclear
+  deterrent (D15), great powers are restrained by alliances, the cost of conventional
+  war, and economic interdependence.
 
 #### 4.11.3 War resolution (monthly)
 
@@ -712,7 +732,7 @@ Each tick, for each front:
 | Effect | Target |
 |---|---|
 | Military deaths and wounded, by age and sex of the forces | Demography cohorts §4.1 |
-| Civilian casualties (from intensity in contested/occupied nodes) | Demography |
+| Civilian harm (casualties, injuries), an **outcome**, not an action (D16; see below) | Demography |
 | Displacement: internal (between regions) and refugees (to neighbors) | Demography, foreign countries |
 | Infrastructure destruction in contested nodes | Infrastructure §4.7 |
 | Mobilization pulls labor; war spending, debt, inflation; trade collapse with the enemy | Economy §4.3 |
@@ -721,6 +741,23 @@ Each tick, for each front:
 | Elections held in wartime; possible postponement per constitution | Elections §4.5 |
 | Sports: suspended leagues, international bans | Sports §4.8 |
 | Third-country reactions: sanctions, aid, arms supply, joining the war | Diplomacy §4.10 |
+
+**Civilian harm is an outcome, never an action (D16).** No player or AI option targets
+civilians. Civilian harm is computed as an aggregate result of combat intensity,
+population density and urbanization of the contested node, duration of fighting,
+strike campaigns on infrastructure, force discipline (derived from training, command
+quality, and legitimacy), and occupation/insurgency levels. It is recorded in the war
+report and the chronicle, and it has consequences:
+- world relations and trust toward the responsible belligerent fall;
+- bloc resolutions, sanctions, and, after the war, international-tribunal events;
+- domestic legitimacy and war weariness on both sides;
+- refugee flows and long-term demographic scars (lost cohorts, orphans, disability
+  index).
+
+The player can **reduce** expected harm through choices that make sense on their own
+(force training and discipline budget, rules-of-engagement posture, protecting
+infrastructure, humanitarian corridors in peace talks), but can never choose to increase
+it.
 
 **War score** (−100…+100) summarizes occupation, casualties ratio, blockade, and war-goal
 progress, and drives peace negotiations.
@@ -747,14 +784,16 @@ progress, and drives peace negotiations.
 ### 4.12 World Generation & Map
 
 Every country is fictional and procedurally generated (D12). The world has a real
-geographic map in v1 (D4). OpenFactBook data is never shown as a country. It is
+geographic map in v1 (D4). Reference data is never shown as a country. It is
 distilled into **guiding variables** that make the generated world statistically
 realistic.
 
 Generator inputs:
 - the **world seed**: 64-bit, base64url (§3.3);
-- number of countries (default ≈ the real number of sovereign states in the snapshot;
-  range 20–250);
+- number of countries: **no hard limit (D17)**. The default ≈ the real number of
+  sovereign states in the data (~195). The **recommended** range is 20–250. Outside it
+  the wizard shows a performance and realism note but allows the choice. The map's cell
+  budget, relation matrix (n² pairs), and war resolution scale with it;
 - land fraction, climate bias, and optional archetype mix overrides.
 
 Under the reproducibility contract in §3.3, the same inputs always produce the same
@@ -838,7 +877,7 @@ archetype templates (§8.1) draw from it.
 
 - Initial relations, blocs, alliances, and rivalries are generated from proximity,
   ideology, culture-family similarity, and trade.
-- **Burn-in (recommended):** a fast diplomacy-and-war pre-run of ~30 simulated years
+- **Burn-in (D18, kept):** a fast diplomacy-and-war pre-run of ~30 simulated years
   before the start date. It produces organic alliances, territorial claims, grudges, and
   a few past wars. Its events become the world's backstory in the chronicle. Its
   statistical drift is then discarded, so each country's statistics still match its
@@ -1165,7 +1204,7 @@ TypeScript interface.
 - **Golden-master tests:** store summarized indicator outputs for fixed seeds; changes
   require an explicit update.
 - **Plausibility checks:** automated assertions that indicators stay inside the
-  real-world bands derived from OpenFactBook (§10.1) across many seeds.
+  real-world bands derived from factbook.json (§10.1) across many seeds.
 - **Balance runs:** batch-simulate N seeds × M years headless and produce distribution
   reports, to catch runaway feedback loops (e.g. infinite growth or collapse).
 - **Seed codec tests:** round-trip for random and edge seeds (`0`, `2^64−1`); rejection of
@@ -1186,12 +1225,24 @@ TypeScript interface.
   war per decade are checked against tuning targets.
 - **Save migration tests:** load fixtures from every past schema version.
 
-### 10.1 Reference data: OpenFactBook (D8)
+### 10.1 Reference data: factbook.json (D8)
 
-[OpenFactBook](https://openfactbook.org/) is a free, community-maintained successor to
-the retired CIA World Factbook. It covers 260+ countries and territories (geography,
-demographics, government, economy, infrastructure), offers a free JSON API, and says it
-draws on the CIA World Factbook, World Bank Open Data, and the REST Countries API.
+The reference source is **[factbook/factbook.json](https://github.com/factbook/factbook.json)**,
+used directly (the World Factbook dataset behind OpenFactBook). Facts checked
+against the repository on 2026-09-25:
+
+| Fact | Value |
+|---|---|
+| License | Public domain: CC0 1.0 (`LICENSE.md`); the README says "no restrictions whatsoever" |
+| Layout | `<region>/<code>.json`, e.g. `europe/au.json` (Austria). Codes are the Factbook's own two-letter codes, **not ISO** (e.g. South Africa is `sf`, Zambia is `za`) |
+| Coverage | 262 JSON files: country entries across 10 regions plus `antarctica/`, `oceans/`, `world/`, and `meta/` |
+| Sections per country | Introduction, Geography, People and Society, Environment, Government, Economy, Energy, Communications, Transportation, Military and Security, Space, Terrorism, Transnational Issues |
+| Value format | Free text with estimate years, e.g. `"9,174,390 (2025 est.)"`, `"Roman Catholic 55.2%, Muslim 8.3%, … none 22.4% (2021 est.)"` |
+| Short series | Some fields carry the last few years as keys, e.g. `"Real GDP per capita 2024"`, `"… 2023"`, `"… 2022"` |
+| **Status** | **Frozen.** The last data auto-update commit is dated 2026-01-22. The README reports that the CIA took the World Factbook offline in February 2026, so no further data updates are expected |
+
+Because the source is frozen, **forward projection (D11) is essential, not optional**.
+Every start year from now on is later than the data.
 
 **Uses in Nationwright:**
 
@@ -1203,61 +1254,63 @@ draws on the CIA World Factbook, World Bank Open Data, and the REST Countries AP
    female education, life expectancy vs. health spending, urbanization vs. GDP per
    capita) to the cross-section of real countries.
 
-**Current year only (D7):** for each field, use the **most recent value** in the
-snapshot. Factbook-style data mixes estimate years across fields (e.g. population
-"2025 est.", GDP "2023 est."). The ingest therefore stores each value's **estimate
-year**. The game uses no historical series to drive the simulation, only the latest
-cross-section, projected to the start year.
+**Current year only (D7):** for each field, use the **most recent value**. Fields mix
+estimate years (e.g. population "2025 est.", religions "2021 est."), so the ingest stores
+each value's **estimate year**. The short multi-year series are used only to estimate
+growth rates for projection. The game never replays historical data.
 
 **Projection to the start year (D11):** every value whose estimate year is earlier than
 the start year is projected forward before guiding variables and bands are computed:
 
 | Kind of field | Projection rule |
 |---|---|
-| Stocks with a growth rate (population, GDP real) | Compound by the country's own latest growth rate: `v · (1 + g)^Δy` |
-| Nominal values (GDP nominal, debt, budget) | Real growth plus the latest inflation, converted with the reference currency |
+| Stocks with a growth rate (population, GDP real) | Compound by the country's own latest growth rate, or the trend of its short series if present: `v · (1 + g)^Δy` |
+| Nominal values (GDP nominal, debt, budget) | Real growth plus the latest inflation |
 | Derived per-capita values | Recomputed from projected numerator and denominator (never projected directly) |
-| Rates and shares (TFR, life expectancy, urbanization, literacy, sector shares) | Latest value plus a damped convergence trend toward its archetype's median, capped per year (e.g. TFR ±0.05/yr, life expectancy +0.3/yr, urbanization +0.5 pp/yr) |
-| Structural facts (area, borders, government type, languages) | Carried forward unchanged |
+| Rates and shares (TFR, life expectancy, urbanization, literacy, sector shares, religious composition) | Latest value plus a damped convergence trend toward its archetype's median, capped per year (e.g. TFR ±0.05/yr, life expectancy +0.3/yr, urbanization +0.5 pp/yr); shares renormalized |
+| Structural facts (area, borders, government type, languages, ethnic groups) | Carried forward unchanged |
 
-- Projections are done by the pipeline, **not at runtime**. Each value keeps
-  `est_year`, `projected: true|false`, and `projection_years`.
+- The pipeline projects to a **target year**. Each value keeps `est_year`,
+  `projected: true|false`, and `projection_years`.
 - A projection horizon above a threshold (default 5 years) marks the value as
-  **low-confidence**. Low-confidence values are down-weighted when fitting guiding
-  variables, and the pipeline report lists them.
-- When the game's start year is later than the snapshot's target year, the pipeline's
-  projection rules are applied once at world creation to reach the start year. The
-  result is frozen into the save (`reference_bands`).
+  **low-confidence**. Low-confidence values are down-weighted when fitting and are listed
+  in the pipeline report. As the frozen data ages, the whole dataset gradually drifts
+  toward low-confidence. This is expected and reported, not an error.
+- When the game's start year is later than the pipeline's target year, the same rules
+  are applied once at world creation. The result is frozen into the save
+  (`reference_bands`).
 
 **Ingest pipeline (`packages/reference-data`):**
 
 ```
-fetch (OpenFactBook JSON API)
-  → raw/  (verbatim JSON, committed, dated)
-  → parse (text fields like "8,997,000 (2024 est.)" → value + unit + est_year)
-  → normalize (units, currencies to a common base, ISO 3166 codes, names)
+fetch (git clone/pull of factbook/factbook.json at a pinned commit)
+  → raw/  (the pinned commit hash recorded; the files are vendored or fetched by hash)
+  → parse (text → value + unit + est_year; percentage lists → {label, share}[];
+           "border countries" → neighbor list with border lengths)
+  → normalize (units, currencies, Factbook codes → internal IDs; drop oceans,
+               Antarctica, world, meta)
   → validate (schema, ranges, missing-field report)
-  → project (to the target start year; see "Projection" above)
-  → snapshot/<YYYY-MM-DD>.sqlite + manifest.json (source URLs, fetch date, field coverage)
-  → fit guiding variables (marginals, copulas, archetypes, structure statistics)
+  → project (to the target year; see above)
+  → snapshot/<target-year>.sqlite + manifest.json (commit hash, field coverage)
+  → fit guiding variables (marginals, copulas, archetypes, structure statistics,
+                           ethnicity × religion joint patterns)
   → guiding-variables.json + validation-bands.json (versioned together)
 ```
 
 - The pipeline runs **offline as a developer tool**, never at game runtime. The game
-  bundles the snapshot, so it works without network access and runs are reproducible.
-- Each save copies the reference rows it used (§6.3), so validation results don't change
-  when the bundled snapshot is updated.
-- Refresh: a scripted re-fetch at least yearly, reviewed as a normal code change with a
-  diff report of changed values.
-- **Fallback source:** [factbook/factbook.json](https://github.com/factbook/factbook.json)
-  on GitHub mirrors the Factbook country profiles as JSON (`region/code.json`, e.g.
-  `europe/au.json`). It is dedicated to the public domain and was auto-updated weekly
-  from the CIA source. Use it if the API is unavailable. The parser should handle both
-  shapes.
+  ships only the fitted statistics and bands, so it works without network access.
+- The source is pinned to a **commit hash**, so builds are reproducible even if the
+  repository changes later.
+- **Parsing is the main work.** Values are free text with inconsistent notes and
+  qualifiers. The parser uses per-field extractors with a test fixture for every field it
+  reads, and it logs unparsed values instead of guessing.
+- **Joint ethnicity × religion (§4.1):** the Factbook lists ethnic groups and religions
+  separately, not cross-tabulated. Joint patterns are therefore *modelled*: an
+  association parameter between the two (from content data and tuning), constrained so
+  its marginals match the Factbook's per-country shares.
 
 **Validation bands:** for each indicator mapped to a reference field, compute the
-distribution across real countries. Optionally narrow it to the nation's development
-tier or subregion.
+distribution across real countries. Optionally narrow it to the nation's archetype.
 
 | Band | Definition | Meaning when outside |
 |---|---|---|
@@ -1266,20 +1319,18 @@ tier or subregion.
 | Implausible | outside real min–max by > 10% | Flagged: warning at creation; logged as a balance bug in test runs |
 
 Initial mapped indicators: population, growth rate, birth/death rates, TFR, life
-expectancy, infant mortality, median age, urbanization, literacy, GDP per capita (PPP),
-real GDP growth, sector shares, unemployment, inflation, public debt % GDP, exports/
-imports % GDP, electricity access, internet users per 100, roads/rail per area,
-ethnic/religious fractionalization.
+expectancy, infant mortality, median age, urbanization, GDP per capita, real GDP growth,
+sector shares, unemployment, inflation, public debt % GDP, exports/imports % GDP,
+military expenditure % GDP, active personnel per capita, electricity access, internet
+users, roads/rail per area, ethnic/religious fractionalization.
 
-**Licensing & attribution:** OpenFactBook describes its data as free and public domain,
-and factbook.json is public domain. OpenFactBook also aggregates World Bank data (World
-Bank Open Data is generally CC BY 4.0) and REST Countries. **Before bundling, verify the
-license of each field by its upstream source** and include an attribution screen listing
-OpenFactBook, the CIA World Factbook, the World Bank, and REST Countries as applicable.
+**Nuclear data is deliberately not used.** The Factbook has no nuclear-weapons field
+anyway (its only "nuclear" field is nuclear *energy*), and nuclear weapons are banned
+from the game (D15). Nuclear energy shares feed the energy-mix guiding variables like
+any other generation source.
 
-**Unverified (to confirm in M0):** the exact API endpoints, response schema, rate limits,
-and field names. OpenFactBook was not reachable from the environment this draft was
-written in. The ingest should keep all source-specific details in one adapter module.
+**Licensing & attribution:** CC0, so no attribution is legally required. The credits
+screen still acknowledges the CIA World Factbook and the factbook.json project.
 
 ---
 
@@ -1287,12 +1338,12 @@ written in. The ingest should keep all source-specific details in one adapter mo
 
 | Milestone | Scope |
 |---|---|
-| **M0 — Skeleton** | TS monorepo, Electron shell with utility-process engine, tick loop, world seed codec + xoshiro256\*\*/SplitMix64 streams, SQLite save/load, indicator store, CLI batch runner. **Reference-data pipeline:** confirm OpenFactBook API/licensing, first snapshot, forward projection, validation bands |
+| **M0 — Skeleton** | TS monorepo, Electron shell with utility-process engine, tick loop, world seed codec + xoshiro256\*\*/SplitMix64 streams, SQLite save/load, indicator store, CLI batch runner. **Reference-data pipeline:** factbook.json ingest and parser, first snapshot, forward projection, validation bands |
 | **M1 — World Generation & Map** | Guiding-variable fitting (marginals, copulas, archetypes); map generator (cells, terrain, climate, rivers, countries, provinces, cities); culture/name packs; nation statistics sampling; generator statistical tests; map screen with political, physical, and choropleth layers |
 | **M2 — People & Places** | Demography (full cohort grid + culture shares), regions from the map, cities, internal migration, census report, population pyramid, validation against bands. Performance benchmark |
 | **M3 — Economy & World** | Sectors, labor market, public finance; foreign country mid-depth model, trade/commodities/migration/capital channels; economic survey, budget, and world comparison reports; flows map layer |
 | **M4 — Politics, Elections & Diplomacy** | Constitution, parties, approval, FPTP + list PR, government formation, election report; foreign governments and elections; pairwise relations, blocs, foreign-policy AI; foreign relations report |
-| **M5 — Military & War** | Armed forces, defense budget, path to war, theater graph and front resolution, occupation, casualties/displacement feeding demography, peace terms, territory transfer, civil wars, burn-in backstory; war report, defense review, war map layer; war sanity tests |
+| **M5 — Military & War** | Armed forces, defense budget, path to war, theater graph and front resolution, occupation, casualties/displacement feeding demography, peace terms, territory transfer, civil wars, civilian-harm outcomes and consequences, burn-in backstory; war report, defense review, war map layer; war sanity tests |
 | **M6 — Education & Infrastructure** | Education pipeline, human capital link, infrastructure assets and projects, war damage and repair; infrastructure map layer |
 | **M7 — Events & Chronicle** | Data-driven event engine, choices, modifier registry with explanations, yearbook |
 | **M8 — Sports** | Sports/leagues/teams data model, match engine, seasons, international competitions, almanac |
@@ -1305,23 +1356,16 @@ Each milestone ends with a playable build and updated golden-master tests.
 
 ## 12. Open Questions
 
-Earlier questions were resolved as D1–D13 (§0). Remaining:
+Earlier questions were resolved as D1–D18 (§0). Remaining:
 
-1. **Culture share correlations** (§4.1) — are independent share vectors enough, or does
-   politics need joint ethnicity × religion distributions?
-2. **Reference licensing** (§10.1) — confirm per-field licenses and attribution wording
-   once the OpenFactBook API is inspected. Since only aggregated statistics ship
-   (§4.12.1), attribution may be the only obligation. Confirm this.
-3. **Nuclear use** (§4.11.2) — v1 models deterrence only. Should nuclear use ever be
-   simulated, or stay out of scope permanently?
-4. **War-crime and atrocity modelling** — deep wars raise the question of civilian
-   targeting, occupation abuses, and war-crimes tribunals. Recommendation: model
-   civilian harm as an aggregate outcome with diplomatic consequences, and never as a
-   player-selectable action.
-5. **World size limits** (§4.12) — confirm the 20–250 country range and the cell budget
-   once the M1 performance benchmark is in.
-6. **Burn-in** (§4.12.4) — keep the 30-year diplomatic/war pre-run, or generate starting
-   relations by rules only (faster world creation)?
+1. **Joint culture dimensions beyond ethnicity × religion** (§4.1): should language
+   also join the joint matrix (E × R × L), or stay a separate vector? Recommendation:
+   separate for v1, and revisit after the M2 performance benchmark.
+2. **Ethno-religious association data** (§10.1): the Factbook lists ethnicity and
+   religion separately. Choose the content source or tuning method for the association
+   parameter that builds the joint matrix.
+3. **Very large worlds** (D17): the target hardware and acceptable world-creation time
+   for worlds well above the recommended range (e.g. 500+ countries).
 
 ---
 
