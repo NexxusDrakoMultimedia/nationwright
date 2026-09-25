@@ -5,11 +5,14 @@ policies, advance time, and watch it evolve through detailed statistical reports
 tables, economic surveys, election results, league standings, war reports, and an annual
 yearbook.
 
-> **Status: design phase.** There is no code yet. The design is in
-> [DESIGN.md](DESIGN.md), and implementation starts with milestone M0 in
-> [TODO.md](TODO.md).
+> **Status: early development.** World generation and the map work: a new world has
+> 196 generated countries (by default) with terrain, climate, rivers, borders, provinces,
+> cities, names, cultures, and statistics drawn from real-world distributions. You can
+> explore it on the map, save it, and advance time. The simulation systems below
+> (population, economy, politics, and the rest) are designed but not built yet. See
+> [TODO.md](TODO.md) for progress and [DESIGN.md](DESIGN.md) for the full design.
 
-## What it simulates
+## What it will simulate
 
 - **Population & demographics:** cohort-component model by region, urban/rural, age,
   sex, and education, with a joint ethnicity × religion × language distribution
@@ -40,22 +43,47 @@ yearbook.
 - **Deterministic and explainable.** The same world and inputs always give the same
   history, and every major number can be traced to its causes.
 
-## Planned technology
+## Getting started
 
-TypeScript (strict) · Electron (React + Vite renderer) · SQLite via `better-sqlite3`
-(one file per save) · Vitest. See [DESIGN.md §9](DESIGN.md#9-technology).
+Requires Node.js 22.12 or later (see `.nvmrc`). From the repository root:
 
-Planned monorepo layout:
+```sh
+npm install
+npm run ui:start        # build and launch the desktop app
+```
+
+Other useful commands:
+
+| Command | What it does |
+|---|---|
+| `npm run check` | Typecheck, lint, format check, tests, and license check (what CI runs) |
+| `npm run nw -- new world.nwsave` | Create a world from the command line |
+| `npm run nw -- run world.nwsave --years 5` | Advance a saved world |
+| `npm run nw -- info world.nwsave` | Show a save's dates and contents |
+| `npm run ui:package -- --linux AppImage` | Build an installer into `packages/ui/dist/` |
+| `npm run worldgen:validate` | Check 200 generated worlds against real-world statistics |
+
+[CLAUDE.md](CLAUDE.md#commands) lists every command.
+
+## Technology
+
+TypeScript (strict) · Electron (React + Vite renderer, engine in a separate utility
+process) · SQLite via `better-sqlite3` (one file per save) · Vitest. See
+[DESIGN.md §9](DESIGN.md#9-technology).
 
 ```
 packages/
-  engine/          pure simulation library (no UI, no I/O)
-  app/             save/load, command queue, report builder
-  ui/              Electron renderer (React)
-  cli/             headless batch runner
+  engine/          pure, deterministic simulation and world generation (no UI, no I/O)
+  app/             saves, world sessions, and the ruleset of simulation systems
+  ui/              Electron app: main process, preload, engine worker, React renderer
+  cli/             headless command-line runner
   reference-data/  factbook.json ingest → guiding variables and validation bands
-content/           YAML data packs (events, sports, culture/name packs, tuning)
+scripts/           license check, map renderer, world-generator validation
+docs/validation/   latest world-generator validation report
 ```
+
+A `content/` folder of YAML data packs (events, sports, culture and name packs,
+tuning) is planned.
 
 ## Documents
 
