@@ -33,11 +33,13 @@ export function runSmokeTest(window: BrowserWindow, dir: string): void {
       await js(
         `(window.__progress = [], window.nationwright.onEvent((e) => window.__progress.push(e.type)), true)`,
       );
-      const seed = await call<string>('seed.generate', null);
-      const check = await call<unknown>('seed.check', { text: seed });
-      const bad = await call<unknown>('seed.check', { text: 'AAAAAAAAAAB' });
-      progress(`seed ${seed} generated and checked`);
-      const created = await call<unknown>('world.create', { path, seed });
+      let seedRequest: string | null = null;
+      try {
+        await call('seed.generate', null);
+      } catch (e) {
+        seedRequest = e instanceof Error ? e.message : String(e);
+      }
+      const created = await call<unknown>('world.create', { path });
       progress('world generated and saved');
       const advanced = await call<unknown>('world.advance', { months: 24 });
       progress('advanced 24 months');
@@ -51,9 +53,7 @@ export function runSmokeTest(window: BrowserWindow, dir: string): void {
       const reopened = await call<unknown>('world.open', { path });
       progress('world closed and reopened');
       const result = {
-        seed,
-        check,
-        bad,
+        seedRequest,
         created,
         advanced,
         reopened,

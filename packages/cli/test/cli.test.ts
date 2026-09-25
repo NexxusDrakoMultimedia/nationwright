@@ -43,23 +43,21 @@ describe('nationwright CLI', () => {
     expect(run('frobnicate').code).toBe(2);
   });
 
-  it('prints a canonical random seed', () => {
-    const { code, out } = run('seed');
-    expect(code).toBe(0);
-    expect(out[0]).toMatch(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/);
+  it('never shows or accepts world seeds', () => {
+    expect(run('seed').code).toBe(2);
+    expect(run('new', join(dir, 's.nwsave'), '--seed', 'q3Zk1d0XbAc').code).toBe(2);
+    expect(existsSync(join(dir, 's.nwsave'))).toBe(false);
+    const w = join(dir, 'w.nwsave');
+    run('new', w);
+    expect(run('info', w).out.join('\n')).not.toMatch(/seed/i);
   });
 
   it('creates, runs, inspects, exports, and branches a world', () => {
     const w = join(dir, 'w.nwsave');
-    expect(run('new', w, '--seed', 'q3Zk1d0XbAc', '--years', '1').out).toEqual([
-      `Created ${w}`,
-      'World seed: q3Zk1d0XbAc',
-      'Now at January 2027',
-    ]);
+    expect(run('new', w, '--years', '1').out).toEqual([`Created ${w}`, 'Now at January 2027']);
     expect(run('run', w, '--months', '3').out).toEqual(['Advanced 3 months; now at April 2027']);
 
     const info = run('info', w).out.join('\n');
-    expect(info).toContain('World seed:     q3Zk1d0XbAc');
     expect(info).toContain('Now:            April 2027 (month 15)');
     expect(info).toContain('Systems:        toyEconomy, toyPopulation');
 
@@ -74,11 +72,7 @@ describe('nationwright CLI', () => {
   });
 
   it('reports bad input without throwing', () => {
-    expect(run('new', join(dir, 'x.nwsave'), '--seed', 'AAAAAAAAAAB')).toMatchObject({
-      code: 2,
-      err: [expect.stringContaining('AEIMQUYcgkosw048')],
-    });
-    expect(existsSync(join(dir, 'x.nwsave'))).toBe(false);
+    expect(run('new', join(dir, 'x.nwsave'), '--years', 'many').code).toBe(1);
     expect(run('run', join(dir, 'missing.nwsave'), '--years', '1')).toMatchObject({ code: 1 });
     expect(run('indicators', join(dir, 'x.nwsave'), '--scope', 'planet:3').code).toBe(2);
     expect(run('run', join(dir, 'x.nwsave')).code).toBe(1);

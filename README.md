@@ -33,11 +33,11 @@ yearbook.
   Its statistics are sampled from real-world distributions fitted to
   [factbook.json](https://github.com/factbook/factbook.json) (public domain), projected
   to the current year.
-- **One seed, one world.** Each world comes from a random 64-bit seed shown as 11
-  base64url characters (e.g. `q3Zk1d0XbAc`). Share the seed to share the world.
+- **Every world is new.** Each world is generated at random; to share one, share its
+  save file.
 - **Generated map.** Terrain, climate, rivers, borders, regions, and cities are
   generated, and the map shows any statistic.
-- **Deterministic and explainable.** The same seed and inputs always give the same
+- **Deterministic and explainable.** The same world and inputs always give the same
   history, and every major number can be traced to its causes.
 
 ## Planned technology

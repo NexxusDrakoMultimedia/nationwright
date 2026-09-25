@@ -51,18 +51,16 @@ function ok(method: EngineMethod, params: unknown): unknown {
 }
 
 describe('EngineHost', () => {
-  it('generates and checks seeds', () => {
-    const seed = ok('seed.generate', null) as string;
-    expect(seed).toMatch(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/);
-    expect(ok('seed.check', { text: ` ${seed} ` })).toEqual({ ok: true, canonical: seed });
-    expect(ok('seed.check', { text: 'AAAAAAAAAAB' })).toMatchObject({ ok: false });
+  it('never exposes world seeds', () => {
+    expect(call('seed.generate' as EngineMethod, null)).toMatchObject({ ok: false });
+    const summary = ok('world.create', { path: join(dir, 's.nwsave') }) as object;
+    expect(Object.keys(summary)).not.toContain('seed');
   });
 
   it('creates, advances with progress, closes, and reopens a world', () => {
     const path = join(dir, 'w.nwsave');
     expect(ok('world.summary', null)).toBeNull();
-    expect(ok('world.create', { path, seed: 'q3Zk1d0XbAc' })).toMatchObject({
-      seed: 'q3Zk1d0XbAc',
+    expect(ok('world.create', { path })).toMatchObject({
       month: 0,
       date: 'January 2026',
       systems: ['toyEconomy', 'toyPopulation'],
@@ -82,9 +80,6 @@ describe('EngineHost', () => {
     expect(call('world.advance', { months: 1 })).toMatchObject({
       ok: false,
       error: 'No world is open.',
-    });
-    expect(call('world.create', { path: join(dir, 'x.nwsave'), seed: 'nope' })).toMatchObject({
-      ok: false,
     });
     ok('world.create', { path: join(dir, 'y.nwsave') });
     expect(call('world.advance', { months: 0 })).toMatchObject({ ok: false });

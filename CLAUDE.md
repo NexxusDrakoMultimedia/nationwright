@@ -9,7 +9,7 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 
 ## Source of truth
 
-- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D22)**
+- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D23)**
   records settled choices.
 - **GOALS.md** says why and what. **TODO.md** is the working task list.
 - **Never reverse or reinterpret a logged decision on your own.** If a task seems to
@@ -26,8 +26,9 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 - **Determinism (§3.3):**
   - No `Math.random()`, `Date.now()`, or `new Date()` in `packages/engine`. Only the
     application layer reads the clock, once, to set the start year.
-  - All randomness comes from the **world seed**: 64 bits, shown as 11-character
-    unpadded **base64url**. The last character must be one of `AEIMQUYcgkosw048`, and
+  - All randomness comes from the **world seed**: 64 bits, stored as 11-character
+    unpadded **base64url**. Seeds are internal (D23): never show one to the player or
+    accept one from them in the UI, CLI, reports, or exports. The last character must be one of `AEIMQUYcgkosw048`, and
     the parser rejects non-canonical input. Standard base64 and `=` padding are
     converted before validation.
   - PRNG: xoshiro256\*\* seeded via SplitMix64. Every consumer uses its own
@@ -123,7 +124,7 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run data:fetch` | Clone factbook.json at the pinned commit into `packages/reference-data/.cache/` |
 | `npm run data:build -- --target-year 2026` | Rebuild `packages/reference-data/data/` (review `report-<year>.md` in the diff) |
 | `npm run worldgen:validate` | Generate 200 worlds and write `docs/validation/worldgen.md` (about a minute; rerun after generator or guiding-model changes) |
-| `npm run nw -- <command>` | Headless CLI: `seed`, `new <file>`, `run <file> --years N`, `info`, `indicators`, `branch` |
+| `npm run nw -- <command>` | Headless CLI: `new <file>`, `run <file> --years N`, `info`, `indicators`, `branch` |
 | `npm run ui:build` | Build the desktop app into `packages/ui/out/` |
 | `npm run ui:start` | Build and launch the desktop app |
 | `npm run ui:smoke` | End-to-end Electron test under Xvfb (add `-- --app <binary>` for a packaged build) |

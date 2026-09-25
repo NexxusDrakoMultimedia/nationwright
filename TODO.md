@@ -63,7 +63,7 @@ off as they land; add new ones as work reveals them.
 - [x] Renderer: React + Vite; `contextIsolation` on, `nodeIntegration` off, `sandbox` on,
       strict CSP, narrow preload API; navigation, new windows, and permissions denied
 - [x] `better-sqlite3` 13 (Node-API) loads in Electron without a rebuild, also when packaged
-- [x] Minimal UI: new world (seed entry/reroll/validation), open, advance, close, About
+- [x] Minimal UI: new world, open, advance, close, About (seed entry removed by D23)
 - [x] End-to-end smoke test (`npm run ui:smoke`), in CI with the sandbox on
 - [x] electron-builder config (`npm run ui:package`): Linux AppImage verified locally;
       macOS dmg and Windows nsis configured but not yet built

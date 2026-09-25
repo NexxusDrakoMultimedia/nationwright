@@ -7,14 +7,7 @@
  */
 
 import { guidingFor, WorldSession, type Ruleset } from '@nationwright/app';
-import {
-  dateOfTick,
-  describeSeedError,
-  formatDate,
-  formatSeed,
-  generateSeed,
-  parseSeed,
-} from '@nationwright/engine';
+import { dateOfTick, formatDate } from '@nationwright/engine';
 import type {
   EngineEvent,
   EngineMethod,
@@ -83,26 +76,9 @@ export class EngineHost {
   }
 
   readonly #handlers: Handlers = {
-    'seed.generate': () => formatSeed(generateSeed((bytes) => crypto.getRandomValues(bytes))),
-
-    'seed.check': ({ text }) => {
-      const result = parseSeed(text);
-      return result.ok
-        ? { ok: true, canonical: result.canonical }
-        : { ok: false, message: describeSeedError(result.error) };
-    },
-
-    'world.create': ({ path, seed }) => {
-      if (seed !== undefined) {
-        const parsed = parseSeed(seed);
-        if (!parsed.ok) throw new Error(describeSeedError(parsed.error));
-      }
+    'world.create': ({ path }) => {
       this.shutdown();
-      this.#session = WorldSession.create({
-        path,
-        ...(seed === undefined ? {} : { seed }),
-        ...this.#sessionOptions(),
-      });
+      this.#session = WorldSession.create({ path, ...this.#sessionOptions() });
       this.#path = path;
       return this.#summary();
     },
@@ -224,7 +200,6 @@ export class EngineHost {
     const { world, nextTick, indicators } = session.engine;
     return {
       path: this.#path,
-      seed: session.seedString,
       startYear: world.meta.startYear,
       month: nextTick,
       date: this.#dateText(),

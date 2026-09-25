@@ -8,15 +8,7 @@
 
 import { parseArgs } from 'node:util';
 import { SaveFile, WorldSession, type Ruleset } from '@nationwright/app';
-import {
-  dateOfTick,
-  describeSeedError,
-  formatDate,
-  formatSeed,
-  generateSeed,
-  isScope,
-  parseSeed,
-} from '@nationwright/engine';
+import { dateOfTick, formatDate, isScope } from '@nationwright/engine';
 
 export interface CliContext {
   readonly out: (line: string) => void;
@@ -28,11 +20,10 @@ export interface CliContext {
 export const USAGE = `Usage: nationwright <command> [options]
 
 Commands:
-  seed                               Print a new random world seed
-  new <file> [--seed S] [--start-year Y] [--years N]
-                                     Create a world (random seed and current year by default)
+  new <file> [--start-year Y] [--years N]
+                                     Create a new random world (current year by default)
   run <file> --years N | --months N  Advance a saved world
-  info <file>                        Show seed, dates, and contents of a save
+  info <file>                        Show dates and contents of a save
   indicators <file> [--id ID] [--scope SCOPE]
                                      Print indicator series as CSV
   branch <file> <new-file> [--at-month N]
@@ -46,7 +37,6 @@ export function runCli(argv: readonly string[], ctx: CliContext): number {
       args: [...argv],
       allowPositionals: true,
       options: {
-        seed: { type: 'string' },
         'start-year': { type: 'string' },
         years: { type: 'string' },
         months: { type: 'string' },
@@ -70,9 +60,6 @@ export function runCli(argv: readonly string[], ctx: CliContext): number {
 
   try {
     switch (command) {
-      case 'seed':
-        ctx.out(formatSeed(generateSeed((bytes) => crypto.getRandomValues(bytes))));
-        return 0;
       case 'new':
         return cmdNew(requireArg(args, 0, 'file'), values, ctx);
       case 'run':
@@ -97,24 +84,13 @@ export function runCli(argv: readonly string[], ctx: CliContext): number {
 type Values = Record<string, string | boolean | undefined>;
 
 function cmdNew(path: string, values: Values, ctx: CliContext): number {
-  let seed: bigint | undefined;
-  if (typeof values['seed'] === 'string') {
-    const result = parseSeed(values['seed']);
-    if (!result.ok) {
-      ctx.err(describeSeedError(result.error));
-      return 2;
-    }
-    seed = result.seed;
-  }
   const session = WorldSession.create({
     path,
-    ...(seed === undefined ? {} : { seed }),
     ...(values['start-year'] === undefined ? {} : { startYear: intOption(values, 'start-year') }),
     ...(ctx.ruleset === undefined ? {} : { ruleset: ctx.ruleset }),
     ...(ctx.now === undefined ? {} : { now: ctx.now }),
   });
   ctx.out(`Created ${path}`);
-  ctx.out(`World seed: ${session.seedString}`);
   const ticks = tickCount(values, false);
   if (ticks > 0) session.advance(ticks);
   session.close();
@@ -140,7 +116,6 @@ function cmdInfo(path: string, ctx: CliContext): number {
   try {
     const info = file.info();
     const saved = file.read();
-    ctx.out(`World seed:     ${info.worldSeed}`);
     ctx.out(`Start:          ${formatDate(dateOfTick(info.startYear, 0))}`);
     ctx.out(
       `Now:            ${formatDate(dateOfTick(info.startYear, info.nextTick))} (month ${info.nextTick})`,

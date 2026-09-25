@@ -100,28 +100,11 @@ interface ScreenProps {
 }
 
 function StartScreen({ run, disabled }: ScreenProps) {
-  const [seed, setSeed] = useState('');
-  const [seedError, setSeedError] = useState<string | null>(null);
-
-  const reroll = useCallback(async () => {
-    setSeed(await api.request('seed.generate', null));
-    setSeedError(null);
-  }, []);
-
-  useEffect(() => {
-    void reroll();
-  }, [reroll]);
-
   const create = () =>
     void run('Creating world', async () => {
-      const check = await api.request('seed.check', { text: seed });
-      if (!check.ok) {
-        setSeedError(check.message);
-        return null;
-      }
-      const path = await api.chooseNewWorldPath(check.canonical);
+      const path = await api.chooseNewWorldPath('world');
       if (path === null) return null;
-      return api.request('world.create', { path, seed: check.canonical });
+      return api.request('world.create', { path });
     });
 
   const open = () =>
@@ -134,32 +117,10 @@ function StartScreen({ run, disabled }: ScreenProps) {
     <section className="panel start">
       <h2>New world</h2>
       <p className="hint">
-        Every world comes from a 64-bit seed. Share the seed to share the world.
+        Each new world is generated at random and can't be recreated. Its save file is the world.
       </p>
-      <label className="seed">
-        <span>World seed</span>
-        <input
-          value={seed}
-          spellCheck={false}
-          maxLength={16}
-          aria-invalid={seedError !== null}
-          onChange={(e) => {
-            setSeed(e.target.value);
-            setSeedError(null);
-          }}
-        />
-        <button type="button" onClick={() => void reroll()} disabled={disabled}>
-          Reroll
-        </button>
-      </label>
-      {seedError !== null && <p className="error">{seedError}</p>}
       <div className="actions">
-        <button
-          type="button"
-          className="primary"
-          onClick={create}
-          disabled={disabled || seed === ''}
-        >
+        <button type="button" className="primary" onClick={create} disabled={disabled}>
           Create world…
         </button>
         <button type="button" onClick={open} disabled={disabled}>
@@ -197,8 +158,7 @@ function WorldScreen({ world, run, disabled }: ScreenProps & { readonly world: W
         <div>
           <h2>{world.date}</h2>
           <p className="hint">
-            Seed <code>{world.seed}</code> · started January {world.startYear} · {world.month}{' '}
-            months simulated
+            Started January {world.startYear} · {world.month} months simulated
           </p>
         </div>
         <div className="actions">

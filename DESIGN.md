@@ -1,6 +1,6 @@
 # Nationwright — Design Document
 
-> Status: **Draft v0.8** · Last updated: 2026-09-25
+> Status: **Draft v0.9** · Last updated: 2026-09-25
 >
 > This document describes what Nationwright is, how the simulation works, and how the
 > software is structured. Settled decisions are listed in §0. Remaining open
@@ -25,7 +25,7 @@
 | D10 | Wars & foreign relations | **Deep.** Full pairwise relations among all countries; foreign countries have governments, leaders, elections, and militaries and act on their own; wars are simulated at the operational level (forces, fronts, occupation, casualties, peace terms) | §4.10, §4.11 |
 | D11 | Stale reference data | **Project forward.** Each reference value is projected from its estimate year to the start year | §10.1 |
 | D12 | World composition | **Completely fictional, procedurally generated world.** Every country (foreign and the player's) is invented: names, geography, borders, blocs, leaders. No real country appears in play. The factbook.json dataset supplies the **guiding variables**, the statistical distributions and correlations that generated nations are sampled from | §4.12, §10.1 |
-| D13 | World seed | **Random 64-bit seed, encoded as base64** (unpadded base64url, 11 characters). It is the only randomness input for world generation and simulation | §3.3 |
+| D13 | World seed | **Random 64-bit seed** (stored as 8 bytes plus unpadded base64url, 11 characters). It is the only randomness input for world generation and simulation. **Internal only (D23):** never shown to or entered by the player | §3.3 |
 | D14 | Ethnicity × religion × language | **Tracked jointly** per cohort cell (one joint distribution, not independent vectors). How the three associate is **randomized** per country from the world seed, within the group counts and shares the guiding variables set | §4.1, §4.12.3 |
 | D15 | Nuclear weapons | **Banned.** They do not exist in the world. There are no arsenals, deterrence, or use, and warfare is conventional only. Nuclear *energy* remains | §4.11 |
 | D16 | Civilian harm | *(Superseded by D21.)* Was: an outcome, never an action; no option targets civilians | §4.11.3 |
@@ -35,6 +35,7 @@
 | D20 | License | **GPLv3 or later** (`GPL-3.0-or-later`), copyright Nexxus Drako Multimedia; full text in `LICENSE`. Dependencies must be GPLv3-compatible | §9 |
 | D21 | Civilian targeting | **Allowed, for the player and the AI alike, with no opt-in setting.** Wars can deliberately target civilians through aggregate war policies (strike targeting, blockade scope, occupation policy). Civilian harm is also still an incidental outcome of fighting. Both carry diplomatic, legal, political, and demographic consequences. *(Replaces D16.)* | §4.11.3 |
 | D22 | Fog of war & intelligence | **Foreign countries are seen through intelligence estimates,** not true values. Every country (the player's included) has an intelligence service; knowledge of each other country depends on collection, access, and the target's openness and counterintelligence. The foreign-policy AI decides on its own estimates too. Covert operations exist and can be exposed | §4.13 |
+| D23 | Visible seeds | **None.** Seeds stay internal (determinism, replay, branching, tests). The player never sees, copies, or enters one; every new world is random, and a world is shared by sharing its save file. Generator and guiding-model changes alter what a seed produces, so seeds were never a durable way to share worlds | §3.3, §4.12, §8 |
 
 ---
 
@@ -99,7 +100,7 @@ The summary below is expanded, with success criteria, in [GOALS.md](GOALS.md).
 | **World** | The root aggregate: the player's nation plus all foreign countries and global conditions. |
 | **Foreign country** | A procedurally generated fictional country (§4.12). It has its own government, diplomacy, and military, and reduced-form demography and economy (§4.10). |
 | **Guiding variables** | The statistical model fitted to factbook.json data (marginal distributions, correlations, category frequencies) that the world generator samples from (§4.12, §10.1). |
-| **World seed** | A random 64-bit value, shown as 11 characters of base64url (e.g. `q3Zk1d0XbAc`), that determines the generated world and all simulation randomness (§3.3). |
+| **World seed** | A random 64-bit value, stored as 11 characters of base64url (e.g. `q3Zk1d0XbAc`), that determines the generated world and all simulation randomness (§3.3). Internal only: the player never sees it (D23). |
 | **Province** | A war-relevant subdivision of a foreign country (border zones, heartland, capital) used for fronts and occupation (§4.11). The player's regions play the same role at home. |
 | **Front** | An active line of conflict between two belligerents across adjacent regions/provinces (§4.11). |
 | **Region** | Administrative subdivision (state/province). Contains cities and rural population. Every nation has at least one. |
@@ -188,22 +189,22 @@ of everything before it, including war weariness.
   randomness input to the engine.
 - **Encoding:** the seed's 8 bytes (big-endian) are written as **unpadded base64url**
   (RFC 4648 §5): 11 characters from `A–Z a–z 0–9 - _`, e.g. `q3Zk1d0XbAc`. This form is
-  safe in file names, URLs, and chat messages.
+  safe in file names and save metadata.
   - 11 characters carry 66 bits, so the last character holds only 4 seed bits. Its low
     2 bits must be zero: it must be one of `AEIMQUYcgkosw048`. The parser **rejects**
     non-canonical strings instead of silently normalizing them, so every seed has
     exactly one spelling.
   - The parser also accepts standard base64 (`+` `/`) and a trailing `=`, and converts
-    them to the canonical base64url form before validation, so pasted seeds still work.
+    them to the canonical base64url form before validation.
   - Internally the seed is held as a `bigint` (or two `uint32` halves in hot code) and
     stored in SQLite as an 8-byte BLOB, with the canonical string alongside.
-- **Player-facing:** the seed is shown on the world screen and in every report footer,
-  with a copy button. "New world" takes an optional seed field; pasting a seed recreates
-  that world.
-- **Reproducibility contract:** seed + generator version + guiding-variables version +
-  generator settings (§4.12) ⇒ an identical world. A save records all four. When a
-  shared seed is opened on a different generator version, the game warns that the world
-  will differ.
+- **Not player-facing (D23):** no screen, report, CLI command, or export shows the seed,
+  and "New world" has no seed field: every new world is random. A world is shared by
+  sharing its save file, which stores the generated world itself (§8), so it opens the
+  same on any version.
+- **Reproducibility contract (internal):** seed + generator version + guiding-variables
+  version + generator settings (§4.12) ⇒ an identical world. A save records all four.
+  Tests, the validation script, replay, and branching rely on it.
 
 #### PRNG and streams
 
@@ -839,7 +840,7 @@ distilled into **guiding variables** that make the generated world statistically
 realistic.
 
 Generator inputs:
-- the **world seed**: 64-bit, base64url (§3.3);
+- the **world seed**: 64-bit, internal only (§3.3, D23);
 - number of countries: **no hard limit (D17)**. The default ≈ the real number of
   sovereign states in the data (~195). The **recommended** range is 20–250. Outside it
   the wizard shows a realism note (how far the world departs from Earth-like
@@ -848,8 +849,7 @@ Generator inputs:
 - land fraction, climate bias, and optional archetype mix overrides.
 
 Under the reproducibility contract in §3.3, the same inputs always produce the same
-world. Settings left at their defaults are not needed, so sharing a world usually means
-sharing just the 11-character seed.
+world. Players share worlds as save files, never as seeds (D23).
 
 #### 4.12.1 Guiding variables
 
@@ -1267,7 +1267,7 @@ from the engine.
 | **War Report** | Belligerents, war policies, fronts and control over time, casualties (military/civilian, incidental/deliberate), displacement, costs, war score, peace terms; foreign figures are estimates | Monthly during war + final |
 | **Intelligence Assessment** | Coverage by country and category, estimates with confidence, detected foreign operations, own operations and their outcomes, warnings of mobilization | Quarterly + on demand |
 | **Defense Review** | Forces by branch, readiness, equipment, spending, threat assessment | Annual |
-| **World Atlas** | Map layers (§4.12.5), country profiles, blocs, world seed and generator info | Always available |
+| **World Atlas** | Map layers (§4.12.5), country profiles, blocs, generator info | Always available |
 | **Yearbook** | Narrative summary of the year: key events, statistics, milestones | Annual |
 | **History** | Full chronicle, filterable by category and period | Always available |
 | **Custom Query** | Pick any indicators, regions, date range → chart/table | Always available |
@@ -1289,9 +1289,9 @@ A guided wizard with sensible defaults and a "randomize" button for each step:
 
 1. Name, flag colors, flavor founding date, name/culture pack. The simulation start date
    is fixed to the current year (D7) and is shown but not editable.
-2. **World:** a random 64-bit seed is pre-filled in base64 (§3.3). The player can reroll
-   it, paste a shared seed, or adjust generator settings (§4.12). The world map
-   previews live as the seed changes.
+2. **World:** a random world is generated (§3.3; the seed is never shown, D23). The
+   player can reroll it or adjust generator settings (§4.12), and the world map previews
+   live.
 3. **Place in the world:** pick a slot on the map (a subregion; coastal, landlocked, or
    island). The slot fixes the neighbors, and the wizard shows their generated stats.
 4. Geography: the number of regions (the map splits the territory, and borders can be
@@ -1585,7 +1585,7 @@ screen still acknowledges the CIA World Factbook and the factbook.json project.
 | **M6 — Education & Infrastructure** | Education pipeline, human capital link, infrastructure assets and projects, war damage and repair; infrastructure map layer |
 | **M7 — Events & Chronicle** | Data-driven event engine, choices, modifier registry with explanations, yearbook |
 | **M8 — Sports** | Sports/leagues/teams data model, match engine, seasons, international competitions, almanac |
-| **M9 — Creation Wizard & Polish** | Nation creation flow (seed entry/reroll with live map preview, slot placement, archetype profiles, plausibility review), overseer autopilot, dashboards, world atlas, exports, comparative views, attribution screen, installers, onboarding |
+| **M9 — Creation Wizard & Polish** | Nation creation flow (world reroll with live map preview, slot placement, archetype profiles, plausibility review), overseer autopilot, dashboards, world atlas, exports, comparative views, attribution screen, installers, onboarding |
 | **v1.x** | More electoral systems, named athletes, branching timelines UI, modding docs |
 
 Each milestone ends with a playable build and updated golden-master tests.
@@ -1594,7 +1594,7 @@ Each milestone ends with a playable build and updated golden-master tests.
 
 ## 12. Open Questions
 
-Questions raised so far are resolved as D1–D22 (§0). New ones are added here as
+Questions raised so far are resolved as D1–D23 (§0). New ones are added here as
 implementation raises them.
 
 - **Civilian targeting outside war:** D21 covers wars, including civil wars. Whether

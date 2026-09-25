@@ -22,7 +22,7 @@ began, and reading it all back in census tables, yearbooks, and maps.
    politics, politics shapes war, and war reshapes the population.
 4. **Influence, not control.** The player is an overseer. Institutions, elections, and
    foreign powers push back, but the player never loses the save.
-5. **Worlds are shareable.** One 11-character seed reproduces a world.
+5. **Every world is new.** Worlds are generated at random and shared as save files.
 6. **Reports are the core product.** Tables, charts, maps, and narrative yearbooks are
    first-class, and all of them can be exported.
 

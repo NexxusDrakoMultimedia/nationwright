@@ -14,7 +14,7 @@
  */
 
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -29,6 +29,7 @@ const uiIndex = process.argv.indexOf('--ui');
 const uiWorld = uiIndex >= 0 ? process.argv[uiIndex + 1] : undefined;
 const outIndex = process.argv.indexOf('--out');
 const outDir = outIndex >= 0 ? process.argv[outIndex + 1] : undefined;
+if (outDir !== undefined) mkdirSync(outDir, { recursive: true });
 
 // --app <executable> tests a packaged build instead of the development one.
 const appIndex = process.argv.indexOf('--app');
@@ -107,12 +108,10 @@ const report = JSON.parse(line.slice('SMOKE '.length)) as {
   ok: boolean;
   error?: string;
   result?: {
-    seed: string;
-    check: { ok: boolean; canonical?: string };
-    bad: { ok: boolean };
-    created: { month: number; seed: string; date: string };
+    seedRequest: string | null;
+    created: { month: number; date: string; seed?: unknown };
     advanced: { month: number; date: string };
-    reopened: { month: number; seed: string };
+    reopened: { month: number; date: string };
     error: string | null;
     progress: string[];
     nodeInRenderer: boolean;
@@ -130,12 +129,10 @@ if (!report.ok || report.result === undefined) {
   failures.push(`app reported failure: ${report.error ?? 'unknown'}`);
 } else {
   const r = report.result;
-  expect(/^[A-Za-z0-9_-]{10}[AEIMQUYcgkosw048]$/.test(r.seed), `bad seed ${r.seed}`);
-  expect(r.check.ok && r.check.canonical === r.seed, 'seed.check rejected a generated seed');
-  expect(!r.bad.ok, 'seed.check accepted a non-canonical seed');
-  expect(r.created.month === 0 && r.created.seed === r.seed, 'world.create summary is wrong');
+  expect(r.seedRequest !== null, 'the engine still answers seed requests');
+  expect(r.created.month === 0 && !('seed' in r.created), 'world.create summary is wrong');
   expect(r.advanced.month === 24, `expected month 24 after advancing, got ${r.advanced.month}`);
-  expect(r.reopened.month === 24 && r.reopened.seed === r.seed, 'reopened world differs');
+  expect(r.reopened.month === 24 && r.reopened.date === r.advanced.date, 'reopened world differs');
   expect(r.error !== null && r.error.includes('months'), 'invalid advance was not rejected');
   expect(r.progress.includes('progress') && r.progress.includes('saved'), 'no progress events');
   expect(!r.nodeInRenderer, 'Node APIs are reachable from the renderer');

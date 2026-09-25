@@ -9,7 +9,6 @@
 
 export interface WorldSummary {
   readonly path: string;
-  readonly seed: string;
   readonly startYear: number;
   /** Months simulated so far (the next tick to run). */
   readonly month: number;
@@ -70,15 +69,10 @@ export interface MapData {
   readonly cities: readonly MapCity[];
 }
 
-export type SeedCheck =
-  | { readonly ok: true; readonly canonical: string }
-  | { readonly ok: false; readonly message: string };
-
 /** Every request the renderer can make: its parameters and its result. */
 export interface EngineRequests {
-  'seed.generate': { params: null; result: string };
-  'seed.check': { params: { text: string }; result: SeedCheck };
-  'world.create': { params: { path: string; seed?: string }; result: WorldSummary };
+  /** Creates a world from a fresh random seed; the seed is never shown (D13). */
+  'world.create': { params: { path: string }; result: WorldSummary };
   'world.open': { params: { path: string }; result: WorldSummary };
   'world.advance': { params: { months: number }; result: WorldSummary };
   'world.summary': { params: null; result: WorldSummary | null };
