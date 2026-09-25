@@ -145,8 +145,10 @@ export function educationByAge(
     }
     return people > 0 ? none / people : 0;
   };
+  // Up to 15 fewer years per decade of age: countries with low adult literacy and high
+  // enrolment today have very steep generational gaps.
   let lo = 0;
-  let hi = 6;
+  let hi = 15;
   if (noneShare(lo) >= illiterate) hi = lo;
   else if (noneShare(hi) <= illiterate) lo = hi;
   else {

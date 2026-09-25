@@ -130,7 +130,7 @@ off as they land; add new ones as work reveals them.
 ## M2 — People & Places
 - [x] Cohort grid (region × urban/rural × age × sex × education), regions = the player's
       provinces; starting population calibrated to the sampled statistics
-- [ ] Tests for the demography model and system (calibration, conservation, save/resume)
+- [x] Tests for the demography model and system (calibration, conservation, save/resume)
 - [ ] Sparse joint culture distribution (combination table, pruning)
 - [x] Fertility, mortality, aging (Siler life tables, blended fertility schedules);
       rural-to-urban migration; interim net international migration at the sampled rate

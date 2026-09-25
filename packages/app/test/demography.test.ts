@@ -1,0 +1,69 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Nexxus Drako Multimedia
+
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { summarize } from '@nationwright/engine';
+import { WorldSession } from '../src/index.ts';
+
+let dir: string;
+beforeAll(() => {
+  dir = mkdtempSync(join(tmpdir(), 'nationwright-demography-'));
+});
+afterAll(() => {
+  rmSync(dir, { recursive: true, force: true });
+});
+
+const now = () => new Date('2026-09-25T12:00:00Z');
+const settings = { countryCount: 40, cellsPerCountry: 60 };
+const create = (name: string, seed = 'q3Zk1d0XbAc') =>
+  WorldSession.create({ path: join(dir, name), seed, startYear: 2026, now, settings });
+
+describe('demography system', () => {
+  it('builds the player’s nation from its provinces and statistics', () => {
+    const session = create('a.nwsave');
+    const world = session.engine.world.slices.world!;
+    const slice = session.engine.world.slices.demography!;
+    const generated = session.engine.generated!;
+    const country = generated.countries[slice.country]!;
+    expect(slice.country).toBe(world.playerCountry);
+    expect(slice.regions.map((r) => r.province)).toEqual(
+      Array.from({ length: country.provinceCount }, (_, k) => country.firstProvince + k),
+    );
+    const stats = world.countries[slice.country]!.stats;
+    const s = summarize(slice.regions.map((r) => r.cohorts));
+    expect(s.total / stats['population.total']!).toBeCloseTo(1, 6);
+    expect((100 * s.urban) / s.total).toBeCloseTo(stats['population.urban_share']!, 0);
+    session.close();
+  });
+
+  it('records national and regional indicators', () => {
+    const session = create('b.nwsave');
+    session.advance(24);
+    const indicators = session.engine.indicators;
+    expect(indicators.series('population.total', 'nation').ticks).toHaveLength(24);
+    expect(indicators.series('population.tfr', 'nation').ticks).toEqual([0, 11, 23]);
+    expect(indicators.series('population.birth_rate', 'nation').ticks).toEqual([11, 23]);
+    expect(indicators.series('population.total', 'region:0').ticks).toHaveLength(24);
+    const births = indicators.series('population.births', 'nation').values;
+    expect(births.every((b) => b > 0)).toBe(true);
+    session.close();
+  });
+
+  it('resumes from a save exactly as if it had never stopped', () => {
+    const straight = create('c.nwsave');
+    straight.advance(30);
+    const expected = JSON.stringify(straight.engine.world.slices.demography);
+    straight.close();
+
+    const first = create('d.nwsave');
+    first.advance(13);
+    first.close();
+    const resumed = WorldSession.open(join(dir, 'd.nwsave'), { now });
+    resumed.advance(17);
+    expect(JSON.stringify(resumed.engine.world.slices.demography)).toBe(expected);
+    resumed.close();
+  });
+});
