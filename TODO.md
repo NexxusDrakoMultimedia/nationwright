@@ -145,8 +145,12 @@ off as they land; add new ones as work reveals them.
 - [x] Census report (desktop Census tab and `nw census`): headline figures placed against
       real-world bands, population pyramid (tooltip, table view), education, culture,
       regions, cities
-- [ ] Validation of simulated nations against bands over time (script, like worldgen)
-- [ ] Performance measurements by world size (reported, not gated)
+- [x] Validation of simulated nations against bands over time (`npm run demography:validate`,
+      50 nations × 30 years; report in `docs/validation/demography.md`, PASS)
+- [x] Generator v3: nations sampled with one ethnic group or religion but a positive
+      fractionalization get a small second group (real minimum is about 0.006)
+- [x] Performance measurements by world size (`npm run perf:measure`; report in
+      `docs/validation/performance.md`)
 
 ## M3 — Economy & World
 - [ ] Sectors, production, labor market, prices, public finance, exchange rate

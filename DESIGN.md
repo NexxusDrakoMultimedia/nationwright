@@ -1154,7 +1154,15 @@ neighbour-archetype agreement shares against sampling ranges; the neighbour-coun
 histogram (total variation distance ≤ 0.12); every variable's pooled KS distance
 (≤ 0.06; population growth and sector shares are rewritten by consistency rules and not
 scored); and the largest correlation error (≤ 0.12). It runs outside CI; rerun it and
-commit the report whenever the generator or the guiding model changes. Known deviations:
+commit the report whenever the generator or the guiding model changes.
+
+`npm run demography:validate` does the same for the simulation: 50 worlds, each player
+nation simulated for 30 years, with every headline census figure checked against the
+real range of states (at least 90% within min–max at the start and 75% after 30
+years), plus sanity checks (finite values, yearly growth within ±8%). Report:
+`docs/validation/demography.md`. `npm run perf:measure` records creation, simulation,
+and save times by world size in `docs/validation/performance.md` (D19: reported, not
+gated). Known deviations:
 too many one-neighbour countries (about 14% vs. 8%) and a thin tail of countries with
 more than 14 neighbours.
 

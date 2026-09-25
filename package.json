@@ -28,7 +28,9 @@
     "ui:start": "npm run ui:build && electron packages/ui",
     "ui:smoke": "node packages/ui/smoke.ts",
     "ui:package": "npm run ui:build && cd packages/ui && electron-builder --config electron-builder.yml",
-    "worldgen:validate": "node scripts/validate-worldgen.ts --out docs/validation/worldgen.md"
+    "worldgen:validate": "node scripts/validate-worldgen.ts --out docs/validation/worldgen.md",
+    "demography:validate": "node scripts/validate-demography.ts --out docs/validation/demography.md",
+    "perf:measure": "node scripts/measure-performance.ts --out docs/validation/performance.md"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

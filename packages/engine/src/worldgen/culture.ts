@@ -60,15 +60,25 @@ export interface WorldCultures {
   readonly countries: readonly CountryCulture[];
 }
 
-/**
- * Shares for k groups with a target fractionalization 1 − Σs²: geometric shares s ∝ rⁱ,
- * with r found by bisection. Deterministic and always sums to 1.
- */
 /** The world's faith id for "Non-religious" (always the last faith generated). */
 export function nonReligiousFaith(cultures: Pick<WorldCultures, 'faiths'>): number {
   return cultures.faiths.length - 1;
 }
 
+/**
+ * Real countries listed with a single group still have small minorities (the lowest
+ * real fractionalization is about 0.006), so a nation sampled with one group but a
+ * positive fractionalization gets a second, small group.
+ */
+export function groupCountFor(sampled: number, fractionalization: number): number {
+  return sampled <= 1 && fractionalization >= MIN_FRACTIONALIZATION ? 2 : Math.max(1, sampled);
+}
+const MIN_FRACTIONALIZATION = 0.005;
+
+/**
+ * Shares for k groups with a target fractionalization 1 − Σs²: geometric shares s ∝ rⁱ,
+ * with r found by bisection. Deterministic and always sums to 1.
+ */
 export function sharesFor(k: number, fractionalization: number): number[] {
   if (k <= 1) return [1];
   const target = Math.max(1 / k, Math.min(1, 1 - fractionalization)); // Herfindahl index
@@ -247,7 +257,11 @@ export function generateCultures(
     ethnicGroups.push(demonym);
     const ethnicIds = [ethnicGroups.length - 1];
     const neighborFamilies = (input.neighbors[k] ?? []).map((j) => familyOf[j] as number);
-    for (let g = 1; g < (input.ethnicGroupCounts[k] ?? 1); g++) {
+    const ethnicCount = groupCountFor(
+      input.ethnicGroupCounts[k] ?? 1,
+      input.ethnicFractionalization[k] ?? 0.3,
+    );
+    for (let g = 1; g < ethnicCount; g++) {
       // Minorities: often a neighbour family's people (cross-border groups), else new.
       const source =
         neighborFamilies.length > 0 && stream.nextFloat64() < 0.5
@@ -264,7 +278,11 @@ export function generateCultures(
     }
 
     const religionIds = [family.faith];
-    while (religionIds.length < (input.religionCounts[k] ?? 1)) {
+    const religionCount = groupCountFor(
+      input.religionCounts[k] ?? 1,
+      input.religiousFractionalization[k] ?? 0.3,
+    );
+    while (religionIds.length < religionCount) {
       const r = stream.nextFloat64() < 0.25 ? faiths.length - 1 : stream.nextIntBelow(faithCount);
       if (!religionIds.includes(r)) religionIds.push(r);
       else if (religionIds.length >= faiths.length) break;
