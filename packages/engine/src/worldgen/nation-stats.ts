@@ -50,14 +50,20 @@ export function chooseArchetype(
   prepared: PreparedModel,
   stream: RandomStream,
   neighborArchetypes: readonly number[] = [],
+  island?: boolean,
 ): number {
   const copy = stream.nextFloat64() < prepared.copyNeighborArchetype;
   if (copy && neighborArchetypes.length > 0) {
     return neighborArchetypes[stream.nextIntBelow(neighborArchetypes.length)] as number;
   }
+  // Knowing whether the country is an island shifts the odds (Bayes: weight × P(island | k)).
   return weightedIndex(
     stream,
-    prepared.model.archetypes.map((a) => a.weight),
+    prepared.model.archetypes.map((a) =>
+      island === undefined
+        ? a.weight
+        : a.weight * (island ? a.islandShare : 1 - a.islandShare) + 1e-6,
+    ),
   );
 }
 

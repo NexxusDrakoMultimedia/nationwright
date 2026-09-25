@@ -97,16 +97,20 @@ off as they land; add new ones as work reveals them.
       (`guiding-variables-2026.json`, model v1)
 - [x] Engine sampler: archetype choice with neighbour copying, correlated draw, marginals,
       consistency identities; statistical tests against the model (KS < 0.08, |Δρ| < 0.15)
-- [ ] Map: Poisson-disk cells → Voronoi (`d3-delaunay`) → Lloyd relaxation
-- [ ] Elevation (noise + ridges), sea level to target land fraction
-- [ ] Climate → biomes; hydrology → rivers/lakes; habitability; resources
-- [ ] Countries by weighted flood fill; continents/subregions; provinces; cities
-- [ ] Sea lanes and distance graph
-- [ ] Nation statistics placed on the map (population scaled to habitable land)
+- [x] Map cells: jittered hex lattice + Delaunay adjacency, wrapping east–west
+- [x] Elevation (warped continent cores, archipelagos, ridges), exact land fraction
+- [x] Climate → biomes; priority-flood hydrology → rivers/lakes; habitability
+- [ ] Resource deposits (with the economy, M3)
+- [x] Countries: island capitals, archetype priors, room matching, cost-weighted growth
+- [x] Continents, subregions, provinces (farthest-point seeds), cities (Zipf)
+- [ ] Sea lanes and distance graph (M3)
+- [x] Nation statistics placed on the map; population spread by habitability²
+- [x] Generator tests: determinism, golden master (v1), invariants on 5 seeds, real
+      island/landlocked/one-neighbour shares; `scripts/render-map.ts` for eyeballing
 - [ ] Culture packs and name generators (fictional only)
 - [ ] Randomized ethnicity × religion × language associations (alignment draws + IPF)
 - [ ] Store the generated map in the save; `generator_version`
-- [ ] Generator statistical tests across ≥ 200 seeds; reproducibility golden masters
+- [ ] Generator statistical validation across ≥ 200 seeds (script, outside CI)
 - [ ] Map screen: political, physical, choropleth layers; pan/zoom; profiles
 
 ## M2 — People & Places

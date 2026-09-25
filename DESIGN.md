@@ -841,23 +841,35 @@ observed-only distribution (upward for literacy).
 
 A 2D world on a plane that wraps east–west:
 
-1. **Cells:** Poisson-disk points (≈ 10k–30k, scaled to country count) → Voronoi cells
-   (`d3-delaunay`), with 1–2 rounds of Lloyd relaxation.
-2. **Elevation:** layered simplex noise plus plate-like ridges; the sea level is chosen
-   to hit the target land fraction (default: the real Earth value, ~29%).
-3. **Climate:** temperature from latitude and elevation; moisture from prevailing winds
-   and distance to the ocean → biomes (ice, tundra, boreal, temperate forest,
-   grassland, desert, savanna, tropical forest, mountains, wetlands).
-4. **Hydrology:** downhill flow accumulation → rivers and lakes.
-5. **Habitability:** per-cell score (climate, water, terrain, coast) → population
-   density potential and agricultural capacity. Resource deposits (energy, minerals)
-   are placed by geology rules.
-6. **Countries:** capitals are seeded in habitable cells, then grown by weighted flood
-   fill (mountains and rivers are expensive to cross, so they tend to become borders)
-   until each reaches an area target sampled from the guiding area distribution.
-   Constraints nudge the result toward the real neighbor-count distribution and
-   landlocked/island shares.
-7. **Continents & subregions:** connected landmasses, clustered into named subregions.
+1. **Cells:** a jittered hexagonal lattice (150 cells per country by default, ≈ 29k for
+   196 countries) with Delaunay adjacency (`d3-delaunay`); ghost points across the seam
+   make it wrap east–west. Voronoi polygons are only needed for drawing, so the UI
+   computes them.
+2. **Elevation:** *where* land is comes from 6–12 continent cores and archipelago seeds
+   (≈ 2.5 per expected island nation), with noise-warped coastlines. The sea level is
+   the exact quantile for the target land fraction (default ~29%). *How high* land is
+   comes separately from ridged noise (mountain ranges), rolling detail, and a rise
+   inland, ranked and curved so high ground is rare.
+3. **Climate:** temperature from an Earth-like zonal table by latitude, minus height,
+   plus noise and the climate bias; moisture from a latitude rain band, distance to the
+   ocean, and noise → biomes (ice, tundra, boreal, temperate forest, grassland, desert,
+   savanna, tropical forest, mountains).
+4. **Hydrology:** priority-flood depression filling from the sea, rainfall accumulated
+   downstream → rivers (wettest 7% of land cells) and lakes (filled depressions).
+5. **Habitability:** per-cell score (biome, temperature, moisture, height, coast, river)
+   → where people live and where capitals and cities go. Resource deposits are not yet
+   placed (M3, with the economy).
+6. **Countries:** first ≈ 20% of capitals go alone on small landmasses (island nations);
+   the rest spread over the remaining land, weighted to habitable and coastal cells.
+   Nearest-capital regions give a provisional neighbour graph, used to pick archetypes
+   (island capitals favour island-prone archetypes) and sample nations; within each
+   archetype the largest nations get the capitals with most room. Countries then grow
+   by cost-weighted flood fill toward their sampled areas (mountains, deserts, ice,
+   and river crossings cost more, so they tend to become borders). Tests hold island,
+   landlocked, and one-neighbour shares near the real ones.
+7. **Continents & subregions:** continents are landmasses with at least two countries
+   or 2% of all land; island nations belong to the nearest. Subregions are clusters of
+   about eight neighbouring countries.
 8. **Provinces & regions:** each foreign country is split into provinces (count scales
    with area and population). The player's country is split into regions per the
    wizard setting, with borders editable by merging/splitting cells.
@@ -865,6 +877,7 @@ A 2D world on a plane that wraps east–west:
    rank-size rule, scaled to the country's urban population.
 10. **Sea lanes & distances:** a navigation graph over ocean cells gives shipping
     distances. Land and sea distance feed proximity for trade and migration (§4.10).
+    (Deferred to M3, where trade first needs it.)
 
 The finished map is **stored in the save** (cells, geometry, terrain, ownership), not
 regenerated on load. Engine updates therefore never alter an existing world. During
@@ -878,8 +891,11 @@ For each country, including the player's defaults:
    neighbors resemble each other (guided by spatial similarity).
 2. Sample a correlated vector from that archetype's copula and map it through the
    marginals.
-3. Condition on geography: population is scaled to habitable land; landlocked,
-   resource-rich, and island positions shift trade, sector shares, and GDP.
+3. Condition on geography: island capitals favour island-prone archetypes, and the
+   largest nations of each archetype get the most room. Population keeps its sampled
+   (real-world) distribution and is spread within the country by habitability², so
+   deserts and ice stay empty. (Landlocked and resource effects on trade come with the
+   economy in M3.)
 4. **Derive consistent values:** GDP = population × GDP per capita; the age structure
    comes from TFR and life expectancy (stable-population model); sector shares
    normalized to 1; budget and debt consistent with GDP.
