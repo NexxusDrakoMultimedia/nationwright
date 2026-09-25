@@ -5,3 +5,5 @@ export { SaveFile, type SaveInfo, type SaveOptions } from './save/save-file.ts';
 export { MIGRATIONS, SCHEMA_VERSION, migrate, type Migration } from './save/schema.ts';
 export { DEFAULT_RULESET, type Ruleset } from './ruleset.ts';
 export { WorldSession, type CreateWorldOptions, type OpenWorldOptions } from './world-session.ts';
+export { guidingFor, NAME_BLOCKLIST } from './reference.ts';
+export { worldSystem, type CountryState, type WorldSlice } from './systems/world.ts';

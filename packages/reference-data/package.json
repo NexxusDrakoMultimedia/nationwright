@@ -7,7 +7,8 @@
   "author": "Nexxus Drako Multimedia",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./data/*": "./data/*"
   },
   "scripts": {
     "fetch": "node src/cli.ts fetch",

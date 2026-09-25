@@ -23,6 +23,7 @@ import { SYSTEM_ORDER, type SystemId } from './pipeline.ts';
 import type { DeepReadonly } from './readonly.ts';
 import type { SliceKey, SystemSlices, WorldState } from './state.ts';
 import type { InitContext, SystemDefinition, TickContext } from './system.ts';
+import type { GeneratedWorld } from '../worldgen/generate.ts';
 
 /** Any system, whatever slice it owns. */
 export type AnySystem = { [K in SliceKey]: SystemDefinition<K> }[SliceKey];
@@ -34,6 +35,8 @@ export interface EngineOptions {
   readonly startYear: number;
   readonly rulesetVersion?: number;
   readonly systems?: readonly AnySystem[];
+  /** The generated world (map and nations). Required again, from the save, on restore. */
+  readonly generated?: GeneratedWorld;
   // Command specs are contravariant in their payload type, so accept any payload here.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly commands?: readonly CommandSpec<any>[];
@@ -57,6 +60,7 @@ export interface SavedWorld {
 
 export class Engine {
   readonly #seed: WorldSeed;
+  readonly #generated: GeneratedWorld | undefined;
   readonly #world: WorldState;
   readonly #systems: ReadonlyMap<SystemId, AnySystem>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,6 +73,7 @@ export class Engine {
   /** Creates a new world, or resumes `saved` if given (see `Engine.restore`). */
   constructor(options: EngineOptions, saved?: SavedWorld) {
     this.#seed = resolveSeed(options.seed);
+    this.#generated = options.generated;
     if (!Number.isSafeInteger(options.startYear)) {
       throw new RangeError(`startYear must be an integer; got ${options.startYear}.`);
     }
@@ -125,11 +130,17 @@ export class Engine {
       if (system === undefined) continue;
       const ctx: InitContext = {
         startYear: options.startYear,
+        generated: options.generated,
         stream: (name) => createStream(this.#seed, streamDomain(domainPath('init', id, name))),
       };
       setSlice(this.#world, system, system.init(ctx));
     }
     this.#world.slices = sortedSlices(this.#world.slices);
+  }
+
+  /** The generated world this engine runs on, if any. */
+  get generated(): GeneratedWorld | undefined {
+    return this.#generated;
   }
 
   get seed(): WorldSeed {

@@ -34,3 +34,4 @@ export * from './worldgen/generate.ts';
 export * from './worldgen/name-check.ts';
 export * from './worldgen/names.ts';
 export * from './worldgen/culture.ts';
+export * from './worldgen/serialize.ts';

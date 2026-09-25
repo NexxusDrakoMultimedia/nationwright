@@ -112,7 +112,10 @@ off as they land; add new ones as work reveals them.
       capital names (`name-blocklist.json`, 1,066 hashes) plus an offensive-substring filter
 - [x] Randomized ethnicity × religion × language associations (alignment draws + IPF),
       shares matching sampled fractionalization with a 1% floor
-- [ ] Store the generated map in the save; `generator_version`
+- [x] Store the generated world in the save (schema v2: `map_layers`, `worldgen`;
+      `generator_version`, `guiding_model_version`, `generator_settings` in `meta`); loaded,
+      never regenerated; carried into branches
+- [x] World system (`packages/app/src/systems/world.ts`) owning per-country state
 - [ ] Generator statistical validation across ≥ 200 seeds (script, outside CI)
 - [ ] Map screen: political, physical, choropleth layers; pan/zoom; profiles
 

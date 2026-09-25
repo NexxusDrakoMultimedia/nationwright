@@ -60,6 +60,26 @@ export const MIGRATIONS: readonly Migration[] = [
       `);
     },
   },
+  {
+    version: 2,
+    description: 'Generated world: map layers and static generation data',
+    up(db) {
+      db.exec(`
+        -- Typed-array map layers (little-endian raw bytes), written once at creation.
+        CREATE TABLE map_layers (
+          name TEXT PRIMARY KEY,
+          type TEXT NOT NULL CHECK (type IN ('f32', 'f64', 'i32', 'u32', 'u16', 'u8')),
+          data BLOB NOT NULL
+        ) WITHOUT ROWID;
+
+        -- Everything else the generator decided (countries, cities, cultures), as JSON.
+        CREATE TABLE worldgen (
+          key  TEXT PRIMARY KEY,
+          data TEXT NOT NULL
+        ) WITHOUT ROWID;
+      `);
+    },
+  },
 ];
 
 export const SCHEMA_VERSION = MIGRATIONS.at(-1)?.version ?? 0;

@@ -4,6 +4,7 @@
 /** The contract every simulation system implements (DESIGN.md §3.2, §5). */
 
 import type { RandomStream } from '../random/stream.ts';
+import type { GeneratedWorld } from '../worldgen/generate.ts';
 import type { Cadences, SimDate } from './calendar.ts';
 import type { ChronicleEntry } from './chronicle.ts';
 import type { IndicatorDefinition } from './indicators.ts';
@@ -15,6 +16,8 @@ import type { SliceKey, SystemSlices, WorldState } from './state.ts';
 
 export interface InitContext {
   readonly startYear: number;
+  /** The generated world, when the engine was created with one. */
+  readonly generated: GeneratedWorld | undefined;
   /** Stream `init/<system>[/<name>]`. */
   stream(name?: string): RandomStream;
 }

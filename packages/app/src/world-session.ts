@@ -9,14 +9,20 @@
 
 import { existsSync } from 'node:fs';
 import {
+  defaultSettings,
   Engine,
   formatSeed,
   generateSeed,
+  generateWorld,
+  parseSeed,
   replay,
+  type GeneratedWorld,
+  type GeneratorSettings,
   type EngineOptions,
   type SubmitResult,
   type WorldSeed,
 } from '@nationwright/engine';
+import { guidingFor, NAME_BLOCKLIST } from './reference.ts';
 import { DEFAULT_RULESET, type Ruleset } from './ruleset.ts';
 import { SaveFile } from './save/save-file.ts';
 
@@ -32,6 +38,10 @@ export interface CreateWorldOptions {
   readonly autosaveYears?: number;
   /** Clock for timestamps and the default start year (tests pass a fixed one). */
   readonly now?: () => Date;
+  /** World generator settings; defaults describe an Earth-like world (§4.12). */
+  readonly settings?: Partial<GeneratorSettings>;
+  /** Generate a map and nations (default true). Toy rulesets in tests can skip it. */
+  readonly generateWorld?: boolean;
 }
 
 export interface OpenWorldOptions {
@@ -68,15 +78,30 @@ export class WorldSession {
     if (existsSync(options.path)) throw new Error(`${options.path} already exists.`);
     const now = options.now ?? (() => new Date());
     const ruleset = options.ruleset ?? DEFAULT_RULESET;
+    const seed = resolveSeed(
+      options.seed ?? generateSeed((bytes) => crypto.getRandomValues(bytes)),
+    );
+    const startYear = options.startYear ?? now().getUTCFullYear();
+    let generated: GeneratedWorld | undefined;
+    if (options.generateWorld ?? true) {
+      const guiding = guidingFor(startYear);
+      const settings = {
+        ...defaultSettings(guiding.structure.stateCount, guiding.structure.landFraction),
+        ...options.settings,
+      };
+      generated = generateWorld(seed, settings, guiding, NAME_BLOCKLIST);
+    }
     const engineOptions: EngineOptions = {
-      seed: options.seed ?? generateSeed((bytes) => crypto.getRandomValues(bytes)),
-      startYear: options.startYear ?? now().getUTCFullYear(),
+      seed,
+      startYear,
       rulesetVersion: ruleset.version,
       systems: ruleset.systems,
       commands: ruleset.commands,
+      ...(generated === undefined ? {} : { generated }),
     };
     const engine = new Engine(engineOptions);
     const file = SaveFile.open(options.path);
+    if (generated !== undefined) file.writeGenerated(generated);
     file.write(engine.save(), { now: now() });
     return new WorldSession(file, engine, engineOptions, options.autosaveYears ?? 5, now);
   }
@@ -87,6 +112,7 @@ export class WorldSession {
     const file = SaveFile.open(path);
     try {
       const saved = file.read();
+      const generated = file.readGenerated();
       const ruleset = options.ruleset ?? DEFAULT_RULESET;
       const engineOptions: EngineOptions = {
         seed: saved.world.meta.worldSeed,
@@ -94,6 +120,7 @@ export class WorldSession {
         rulesetVersion: ruleset.version,
         systems: ruleset.systems,
         commands: ruleset.commands,
+        ...(generated === undefined ? {} : { generated }),
       };
       const engine = Engine.restore(engineOptions, saved);
       return new WorldSession(
@@ -156,6 +183,7 @@ export class WorldSession {
     const branched = replay(this.#options, log, atTick);
     const file = SaveFile.open(path);
     try {
+      if (this.#options.generated !== undefined) file.writeGenerated(this.#options.generated);
       file.write(branched.save(), { now: this.#now() });
     } finally {
       file.close();
@@ -167,4 +195,11 @@ export class WorldSession {
     this.save();
     this.#file.close();
   }
+}
+
+function resolveSeed(seed: WorldSeed | string): WorldSeed {
+  if (typeof seed === 'bigint') return seed;
+  const parsed = parseSeed(seed);
+  if (!parsed.ok) throw new RangeError(`Invalid world seed "${seed}".`);
+  return parsed.seed;
 }

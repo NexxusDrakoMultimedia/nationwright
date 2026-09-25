@@ -8,6 +8,11 @@
 
 import Database from 'better-sqlite3';
 import {
+  loadWorld,
+  storeWorld,
+  type GeneratedWorld,
+  type LayerType,
+  type StoredLayer,
   parseSeed,
   seedToBytes,
   type ChronicleEntry,
@@ -23,6 +28,8 @@ import { migrate, SCHEMA_VERSION } from './schema.ts';
 
 export interface SaveInfo {
   readonly schemaVersion: number;
+  /** Null for saves without a generated world. */
+  readonly generatorVersion: number | null;
   readonly worldSeed: string;
   readonly startYear: number;
   readonly rulesetVersion: number;
@@ -79,8 +86,10 @@ export class SaveFile {
       }
       return Number(value);
     };
+    const generator = this.#metaValue('generator_version');
     return {
       schemaVersion: SCHEMA_VERSION,
+      generatorVersion: generator === undefined ? null : Number(generator),
       worldSeed: text('world_seed_b64'),
       startYear: int('start_year'),
       rulesetVersion: int('ruleset_version'),
@@ -228,6 +237,50 @@ export class SaveFile {
     }
 
     return { world, indicators, commandLog, pending };
+  }
+
+  /** True if the file holds a generated world (map and nations). */
+  get hasGeneratedWorld(): boolean {
+    return this.#db.prepare("SELECT 1 FROM worldgen WHERE key = 'world'").get() !== undefined;
+  }
+
+  /**
+   * Stores the generated world. Written once: the map is never regenerated on load, so
+   * generator changes can't alter an existing world (DESIGN.md §4.12.2).
+   */
+  writeGenerated(world: GeneratedWorld): void {
+    if (this.hasGeneratedWorld) throw new Error('This save already has a generated world.');
+    const stored = storeWorld(world);
+    this.#db.transaction(() => {
+      const putLayer = this.#db.prepare(
+        'INSERT INTO map_layers (name, type, data) VALUES (?, ?, ?)',
+      );
+      for (const [name, layer] of Object.entries(stored.layers).sort(([a], [b]) =>
+        a < b ? -1 : 1,
+      )) {
+        putLayer.run(name, layer.type, Buffer.from(layer.bytes));
+      }
+      this.#db.prepare("INSERT INTO worldgen (key, data) VALUES ('world', ?)").run(stored.json);
+      const setMeta = this.#db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)');
+      setMeta.run('generator_version', world.generatorVersion);
+      setMeta.run('guiding_model_version', world.guidingModelVersion);
+      setMeta.run('generator_settings', JSON.stringify(world.settings));
+    })();
+  }
+
+  readGenerated(): GeneratedWorld | undefined {
+    const row = this.#db.prepare("SELECT data FROM worldgen WHERE key = 'world'").get() as
+      { data: string } | undefined;
+    if (row === undefined) return undefined;
+    const layers: Record<string, StoredLayer> = {};
+    for (const r of this.#db.prepare('SELECT name, type, data FROM map_layers').all() as {
+      name: string;
+      type: LayerType;
+      data: Buffer;
+    }[]) {
+      layers[r.name] = { type: r.type, bytes: new Uint8Array(r.data) };
+    }
+    return loadWorld({ json: row.data, layers });
   }
 
   /** Copies this save to a new file (a branch). The destination must not exist. */

@@ -1058,8 +1058,10 @@ Nation
   - `meta` — schema_version, world_seed (BLOB, 8 bytes), world_seed_b64 (TEXT,
     canonical base64url), generator_version, guiding_variables_version,
     generator_settings (JSON), start_year, reference_snapshot_id, created_at
-  - `map_cells`, `map_geometry` — generated once at world creation; only ownership and
-    control columns change during play
+  - `map_layers` (typed-array layers as raw little-endian bytes: sites, adjacency,
+    terrain, hydrology, ownership, provinces, population) and `worldgen` (everything else
+    the generator decided, as JSON) — written once at world creation (schema v2).
+    Ownership changes during play will live in the world slice, not these tables
   - `snapshot` — the latest full engine state, one row per part (`meta`, `modifiers`,
     `slice:<key>`). Stored as JSON for now; the `format` column allows a switch to
     MessagePack later if measurements show a need (D19)

@@ -77,6 +77,7 @@ describe('SaveFile', () => {
     expect(JSON.stringify(again)).toBe(fingerprint(uninterrupted));
     expect(info).toEqual({
       schemaVersion: SCHEMA_VERSION,
+      generatorVersion: null,
       worldSeed: 'q3Zk1d0XbAc',
       startYear: 2026,
       rulesetVersion: 1,
