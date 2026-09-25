@@ -12,7 +12,8 @@ off as they land; add new ones as work reveals them.
 - [x] Dependency-license check (`npm run licenses`, in CI and `npm run check`)
 - [ ] Show the license and source-code link in the app's About/credits screen
 - [x] npm workspaces monorepo (`packages/*`); `packages/engine` created
-- [ ] Remaining packages as they're built: `app`, `ui`, `cli`, `reference-data`; `content/`
+- [x] Packages: `engine`, `app`, `cli`, `reference-data`
+- [ ] Remaining: `ui` (Electron), `content/`
 - [x] TypeScript config: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`; shared `tsconfig.base.json`
 - [x] ESLint (typescript-eslint strict) + Prettier; engine rule banning `Math.random`, `Date`, `performance`, `crypto`
 - [x] Vitest setup; CI workflow (typecheck, lint, format check, test)
@@ -51,8 +52,9 @@ off as they land; add new ones as work reveals them.
 - [x] Save/load with `Engine.save()` / `Engine.restore()`; resume is byte-identical to an
       uninterrupted run; indicator writes are incremental
 - [x] Branch by copying the file (`VACUUM INTO`)
-- [ ] Branch from an *earlier* tick (replay the command log up to the branch point)
-- [ ] Autosave policy (every N simulated years and before player decisions)
+- [x] Branch from an earlier tick (`WorldSession.branch`, replaying the command log)
+- [x] Autosave every N simulated years (`WorldSession`, default 5)
+- [ ] Autosave before player decisions (needs choice events, M7)
 - [x] Determinism tests: same seed + commands ⇒ byte-identical state (engine and save round-trip)
 
 ### Electron shell
@@ -63,7 +65,10 @@ off as they land; add new ones as work reveals them.
       rebuild; otherwise add `@electron/rebuild`. electron-builder config
 
 ### CLI
-- [ ] Headless batch runner: create world from seed, simulate N years, dump indicators
+- [x] Application layer: `WorldSession` (create/open/advance/autosave/branch) and the
+      ruleset registry (`packages/app`)
+- [x] Headless runner (`packages/cli`, `npm run nw -- <command>`): `seed`, `new`, `run`,
+      `info`, `indicators` (CSV), `branch`
 
 ### Reference-data pipeline (factbook.json)
 - [x] Fetch at the pinned commit (`npm run data:fetch`); hash recorded in the manifest

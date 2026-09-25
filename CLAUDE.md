@@ -84,8 +84,9 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 
 ## Conventions
 
-- Layout: npm workspaces. `packages/engine` exists; `app`, `ui`, `cli`, and
-  `reference-data` come next, plus `content/` (YAML validated with zod/JSON Schema).
+- Layout: npm workspaces: `packages/engine` (pure simulation), `app` (saves, sessions,
+  ruleset), `cli`, `reference-data`; `ui` (Electron) and `content/` (YAML validated with
+  zod/JSON Schema) come next. New systems are registered in `packages/app/src/ruleset.ts`.
   Packages export TypeScript source directly (`"exports": "./src/index.ts"`) and import
   with explicit `.ts` extensions.
 - TypeScript is pinned to **6.0.x**: typescript-eslint doesn't support TypeScript 7 yet.
@@ -115,5 +116,7 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run data:fetch` | Clone factbook.json at the pinned commit into `packages/reference-data/.cache/` |
 | `npm run data:build -- --target-year 2026` | Rebuild `packages/reference-data/data/` (review `report-<year>.md` in the diff) |
 
-Run `npm run check` before every commit. Electron and CLI commands will be added as those
-packages land.
+| `npm run nw -- <command>` | Headless CLI: `seed`, `new <file>`, `run <file> --years N`, `info`, `indicators`, `branch` |
+
+Run `npm run check` before every commit. Electron commands will be added when that
+package lands.

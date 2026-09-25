@@ -1,0 +1,19 @@
+{
+  "name": "@nationwright/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Headless Nationwright runner: create, simulate, inspect, and branch worlds.",
+  "license": "GPL-3.0-or-later",
+  "author": "Nexxus Drako Multimedia",
+  "type": "module",
+  "bin": {
+    "nationwright": "./src/main.ts"
+  },
+  "exports": {
+    ".": "./src/cli.ts"
+  },
+  "dependencies": {
+    "@nationwright/app": "0.0.0",
+    "@nationwright/engine": "0.0.0"
+  }
+}
