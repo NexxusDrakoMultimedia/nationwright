@@ -705,7 +705,11 @@ shock 1.5 points) that also moves inflation and unemployment. Sector shares foll
 income, the price level follows the Balassa–Samuelson rule, and debt follows
 d' = d / nominal growth − balance, with the balance moving toward the fiscal rule. The
 player's entry in the world table is refreshed from the detailed simulation, and each
-country's main figures are recorded yearly as `country.*` indicators.
+country's main figures are recorded yearly as `country.*` indicators. A foreign
+country's migration is split in two: flows with the player come from the bilateral
+model (§4.1) each year, the same flows the player's demography applies, and the rest is
+its own net rate minus its starting flows with the player, so the first year matches
+its statistics and people moving to or from the player are counted on both sides.
 
 **Foreign government change:** elections, term limits, coups (low legitimacy +
 military discontent), revolutions (low stability + economic crisis), or defeat in war.

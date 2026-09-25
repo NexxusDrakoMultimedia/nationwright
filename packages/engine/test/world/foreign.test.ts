@@ -70,6 +70,18 @@ describe('foreign-country model', () => {
     }
   });
 
+  it('adds this year’s migrants from the player to the population', () => {
+    const stats = nations(1, 7n)[0]!;
+    const run = (fromPlayer: number) =>
+      stepForeign(initForeign(stats), stats, createStream(3n, 'test/cycle'), fromPlayer);
+    const base = run(0);
+    const more = run(10_000);
+    expect(more['population.total']! - base['population.total']!).toBeCloseTo(10_000, 3);
+    expect(more['population.net_migration_rate']!).toBeGreaterThan(
+      base['population.net_migration_rate']!,
+    );
+  });
+
   it('converges fertility and life expectancy toward income-typical values', () => {
     expect(typicalFertility(1_000)).toBeGreaterThan(typicalFertility(50_000));
     expect(typicalLifeExpectancy(1_000)).toBeLessThan(typicalLifeExpectancy(50_000));

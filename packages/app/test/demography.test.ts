@@ -140,6 +140,32 @@ describe('world system', () => {
 });
 
 describe('international migration', () => {
+  it('moves people between the player and foreign countries without double counting', () => {
+    const session = create('migration-balance.nwsave');
+    const start = session.engine.world.slices.world!;
+    const player = start.playerCountry;
+    const flows = start.migration.departures.map((d, k) => d - start.migration.arrivals[k]!);
+    const sampled = start.countries.map((c) => c.stats['population.net_migration_rate']!);
+    session.advance(12);
+    const world = session.engine.world.slices.world!;
+    // A foreign country's first-year net migration is still its own rate.
+    world.countries.forEach((c, k) => {
+      if (k !== player)
+        expect(c.stats['population.net_migration_rate']!).toBeCloseTo(sampled[k]!, 6);
+    });
+    // What the player gains from migration, the foreign countries lose (up to the
+    // player's monthly cap on emigration).
+    const playerNet = session.engine.indicators
+      .series('population.net_migration', 'nation')
+      .values.reduce((a, b) => a + b, 0);
+    const foreignNet = flows.reduce((a, b, k) => (k === player ? a : a + b), 0);
+    const gross =
+      start.migration.arrivals.reduce((a, b) => a + b, 0) +
+      start.migration.departures.reduce((a, b) => a + b, 0);
+    expect(Math.abs(playerNet + foreignNet)).toBeLessThan(0.01 * gross + 1);
+    session.close();
+  });
+
   it('brings immigrants with their origins’ cultures and tracks diasporas', () => {
     const session = create('migration.nwsave');
     const world = session.engine.world.slices.world!;

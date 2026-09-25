@@ -206,6 +206,19 @@ function playerStats(
   return out;
 }
 
+/**
+ * A foreign country's own net migration rate covers all its migration, flows with the
+ * player included; those are applied explicitly, so remove their starting value.
+ */
+function withoutPlayerFlows(
+  model: ForeignState,
+  fromPlayer: number,
+  population: number,
+): ForeignState {
+  model.otherMigrationRate -= (1000 * fromPlayer) / Math.max(1, population);
+  return model;
+}
+
 /** FDI inflows at the start, % of GDP (typical; not in the reference data). */
 const START_FDI_SHARE = 3;
 
@@ -351,7 +364,14 @@ export const worldSystem = defineSystem({
         governmentCategory: c.nation.governmentCategory,
         stats: { ...c.nation.stats, 'economy.resource_rents_share': 100 * rentShare(c.id) },
         culture: c.culture,
-        model: c.id === playerCountry ? null : initForeign(c.nation.stats),
+        model:
+          c.id === playerCountry
+            ? null
+            : withoutPlayerFlows(
+                initForeign(c.nation.stats),
+                (startFlows.outflow[c.id] as number) - (startFlows.inflow[c.id] as number),
+                c.nation.stats['population.total'] ?? 1,
+              ),
       })),
       playerCountry,
     };
@@ -370,7 +390,11 @@ export const worldSystem = defineSystem({
         continue;
       }
       const before = country.stats;
-      const stepped = stepForeign(country.model, before, ctx.stream(`country/${k}`));
+      // This year's flows with the player (the same ones its demography applies monthly):
+      // the player's emigrants arrive here, and its immigrants from here leave.
+      const withPlayer =
+        (slice.migration.departures[k] as number) - (slice.migration.arrivals[k] as number);
+      const stepped = stepForeign(country.model, before, ctx.stream(`country/${k}`), withPlayer);
       // Commodity windfall: rents beyond what growth alone would bring. It adds to
       // nominal GDP, and a third of it to real income per person.
       const oldGdp = Math.max(1, before['economy.gdp_nominal'] ?? 1);

@@ -45,6 +45,12 @@ const E = ECONOMY_TUNING;
 export interface ForeignState {
   /** People aged 0–14, 15–64, 65+. */
   bands: [number, number, number];
+  /**
+   * Net migration with every country except the player, per 1,000 people per year. It
+   * starts as the country's own rate; the world system then removes its starting flows
+   * with the player, which are applied separately each year.
+   */
+  otherMigrationRate: number;
   /** Years simulated so far. */
   years: number;
   /** Births per (TFR × working-age person), calibrated to the starting birth rate. */
@@ -138,6 +144,7 @@ export function initForeign(stats: NationStats): ForeignState {
   return {
     bands,
     years: 0,
+    otherMigrationRate: stat(stats, 'population.net_migration_rate', 0),
     birthScale: births / Math.max(1e-9, tfr * bands[1]),
     deathScale,
     agingShare,
@@ -164,6 +171,8 @@ export function stepForeign(
   state: ForeignState,
   stats: NationStats,
   stream: RandomStream,
+  /** Net migrants arriving from the player's nation this year (negative if leaving to it). */
+  playerMigration = 0,
 ): Record<string, number> {
   const out: Record<string, number> = { ...stats };
   const decay = detExp(-Math.LN2 / F.deviationHalfLife);
@@ -179,7 +188,7 @@ export function stepForeign(
   const rates = deathRates(life, infant).map((r) => Math.min(0.5, r * state.deathScale));
   const births = state.birthScale * tfr * state.bands[1];
   const deaths = state.bands.map((n, b) => n * (rates[b] as number));
-  const migrants = (stat(stats, 'population.net_migration_rate', 0) / 1000) * population;
+  const migrants = (state.otherMigrationRate / 1000) * population + playerMigration;
   state.years += 1;
   const blend = 1 - detExp(-state.years / F.ageFlowBlendYears);
   const aging = state.bands[0] * (state.agingShare + (F.agingShare - state.agingShare) * blend);
@@ -194,6 +203,7 @@ export function stepForeign(
   const deathTotal = deaths.reduce((a, b) => a + b, 0);
   out['population.total'] = next;
   out['population.growth_rate'] = population > 0 ? 100 * (next / population - 1) : 0;
+  out['population.net_migration_rate'] = population > 0 ? (1000 * migrants) / population : 0;
   out['population.birth_rate'] = population > 0 ? (1000 * births) / population : 0;
   out['population.death_rate'] = population > 0 ? (1000 * deathTotal) / population : 0;
   out['population.tfr'] = tfr;

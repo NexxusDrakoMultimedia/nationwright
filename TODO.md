@@ -181,7 +181,8 @@ off as they land; add new ones as work reveals them.
       distance, shared language, diaspora networks), diaspora stocks, remittances;
       immigrants bring their origin's culture; replaces the interim net migration rate
 - [x] FDI inflows following relative growth (first version; stocks by partner with M4)
-- [ ] Foreign countries' populations don't yet reflect their flows with the player
+- [x] Foreign countries' populations reflect their migration with the player (their own
+      rate minus the starting player flows, plus each year's actual player flows)
 - [ ] Economic survey, budget, world comparison reports; flows map layer
 
 ## M4 — Politics, Elections & Diplomacy

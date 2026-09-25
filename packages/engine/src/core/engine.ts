@@ -42,7 +42,7 @@ export interface EngineOptions {
   readonly commands?: readonly CommandSpec<any>[];
 }
 
-export const RULESET_VERSION = 7;
+export const RULESET_VERSION = 8;
 
 export interface PendingCommand {
   readonly seq: number;
