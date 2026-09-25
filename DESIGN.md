@@ -1295,14 +1295,18 @@ the start year is projected forward before guiding variables and bands are compu
 
 | Kind of field | Projection rule |
 |---|---|
-| Stocks with a growth rate (population, GDP real) | Compound by the country's own latest growth rate, or the trend of its short series if present: `v · (1 + g)^Δy` |
-| Nominal values (GDP nominal, debt, budget) | Real growth plus the latest inflation |
-| Derived per-capita values | Recomputed from projected numerator and denominator (never projected directly) |
-| Rates and shares (TFR, life expectancy, urbanization, literacy, sector shares, religious composition) | Latest value plus a damped convergence trend toward its archetype's median, capped per year (e.g. TFR ±0.05/yr, life expectancy +0.3/yr, urbanization +0.5 pp/yr); shares renormalized |
-| Structural facts (area, borders, government type, languages, ethnic groups) | Carried forward unchanged |
+| Population | Compound by the country's population growth rate: `v · (1 + g)^Δy` |
+| Real output (real GDP, PPP) | Compound by trend real growth: the median of the latest three yearly rates, skipping 2020–2021 (pandemic shock and rebound), clamped to ±10%/yr |
+| Nominal US-dollar values (GDP at exchange rates, exports, imports) | Real growth **plus world dollar inflation** (default 2.5%/yr), *not* local inflation: dollar values don't rise with local prices, because the currency depreciates |
+| Per-capita output (GDP per capita, PPP) | The published value × `((1 + g_real) / (1 + g_pop))^Δy`. This equals total ÷ population when the source is self-consistent and keeps the published figure when it isn't. Mismatches over 25% are listed in the pipeline report |
+| Rates and shares (TFR, birth/death rates, life expectancy, infant mortality, median age, urbanization, literacy, schooling, sector shares, electricity, internet) | Damped convergence toward the tier median (5% of the gap per year), capped per year (e.g. TFR 0.05, life expectancy 0.3, urbanization 0.5 pp, internet 2 pp); sector shares renormalized to their published sum |
+| Year-specific rates (GDP growth, inflation, unemployment, debt, military spending, migration) and structural facts (area, borders, coastline, railways, age structure, government type, culture groups) | Carried forward unchanged |
 
-- The pipeline projects to a **target year**. Each value keeps `est_year`,
-  `projected: true|false`, and `projection_years`.
+Until M1 fits proper archetypes, the convergence "tier" is the country's GDP-per-capita
+quartile among states.
+
+- The pipeline projects to a **target year**. Each value keeps its published value,
+  `estYear`, projection `method`, `projectionYears`, and a `lowConfidence` flag.
 - A projection horizon above a threshold (default 5 years) marks the value as
   **low-confidence**. Low-confidence values are down-weighted when fitting and are listed
   in the pipeline report. As the frozen data ages, the whole dataset gradually drifts
@@ -1314,19 +1318,23 @@ the start year is projected forward before guiding variables and bands are compu
 **Ingest pipeline (`packages/reference-data`):**
 
 ```
-fetch (git clone/pull of factbook/factbook.json at a pinned commit)
-  → raw/  (the pinned commit hash recorded; the files are vendored or fetched by hash)
-  → parse (text → value + unit + est_year; percentage lists → {label, share}[];
-           "border countries" → neighbor list with border lengths)
-  → normalize (units, currencies, Factbook codes → internal IDs; drop oceans,
-               Antarctica, world, meta)
-  → validate (schema, ranges, missing-field report)
-  → project (to the target year; see above)
-  → snapshot/<target-year>.sqlite + manifest.json (commit hash, field coverage)
-  → fit guiding variables (marginals, copulas, archetypes, structure statistics,
-                           per-dimension culture group statistics)
-  → guiding-variables.json + validation-bands.json (versioned together)
+fetch   git clone of factbook/factbook.json, checked out at the pinned commit, into
+        packages/reference-data/.cache/ (gitignored; never vendored)
+  → parse     text → value + est_year (+ earlier years for series fields);
+              percentage lists → {label, share}[]; borders → neighbors with lengths
+  → classify  state (196) · territory (dependencies, Western Sahara, Gaza, West Bank) ·
+              excluded (uninhabited, EU, Antarctica, Paracel/Spratly Islands)
+  → validate  per-field ranges; unparsed values reported, never guessed
+  → project   to the target year (see above); derived indicators added
+  → bands     over states only
+  → data/manifest.json, snapshot-<year>.json, validation-bands-<year>.json,
+    report-<year>.md (coverage, bands, consistency warnings, unparsed values)
+  → (M1) fit guiding variables → guiding-variables-<year>.json
 ```
+
+The snapshot is committed as indented JSON rather than SQLite so that data changes
+review as normal diffs. Commands: `npm run data:fetch`, `npm run data:build -- --target-year
+<year>`.
 
 - The pipeline runs **offline as a developer tool**, never at game runtime. The game
   ships only the fitted statistics and bands, so it works without network access.
@@ -1353,8 +1361,10 @@ distribution across real countries. Optionally narrow it to the nation's archety
 Initial mapped indicators: population, growth rate, birth/death rates, TFR, life
 expectancy, infant mortality, median age, urbanization, GDP per capita, real GDP growth,
 sector shares, unemployment, inflation, public debt % GDP, exports/imports % GDP,
-military expenditure % GDP, active personnel per capita, electricity access, internet
-users, roads/rail per area, ethnic/religious fractionalization.
+military expenditure % GDP, electricity access, internet users, railway density,
+ethnic/religious fractionalization, and land-neighbour count (41 bands in total; see
+`packages/reference-data/data/report-<year>.md`). The Factbook has no roadways field, and
+personnel strengths are free text, so neither is banded yet.
 
 **Nuclear data is deliberately not used.** The Factbook has no nuclear-weapons field
 anyway (its only "nuclear" field is nuclear *energy*), and nuclear weapons are banned

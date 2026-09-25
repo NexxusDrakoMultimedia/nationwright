@@ -1,0 +1,156 @@
+{
+ "Geography": {
+  "Area": {
+   "total ": {
+    "text": "7 sq km"
+   },
+   "land": {
+    "text": "6.5 sq km"
+   },
+   "water": {
+    "text": "0 sq km"
+   }
+  },
+  "Land boundaries": {
+   "total": {
+    "text": "1.2 km"
+   },
+   "border countries": {
+    "text": "Spain 1.2 km"
+   }
+  },
+  "Coastline": {
+   "text": "12 km"
+  }
+ },
+ "People and Society": {
+  "Population": {
+   "total": {
+    "text": "29,733 (2025 est.)"
+   },
+   "male": {
+    "text": "14,923"
+   },
+   "female": {
+    "text": "14,810"
+   }
+  },
+  "Ethnic groups": {
+   "text": "Gibraltarian 79%, other British 13.2%, Spanish 2.1%, Moroccan 1.6%, other EU 2.4%, other 1.6% (2012 est.)",
+   "note": "<strong>note:</strong> data represent population by nationality"
+  },
+  "Languages": {
+   "text": "English (used in schools and for official purposes), Spanish, Italian, Portuguese"
+  },
+  "Religions": {
+   "text": "Roman Catholic 72.1%, Church of England 7.7%, other Christian 3.8%, Muslim 3.6%, Jewish 2.4%, Hindu 2%, other 1.1%, none 7.1%, unspecified 0.1% (2012 est.)"
+  },
+  "Age structure": {
+   "0-14 years": {
+    "text": "20% (male 3,045/female 2,895)"
+   },
+   "15-64 years": {
+    "text": "62.5% (male 9,383/female 9,179)"
+   },
+   "65 years and over": {
+    "text": "17.5% (2024 est.) (male 2,491/female 2,690)"
+   }
+  },
+  "Median age": {
+   "total": {
+    "text": "37.1 years (2025 est.)"
+   },
+   "male": {
+    "text": "36.2 years"
+   },
+   "female": {
+    "text": "37.5 years"
+   }
+  },
+  "Population growth rate": {
+   "text": "0.16% (2025 est.)"
+  },
+  "Birth rate": {
+   "text": "13.55 births/1,000 population (2025 est.)"
+  },
+  "Death rate": {
+   "text": "8.71 deaths/1,000 population (2025 est.)"
+  },
+  "Net migration rate": {
+   "text": "-3.23 migrant(s)/1,000 population (2025 est.)"
+  },
+  "Urbanization": {
+   "urban population": {
+    "text": "100% of total population (2023)"
+   },
+   "rate of urbanization": {
+    "text": "0.45% annual rate of change (2015-20 est.)"
+   }
+  },
+  "Infant mortality rate": {
+   "total": {
+    "text": "5.9 deaths/1,000 live births (2025 est.)"
+   },
+   "male": {
+    "text": "6.8 deaths/1,000 live births"
+   },
+   "female": {
+    "text": "5.2 deaths/1,000 live births"
+   }
+  },
+  "Life expectancy at birth": {
+   "total population": {
+    "text": "80.9 years (2024 est.)"
+   },
+   "male": {
+    "text": "78.1 years"
+   },
+   "female": {
+    "text": "83.8 years"
+   }
+  },
+  "Total fertility rate": {
+   "text": "1.88 children born/woman (2025 est.)"
+  }
+ },
+ "Government": {
+  "Country name": {
+   "conventional long form": {
+    "text": "none"
+   },
+   "conventional short form": {
+    "text": "Gibraltar"
+   },
+   "etymology": {
+    "text": "from the Spanish derivation of the Arabic <em>jabal tariq</em>, which means \"Mountain of Tariq\" and refers to the Berber chief who captured the peninsula in A.D. 711"
+   }
+  },
+  "Government type": {
+   "text": "parliamentary democracy (Parliament); self-governing overseas territory of the UK"
+  },
+  "Dependency status": {
+   "text": "overseas territory of the UK"
+  }
+ },
+ "Economy": {
+  "GDP (official exchange rate)": {
+   "text": "$2.044 billion (2014 est.)"
+  }
+ },
+ "Military and Security": {},
+ "Energy": {
+  "Electricity access": {
+   "electrification - total population": {
+    "text": "100% (2022 est.)"
+   }
+  }
+ },
+ "Communications": {
+  "Internet users": {
+   "percent of population": {
+    "text": "94% (2016 est.)"
+   }
+  }
+ },
+ "Transportation": {}
+}

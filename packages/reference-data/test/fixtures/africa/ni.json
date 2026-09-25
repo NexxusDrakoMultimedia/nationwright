@@ -1,0 +1,306 @@
+{
+ "Geography": {
+  "Area": {
+   "total ": {
+    "text": "923,768 sq km"
+   },
+   "land": {
+    "text": "910,768 sq km"
+   },
+   "water": {
+    "text": "13,000 sq km"
+   }
+  },
+  "Land boundaries": {
+   "total": {
+    "text": "4,477 km"
+   },
+   "border countries": {
+    "text": "Benin 809 km; Cameroon 1,975 km; Chad 85 km; Niger 1,608 km"
+   }
+  },
+  "Coastline": {
+   "text": "853 km"
+  }
+ },
+ "People and Society": {
+  "Population": {
+   "total": {
+    "text": "244,344,065 (2025 est.)"
+   },
+   "male": {
+    "text": "123,511,557"
+   },
+   "female": {
+    "text": "120,832,508"
+   }
+  },
+  "Ethnic groups": {
+   "text": "Hausa 30%, Yoruba 15.5%, Igbo (Ibo) 15.2%, Fulani 6%, Tiv 2.4%, Kanuri/Beriberi 2.4%, Ibibio 1.8%, Ijaw/Izon 1.8%, other 24.9% (2018 est.)",
+   "note": "<strong>note:</strong> Nigeria, Africa's most populous country, is composed of more than 250 ethnic groups"
+  },
+  "Languages": {
+   "text": "English (official), Hausa, Yoruba, Igbo (Ibo), Fulani, over 500 additional indigenous languages"
+  },
+  "Religions": {
+   "text": "Muslim 53.5%, Roman Catholic 10.6%, other Christian 35.3%, other 0.6% (2018 est.)"
+  },
+  "Age structure": {
+   "0-14 years": {
+    "text": "40.4% (male 48,856,606/female 46,770,810)"
+   },
+   "15-64 years": {
+    "text": "56.2% (male 66,897,900/female 66,187,584)"
+   },
+   "65 years and over": {
+    "text": "3.4% (2024 est.) (male 3,759,943/female 4,274,287)"
+   }
+  },
+  "Median age": {
+   "total": {
+    "text": "19.4 years (2025 est.)"
+   },
+   "male": {
+    "text": "19.1 years"
+   },
+   "female": {
+    "text": "19.6 years"
+   }
+  },
+  "Population growth rate": {
+   "text": "2.39% (2025 est.)"
+  },
+  "Birth rate": {
+   "text": "33.56 births/1,000 population (2025 est.)"
+  },
+  "Death rate": {
+   "text": "9.42 deaths/1,000 population (2025 est.)"
+  },
+  "Net migration rate": {
+   "text": "-0.24 migrant(s)/1,000 population (2025 est.)"
+  },
+  "Population distribution": {
+   "text": "largest population of any African nation; significant population clusters are scattered throughout the country, with the highest density areas being in the south and southwest, as shown in this population distribution map"
+  },
+  "Urbanization": {
+   "urban population": {
+    "text": "54.3% of total population (2023)"
+   },
+   "rate of urbanization": {
+    "text": "3.92% annual rate of change (2020-25 est.)"
+   }
+  },
+  "Infant mortality rate": {
+   "total": {
+    "text": "65.6 deaths/1,000 live births (2025 est.)"
+   },
+   "male": {
+    "text": "58.9 deaths/1,000 live births"
+   },
+   "female": {
+    "text": "48.2 deaths/1,000 live births"
+   }
+  },
+  "Life expectancy at birth": {
+   "total population": {
+    "text": "62.2 years (2024 est.)"
+   },
+   "male": {
+    "text": "60.4 years"
+   },
+   "female": {
+    "text": "64.2 years"
+   }
+  },
+  "Total fertility rate": {
+   "text": "4.59 children born/woman (2025 est.)"
+  },
+  "Literacy": {
+   "total population": {
+    "text": "63.2% (2021 est.)"
+   },
+   "male": {
+    "text": "73.7% (2021 est.)"
+   },
+   "female": {
+    "text": "53.3% (2021 est.)"
+   }
+  }
+ },
+ "Government": {
+  "Country name": {
+   "conventional long form": {
+    "text": "Federal Republic of Nigeria"
+   },
+   "conventional short form": {
+    "text": "Nigeria"
+   },
+   "etymology": {
+    "text": "named for the Niger River that flows through the west of the country to the Atlantic Ocean; the name of the river probably comes from the local Tuareg name, <em>egereou n-igereouen </em>(big rivers)"
+   }
+  },
+  "Government type": {
+   "text": "federal presidential republic"
+  }
+ },
+ "Economy": {
+  "Real GDP (purchasing power parity)": {
+   "Real GDP (purchasing power parity) 2024": {
+    "text": "$1.318 trillion (2024 est.)"
+   },
+   "Real GDP (purchasing power parity) 2023": {
+    "text": "$1.275 trillion (2023 est.)"
+   },
+   "Real GDP (purchasing power parity) 2022": {
+    "text": "$1.239 trillion (2022 est.)"
+   },
+   "note": "<b>note:</b> data in 2021 dollars"
+  },
+  "Real GDP growth rate": {
+   "Real GDP growth rate 2024": {
+    "text": "3.4% (2024 est.)"
+   },
+   "Real GDP growth rate 2023": {
+    "text": "2.9% (2023 est.)"
+   },
+   "Real GDP growth rate 2022": {
+    "text": "3.3% (2022 est.)"
+   },
+   "note": "<b>note:</b> annual GDP % growth based on constant local currency"
+  },
+  "Real GDP per capita": {
+   "Real GDP per capita 2024": {
+    "text": "$5,700 (2024 est.)"
+   },
+   "Real GDP per capita 2023": {
+    "text": "$5,600 (2023 est.)"
+   },
+   "Real GDP per capita 2022": {
+    "text": "$5,600 (2022 est.)"
+   },
+   "note": "<b>note:</b> data in 2021 dollars"
+  },
+  "GDP (official exchange rate)": {
+   "text": "$187.76 billion (2024 est.)",
+   "note": "<b>note:</b> data in current dollars at official exchange rate"
+  },
+  "Inflation rate (consumer prices)": {
+   "Inflation rate (consumer prices) 2024": {
+    "text": "33.2% (2024 est.)"
+   },
+   "Inflation rate (consumer prices) 2023": {
+    "text": "24.7% (2023 est.)"
+   },
+   "Inflation rate (consumer prices) 2022": {
+    "text": "18.8% (2022 est.)"
+   },
+   "note": "<b>note:</b> annual % change based on consumer prices"
+  },
+  "GDP - composition, by sector of origin": {
+   "agriculture": {
+    "text": "20.4% (2024 est.)"
+   },
+   "industry": {
+    "text": "29.6% (2024 est.)"
+   },
+   "services": {
+    "text": "47% (2024 est.)"
+   },
+   "note": "<b>note:</b> figures may not total 100% due to non-allocated consumption not captured in sector-reported data"
+  },
+  "Unemployment rate": {
+   "Unemployment rate 2024": {
+    "text": "3% (2024 est.)"
+   },
+   "Unemployment rate 2023": {
+    "text": "3.1% (2023 est.)"
+   },
+   "Unemployment rate 2022": {
+    "text": "3.9% (2022 est.)"
+   },
+   "note": "<b>note:</b> % of labor force seeking employment"
+  },
+  "Public debt": {
+   "Public debt 2016": {
+    "text": "19.6% of GDP (2016 est.)"
+   }
+  },
+  "Exports": {
+   "Exports 2024": {
+    "text": "$57.536 billion (2024 est.)"
+   },
+   "Exports 2023": {
+    "text": "$60.261 billion (2023 est.)"
+   },
+   "Exports 2022": {
+    "text": "$69.091 billion (2022 est.)"
+   },
+   "note": "<b>note:</b> balance of payments - exports of goods and services in current dollars"
+  },
+  "Imports": {
+   "Imports 2024": {
+    "text": "$57.73 billion (2024 est.)"
+   },
+   "Imports 2023": {
+    "text": "$65.423 billion (2023 est.)"
+   },
+   "Imports 2022": {
+    "text": "$77.049 billion (2022 est.)"
+   },
+   "note": "<b>note:</b> balance of payments - imports of goods and services in current dollars"
+  }
+ },
+ "Military and Security": {
+  "Military expenditures": {
+   "Military Expenditures 2024": {
+    "text": "0.6% of GDP (2024)"
+   },
+   "Military Expenditures 2023": {
+    "text": "0.7% of GDP (2023 est.)"
+   },
+   "Military Expenditures 2022": {
+    "text": "0.6% of GDP (2022 est.)"
+   },
+   "Military Expenditures 2021": {
+    "text": "0.6% of GDP (2021 est.)"
+   },
+   "Military Expenditures 2020": {
+    "text": "0.6% of GDP (2020 est.)"
+   }
+  }
+ },
+ "Energy": {
+  "Electricity access": {
+   "electrification - total population": {
+    "text": "60.5% (2022 est.)"
+   },
+   "electrification - urban areas": {
+    "text": "89%"
+   },
+   "electrification - rural areas": {
+    "text": "27%"
+   }
+  }
+ },
+ "Communications": {
+  "Internet users": {
+   "percent of population": {
+    "text": "39% (2023 est.)"
+   }
+  }
+ },
+ "Transportation": {
+  "Railways": {
+   "total": {
+    "text": "3,798 km (2014)"
+   },
+   "standard gauge": {
+    "text": "293 km (2014) 1.435-m gauge"
+   },
+   "narrow gauge": {
+    "text": "3,505 km (2014) 1.067-m gauge"
+   },
+   "note": "<strong>note:</strong> as of the end of 2018, there were only six operational locomotives in Nigeria primarily used for passenger service; the majority of the rail lines are in a severe state of disrepair and need to be replaced"
+  }
+ }
+}

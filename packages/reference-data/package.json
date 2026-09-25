@@ -1,0 +1,16 @@
+{
+  "name": "@nationwright/reference-data",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Offline pipeline: factbook.json -> parsed snapshot, forward projection, validation bands.",
+  "license": "GPL-3.0-or-later",
+  "author": "Nexxus Drako Multimedia",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "fetch": "node src/cli.ts fetch",
+    "build": "node src/cli.ts build"
+  }
+}

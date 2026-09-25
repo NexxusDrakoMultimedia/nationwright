@@ -1,0 +1,240 @@
+{
+ "Geography": {
+  "Area": {
+   "total ": {
+    "text": "2 sq km"
+   },
+   "land": {
+    "text": "2 sq km"
+   },
+   "water": {
+    "text": "0 sq km"
+   }
+  },
+  "Land boundaries": {
+   "total": {
+    "text": "6 km"
+   },
+   "border countries": {
+    "text": "France 6 km"
+   }
+  },
+  "Coastline": {
+   "text": "4.1 km"
+  }
+ },
+ "People and Society": {
+  "Population": {
+   "total": {
+    "text": "32,047 (2025 est.)"
+   },
+   "male": {
+    "text": "15,467"
+   },
+   "female": {
+    "text": "16,580"
+   }
+  },
+  "Ethnic groups": {
+   "text": "Monegasque 32.1%, French 19.9%, Italian 15.3%, British 5%, Belgian 2.3%, Swiss 2%, German 1.9%, Russian 1.8%, American 1.1%, Dutch 1.1%, Moroccan 1%, other 16.6% (2016 est.)",
+   "note": "<strong>note:</strong> data represent population by country of birth"
+  },
+  "Languages": {
+   "Languages": {
+    "text": "French (official), English, Italian, Monegasque"
+   },
+   "major-language sample(s)": {
+    "text": "<br>The World Factbook, une source indispensable d'informations de base. (French)<br><br>The World Factbook, the indispensable source for basic information."
+   }
+  },
+  "Religions": {
+   "text": "Roman Catholic 90% (official), other 10%"
+  },
+  "Age structure": {
+   "0-14 years": {
+    "text": "9.1% (male 1,485/female 1,408)"
+   },
+   "15-64 years": {
+    "text": "53.8% (male 8,620/female 8,490)"
+   },
+   "65 years and over": {
+    "text": "37.1% (2024 est.) (male 5,261/female 6,549)"
+   }
+  },
+  "Median age": {
+   "total": {
+    "text": "57.5 years (2025 est.)"
+   },
+   "male": {
+    "text": "55 years"
+   },
+   "female": {
+    "text": "58.4 years"
+   }
+  },
+  "Population growth rate": {
+   "text": "0.76% (2025 est.)"
+  },
+  "Birth rate": {
+   "text": "6.46 births/1,000 population (2025 est.)"
+  },
+  "Death rate": {
+   "text": "11.36 deaths/1,000 population (2025 est.)"
+  },
+  "Net migration rate": {
+   "text": "12.48 migrant(s)/1,000 population (2025 est.)"
+  },
+  "Population distribution": {
+   "text": "the second most densely populated country in the world (after Macau); its entire population lives on 2 sq km (0.8 sq mi)"
+  },
+  "Urbanization": {
+   "urban population": {
+    "text": "100% of total population (2023)"
+   },
+   "rate of urbanization": {
+    "text": "0.5% annual rate of change (2020-25 est.)"
+   }
+  },
+  "Infant mortality rate": {
+   "total": {
+    "text": "1.7 deaths/1,000 live births (2025 est.)"
+   },
+   "male": {
+    "text": "2 deaths/1,000 live births"
+   },
+   "female": {
+    "text": "1.4 deaths/1,000 live births"
+   }
+  },
+  "Life expectancy at birth": {
+   "total population": {
+    "text": "89.8 years (2024 est.)"
+   },
+   "male": {
+    "text": "86 years"
+   },
+   "female": {
+    "text": "93.7 years"
+   }
+  },
+  "Total fertility rate": {
+   "text": "1.55 children born/woman (2025 est.)"
+  },
+  "School life expectancy (primary to tertiary education)": {
+   "total": {
+    "text": "21 years (2024 est.)"
+   },
+   "male": {
+    "text": "20 years (2024 est.)"
+   },
+   "female": {
+    "text": "22 years (2024 est.)"
+   }
+  }
+ },
+ "Government": {
+  "Country name": {
+   "conventional long form": {
+    "text": "Principality of Monaco"
+   },
+   "conventional short form": {
+    "text": "Monaco"
+   },
+   "local long form": {
+    "text": "Principaut&eacute; de Monaco"
+   },
+   "local short form": {
+    "text": "Monaco"
+   },
+   "etymology": {
+    "text": "founded as a Greek colony in the 6th century B.C., the name's origin is unclear; it could derive from the Greek term <em>monoikos</em> (solitary), the Ligurian word <em>monegu</em> (rock), or the Basque word <em>muno</em> (mountain)"
+   }
+  },
+  "Government type": {
+   "text": "constitutional monarchy"
+  }
+ },
+ "Economy": {
+  "Real GDP (purchasing power parity)": {
+   "Real GDP (purchasing power parity) 2024": {
+    "text": "$8.924 billion (2024 est.)"
+   },
+   "Real GDP (purchasing power parity) 2023": {
+    "text": "$8.749 billion (2023 est.)"
+   },
+   "Real GDP (purchasing power parity) 2022": {
+    "text": "$8.329 billion (2022 est.)"
+   },
+   "note": "<strong>note:</strong> data in 2015 dollars"
+  },
+  "Real GDP growth rate": {
+   "Real GDP growth rate 2023": {
+    "text": "5% (2023 est.)"
+   },
+   "Real GDP growth rate 2022": {
+    "text": "11% (2022 est.)"
+   },
+   "Real GDP growth rate 2021": {
+    "text": "22.2% (2021 est.)"
+   },
+   "note": "<b>note:</b> annual GDP % growth based on constant local currency"
+  },
+  "Real GDP per capita": {
+   "Real GDP per capita 2024": {
+    "text": "$270,100 (2024 est.)"
+   },
+   "Real GDP per capita 2023": {
+    "text": "$256,600 (2023 est.)"
+   },
+   "Real GDP per capita 2022": {
+    "text": "$226,100 (2022 est.)"
+   },
+   "note": "<strong>note:</strong> data in 2015 dollars"
+  },
+  "GDP (official exchange rate)": {
+   "text": "$10.434 billion (2024 est.)",
+   "note": "<b>note:</b> data in current dollars at official exchange rate"
+  },
+  "Inflation rate (consumer prices)": {
+   "Inflation rate (consumer prices) 2022": {
+    "text": "5.9% (2022 est.)"
+   },
+   "Inflation rate (consumer prices) 2021": {
+    "text": "2.1% (2021 est.)"
+   },
+   "Inflation rate (consumer prices) 2020": {
+    "text": "0.5% (2020 est.)"
+   },
+   "note": "<strong>note:</strong> annual % change based on consumer prices"
+  },
+  "GDP - composition, by sector of origin": {
+   "industry": {
+    "text": "11.5% (2023 est.)"
+   },
+   "services": {
+    "text": "88.5% (2023 est.)"
+   },
+   "note": "<strong>note:</strong> figures may not total 100% due to non-allocated consumption not captured in sector-reported data"
+  }
+ },
+ "Military and Security": {},
+ "Energy": {
+  "Electricity access": {
+   "electrification - total population": {
+    "text": "100% (2022 est.)"
+   }
+  }
+ },
+ "Communications": {
+  "Internet users": {
+   "percent of population": {
+    "text": "99% (2023 est.)"
+   }
+  }
+ },
+ "Transportation": {
+  "Railways": {
+   "text": "<strong>note:</strong> Monaco has a single railway station but does not operate its own train service;  the French operator SNCF operates rail services in Monaco"
+  }
+ }
+}

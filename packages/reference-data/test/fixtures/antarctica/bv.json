@@ -1,0 +1,51 @@
+{
+ "Geography": {
+  "Area": {
+   "total ": {
+    "text": "49 sq km"
+   },
+   "land": {
+    "text": "49 sq km"
+   },
+   "water": {
+    "text": "0 sq km"
+   }
+  },
+  "Land boundaries": {
+   "total": {
+    "text": "0 km"
+   }
+  },
+  "Coastline": {
+   "text": "29.6 km"
+  }
+ },
+ "People and Society": {
+  "Population": {
+   "total": {
+    "text": "uninhabited"
+   },
+   "note": "<strong>note: </strong>a small, seasonal research station is located in the northwest corner of Bouvet Island"
+  }
+ },
+ "Government": {
+  "Country name": {
+   "conventional long form": {
+    "text": "none"
+   },
+   "conventional short form": {
+    "text": "Bouvet Island"
+   },
+   "etymology": {
+    "text": "named after the French naval officer Jean-Baptiste Charles BOUVET who discovered the island in 1739"
+   },
+   "note": "<strong>note:</strong> pronounced boo-vay i-land"
+  },
+  "Dependency status": {
+   "text": "territory of Norway; administered by the Polar Department of the Ministry of Justice and Oslo Police"
+  }
+ },
+ "Economy": {},
+ "Communications": {},
+ "Transportation": {}
+}

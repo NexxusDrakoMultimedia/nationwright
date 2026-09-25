@@ -22,7 +22,7 @@ const engineDeterminismRules = {
 };
 
 export default tseslint.config(
-  { ignores: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/coverage/**'] },
+  { ignores: ['**/node_modules/**', '**/dist/**', '**/out/**', '**/coverage/**', '**/.cache/**'] },
   js.configs.recommended,
   ...tseslint.configs.strict,
   {

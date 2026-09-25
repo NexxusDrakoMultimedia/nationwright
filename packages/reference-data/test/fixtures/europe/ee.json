@@ -1,0 +1,251 @@
+{
+ "Geography": {
+  "Area": {
+   "total ": {
+    "text": "4,236,351 sq km"
+   },
+   "note": "<strong>rank by area (sq km):<br></strong>1. France (includes five overseas regions) 643,801 <br>2. Spain 505,370 <br>3. Sweden 450,295 <br>4. Germany 357,022 <br>5. Finland 338,145 <br>6. Poland 312,685 <br>7. Italy 301,340<br>8. Romania 238,391 <br>9. Greece 131,957 <br>10. Bulgaria 110,879 <br>11. Hungary 93,028 <br>12. Portugal 92,090 <br>13. Austria 83,871 <br>14. Czechia 78,867 <br>15. Ireland 70,273 <br>16. Lithuania 65,300 <br>17. Latvia 64,589 <br>18. Croatia 56,594 <br>19. Slovakia 49,035 <br>20. Estonia 45,228 <br>21. Denmark 43,094 <br>22. Netherlands 41,543 <br>23. Belgium 30,528 <br>24. Slovenia 20,273 <br>25. Cyprus 9,251 <br>26. Luxembourg 2,586 <br>27. Malta 316"
+  },
+  "Land boundaries": {
+   "total": {
+    "text": "13,770 km"
+   },
+   "border countries": {
+    "text": "Albania 212 km; Andorra 118 km; Belarus 1,176 km; Bosnia and Herzegovina 956 km; Holy See 3 km; Liechtenstein 34 km; North Macedonia 396 km; Moldova 683 km; Monaco 6 km; Montenegro 19 km; Norway 2,375 km; Russia 2,435 km; San Marino 37 km; Serbia 1,353 km; Switzerland 1,729 km; Turkey 415 km; United Kingdom 499 km; Ukraine 1,324 km"
+   },
+   "note": "<strong>note:</strong> data for European continent only"
+  },
+  "Coastline": {
+   "text": "53,563.9 km"
+  }
+ },
+ "People and Society": {
+  "Population": {
+   "total": {
+    "text": "451,815,312 (2024 est.)"
+   },
+   "male": {
+    "text": "220,631,332"
+   },
+   "female": {
+    "text": "231,183,980"
+   }
+  },
+  "Languages": {
+   "text": "Bulgarian, Croatian, Czech, Danish, Dutch, English, Estonian, Finnish, French, German, Greek, Hungarian, Irish, Italian, Latvian, Lithuanian, Maltese, Polish, Portuguese, Romanian, Slovak, Slovene, Spanish, Swedish",
+   "note": "<strong>note:</strong> only the 24 official languages are listed; German, the major language of Germany and Austria, is the most widely spoken mother tongue - about 16% of the EU population; English is the most widely spoken foreign language - about 29% of the EU population is conversant with it; English is an official language in Ireland and Malta and thus remained an official EU language after the UK left the bloc (2020)"
+  },
+  "Religions": {
+   "text": "Roman Catholic 41%, Orthodox 10%, Protestant 9%, other Christian 4%, Muslim 2%, other 4% (includes Jewish, Sikh, Buddhist, Hindu), atheist 10%, non-believer/agnostic 17%, unspecified 3% (2019 est.)"
+  },
+  "Age structure": {
+   "0-14 years": {
+    "text": "14.5% (male 33,606,273/female 31,985,118)"
+   },
+   "15-64 years": {
+    "text": "63.5% (male 143,874,460/female 143,104,994)"
+   },
+   "65 years and over": {
+    "text": "22% (2024 est.) (male 43,150,599/female 56,093,868)"
+   }
+  },
+  "Median age": {
+   "total": {
+    "text": "44 years (2020)"
+   },
+   "male": {
+    "text": "42.6 years"
+   },
+   "female": {
+    "text": "45.5 years"
+   }
+  },
+  "Population growth rate": {
+   "text": "0.1% (2021 est.)"
+  },
+  "Birth rate": {
+   "text": "8.9 births/1,000 population (2024 est.)"
+  },
+  "Death rate": {
+   "text": "11.2 deaths/1,000 population (2024 est.)"
+  },
+  "Net migration rate": {
+   "text": "-2.85 migrant(s)/1,000 population"
+  },
+  "Population distribution": {
+   "text": "population distribution varies considerably from country to country but tends to follow a pattern of coastal and river settlement, with urban agglomerations forming large hubs; the area in and around the Netherlands, Belgium, and Luxembourg (known collectively as Benelux), is the most densely populated area in the EU"
+  },
+  "Infant mortality rate": {
+   "total": {
+    "text": "3.4 deaths/1,000 live births (2024 est.)"
+   }
+  },
+  "Life expectancy at birth": {
+   "total population": {
+    "text": "77.63 years (2021)"
+   },
+   "male": {
+    "text": "72.98 years"
+   },
+   "female": {
+    "text": "82.51 years"
+   }
+  },
+  "Total fertility rate": {
+   "text": "1.54 children born/woman (2024 est.)"
+  }
+ },
+ "Government": {
+  "Government type": {
+   "text": "a hybrid and unique intergovernmental and supranational organization"
+  }
+ },
+ "Economy": {
+  "Real GDP (purchasing power parity)": {
+   "Real GDP (purchasing power parity) 2024": {
+    "text": "$24.441 trillion (2024 est.)"
+   },
+   "Real GDP (purchasing power parity) 2023": {
+    "text": "$24.17 trillion (2023 est.)"
+   },
+   "Real GDP (purchasing power parity) 2022": {
+    "text": "$24.036 trillion (2022 est.)"
+   },
+   "note": "<b>note:</b> data in 2021 dollars"
+  },
+  "Real GDP growth rate": {
+   "Real GDP growth rate 2024": {
+    "text": "1% (2024 est.)"
+   },
+   "Real GDP growth rate 2023": {
+    "text": "0.5% (2023 est.)"
+   },
+   "Real GDP growth rate 2022": {
+    "text": "3.5% (2022 est.)"
+   },
+   "note": "<b>note:</b> annual GDP % growth based on constant local currency"
+  },
+  "Real GDP per capita": {
+   "Real GDP per capita 2024": {
+    "text": "$54,300 (2024 est.)"
+   },
+   "Real GDP per capita 2023": {
+    "text": "$53,800 (2023 est.)"
+   },
+   "Real GDP per capita 2022": {
+    "text": "$53,700 (2022 est.)"
+   },
+   "note": "<b>note:</b> data in 2021 dollars"
+  },
+  "GDP (official exchange rate)": {
+   "text": "$19.423 trillion (2024 est.)",
+   "note": "<b>note:</b> data in current dollars at official exchange rate"
+  },
+  "Inflation rate (consumer prices)": {
+   "Inflation rate (consumer prices) 2024": {
+    "text": "2.4% (2024 est.)"
+   },
+   "Inflation rate (consumer prices) 2023": {
+    "text": "6.3% (2023 est.)"
+   },
+   "Inflation rate (consumer prices) 2022": {
+    "text": "8.8% (2022 est.)"
+   },
+   "note": "<b>note:</b> annual % change based on consumer prices"
+  },
+  "GDP - composition, by sector of origin": {
+   "agriculture": {
+    "text": "1.6% (2024 est.)"
+   },
+   "industry": {
+    "text": "22.1% (2024 est.)"
+   },
+   "services": {
+    "text": "66.1% (2024 est.)"
+   },
+   "note": "<b>note:</b> figures may not total 100% due to non-allocated consumption not captured in sector-reported data"
+  },
+  "Unemployment rate": {
+   "Unemployment rate 2024": {
+    "text": "6% (2024 est.)"
+   },
+   "Unemployment rate 2023": {
+    "text": "6.1% (2023 est.)"
+   },
+   "Unemployment rate 2022": {
+    "text": "6.2% (2022 est.)"
+   },
+   "note": "<b>note:</b> % of labor force seeking employment"
+  },
+  "Public debt": {
+   "Public debt 2013": {
+    "text": "85.5% of GDP (2013)"
+   }
+  },
+  "Exports": {
+   "Exports 2024": {
+    "text": "$9.783 trillion (2024 est.)"
+   },
+   "Exports 2023": {
+    "text": "$9.689 trillion (2023 est.)"
+   },
+   "Exports 2022": {
+    "text": "$9.425 trillion (2022 est.)"
+   },
+   "note": "<b>note:</b> balance of payments - exports of goods and services in current dollars"
+  },
+  "Imports": {
+   "Imports 2024": {
+    "text": "$8.953 trillion (2024 est.)"
+   },
+   "Imports 2023": {
+    "text": "$8.978 trillion (2023 est.)"
+   },
+   "Imports 2022": {
+    "text": "$9.072 trillion (2022 est.)"
+   },
+   "note": "<b>note:</b> balance of payments - imports of goods and services in current dollars"
+  }
+ },
+ "Military and Security": {
+  "Military expenditures": {
+   "Military Expenditures 2024": {
+    "text": "1.9% of GDP (2024 est.)"
+   },
+   "Military Expenditures 2023": {
+    "text": "1.8% of GDP (2023 est.)"
+   },
+   "Military Expenditures 2022": {
+    "text": "1.6% of GDP (2022 est.)"
+   },
+   "Military Expenditures 2021": {
+    "text": "1.6% of GDP (2021 est.)"
+   },
+   "Military Expenditures 2020": {
+    "text": "1.6% of GDP (2020 est.)"
+   },
+   "note": "<strong>note 1:</strong> the European Defense Fund (EDF) has a budget of approximately $8 billion for 2021-2027; about $2.7 billion is devoted to funding collaborative defense research while about $5.3 billion is allocated for collaborative capability development projects that complement national contributions; the EDF identifies critical defense domains that it will support <br><br><strong>note 2:</strong> NATO is separate from the EU and is resourced through the direct and indirect contributions of its members; NATO’s common funds are direct contributions to collective budgets, capabilities and programs, which equate to only 0.3% of total NATO defense spending to develop capabilities and run NATO, its military commands, capabilities, and infrastructure; NATO's 2014 Defense Investment Pledge called for NATO members to meet the 2% of GDP guideline for defense spending and the 20% of annual defense expenditure on major new equipment by 2024"
+  }
+ },
+ "Energy": {
+  "Electricity access": {
+   "electrification - total population": {
+    "text": "100% (2022 est.)"
+   }
+  }
+ },
+ "Communications": {
+  "Internet users": {
+   "percent of population": {
+    "text": "90% (2023 est.)"
+   }
+  }
+ },
+ "Transportation": {
+  "Railways": {
+   "total": {
+    "text": "4,894,173 km (2019)"
+   }
+  }
+ }
+}

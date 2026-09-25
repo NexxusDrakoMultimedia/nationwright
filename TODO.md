@@ -65,13 +65,16 @@ off as they land; add new ones as work reveals them.
 - [ ] Headless batch runner: create world from seed, simulate N years, dump indicators
 
 ### Reference-data pipeline (factbook.json)
-- [ ] Fetch at a pinned commit; record the hash in the manifest
-- [ ] Per-field parsers (value, unit, est_year; percentage lists; border lists) with
-      fixtures
-- [ ] Normalize (GEC codes → internal IDs; drop oceans, Antarctica, world, meta)
-- [ ] Unparsed-value and coverage report
-- [ ] Forward projection to the target year (DESIGN.md §10.1); low-confidence flags
-- [ ] Snapshot SQLite + manifest; validation bands (typical / plausible / implausible)
+- [x] Fetch at the pinned commit (`npm run data:fetch`); hash recorded in the manifest
+- [x] Per-field parsers (value, est_year, series history; percentage lists; borders) with
+      trimmed CC0 fixtures
+- [x] Classify entities (196 states, 43 territories, excluded); drop oceans, world, meta
+- [x] Report: coverage, bands, consistency warnings, unparsed values (1 left: Holy See area "0 sq km")
+- [x] Forward projection to the target year (DESIGN.md §10.1); low-confidence flags
+- [x] Snapshot JSON + manifest + validation bands (41 indicators) for 2026, committed
+- [ ] Parse military personnel strengths (free text) into personnel per capita
+- [ ] Map border-country names to Factbook codes (for neighbour-similarity statistics in M1)
+- [ ] Automatic yearly rebuild reminder (the start year advances even though the data is frozen)
 
 ## M1 — World Generation & Map
 - [ ] Guiding variables: marginals, Gaussian copula, archetype clustering, categorical
