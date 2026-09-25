@@ -10,6 +10,11 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { app, type BrowserWindow } from 'electron';
 
+/** One line per step, streamed live by the smoke runner (packages/ui/smoke.ts). */
+function progress(message: string): void {
+  process.stdout.write(`PROGRESS ${message}\n`);
+}
+
 export function runSmokeTest(window: BrowserWindow, dir: string): void {
   const fail = (reason: unknown) => {
     process.stdout.write(`SMOKE ${JSON.stringify({ ok: false, error: String(reason) })}\n`);
@@ -17,48 +22,61 @@ export function runSmokeTest(window: BrowserWindow, dir: string): void {
   };
   const timeout = setTimeout(() => fail('timed out after 60 s'), 60_000);
 
+  const js = <T>(code: string) => window.webContents.executeJavaScript(code) as Promise<T>;
+  const call = <T>(method: string, params: unknown) =>
+    js<T>(`window.nationwright.request(${JSON.stringify(method)}, ${JSON.stringify(params)})`);
+
   window.webContents.once('did-finish-load', () => {
-    const path = join(dir, 'smoke.nwsave');
-    const script = `(async () => {
-      const api = window.nationwright;
-      const progress = [];
-      api.onEvent((e) => progress.push(e.type));
-      const seed = await api.request('seed.generate', null);
-      const check = await api.request('seed.check', { text: seed });
-      const bad = await api.request('seed.check', { text: 'AAAAAAAAAAB' });
-      const created = await api.request('world.create', { path: ${JSON.stringify(path)}, seed });
-      const advanced = await api.request('world.advance', { months: 24 });
-      let error = null;
-      try { await api.request('world.advance', { months: 0 }); } catch (e) { error = String(e.message ?? e); }
-      await api.request('world.close', null);
-      const reopened = await api.request('world.open', { path: ${JSON.stringify(path)} });
-      return {
-        seed, check, bad, created, advanced, reopened, error, progress,
-        nodeInRenderer: typeof require !== 'undefined' || typeof process !== 'undefined',
-        title: document.title,
-        heading: document.querySelector('h1')?.textContent ?? null,
+    void (async () => {
+      progress('renderer loaded');
+      const path = join(dir, 'smoke.nwsave');
+      await js(
+        `(window.__progress = [], window.nationwright.onEvent((e) => window.__progress.push(e.type)), true)`,
+      );
+      const seed = await call<string>('seed.generate', null);
+      const check = await call<unknown>('seed.check', { text: seed });
+      const bad = await call<unknown>('seed.check', { text: 'AAAAAAAAAAB' });
+      progress(`seed ${seed} generated and checked`);
+      const created = await call<unknown>('world.create', { path, seed });
+      progress('world generated and saved');
+      const advanced = await call<unknown>('world.advance', { months: 24 });
+      progress('advanced 24 months');
+      let error: string | null = null;
+      try {
+        await call('world.advance', { months: 0 });
+      } catch (e) {
+        error = e instanceof Error ? e.message : String(e);
+      }
+      await call('world.close', null);
+      const reopened = await call<unknown>('world.open', { path });
+      progress('world closed and reopened');
+      const result = {
+        seed,
+        check,
+        bad,
+        created,
+        advanced,
+        reopened,
+        error,
+        progress: await js<string[]>('window.__progress'),
+        nodeInRenderer: await js<boolean>(
+          `typeof require !== 'undefined' || typeof process !== 'undefined'`,
+        ),
+        title: await js<string>('document.title'),
+        heading: await js<string | null>(`document.querySelector('h1')?.textContent ?? null`),
       };
-    })()`;
-    window.webContents
-      .executeJavaScript(script)
-      .then(async (result: unknown) => {
-        clearTimeout(timeout);
-        const screenshot = process.env['NATIONWRIGHT_SMOKE_SCREENSHOT'];
-        if (screenshot !== undefined) {
-          const image = await window.webContents.capturePage();
-          writeFileSync(screenshot, image.toPNG());
-        }
-        process.stdout.write(`SMOKE ${JSON.stringify({ ok: true, result })}\n`);
-        app.quit();
-      })
-      .catch(fail);
+      clearTimeout(timeout);
+      const screenshot = process.env['NATIONWRIGHT_SMOKE_SCREENSHOT'];
+      if (screenshot !== undefined) {
+        const image = await window.webContents.capturePage();
+        writeFileSync(screenshot, image.toPNG());
+      }
+      process.stdout.write(`SMOKE ${JSON.stringify({ ok: true, result })}\n`);
+      app.quit();
+    })().catch(fail);
   });
 }
 
-/**
- * UI smoke test: the app was launched with a world file; wait for the map, then step
- * through each layer and a country profile, saving a screenshot of each into `dir`.
- */
 export function runUiSmokeTest(window: BrowserWindow, dir: string): void {
   const fail = (reason: unknown) => {
     process.stdout.write(`SMOKE ${JSON.stringify({ ok: false, error: String(reason) })}\n`);
@@ -82,14 +100,17 @@ export function runUiSmokeTest(window: BrowserWindow, dir: string): void {
 
   window.webContents.once('did-finish-load', () => {
     void (async () => {
+      progress('renderer loaded; waiting for the map');
       for (let i = 0; i < 120; i++) {
         if (await js<boolean>(`!!document.querySelector('.map-legend')`)) break;
         await wait(500);
       }
       if (!(await js<boolean>(`!!document.querySelector('.map-canvas')`)))
         throw new Error('map never appeared');
+      progress('map drawn');
       await wait(800);
       const shots: string[] = [await shot('map-political')];
+      progress('screenshot: political layer');
       for (const [button, name] of [
         ['Physical', 'map-physical'],
         ['Statistics', 'map-statistics'],
@@ -97,12 +118,14 @@ export function runUiSmokeTest(window: BrowserWindow, dir: string): void {
         if (!(await clickButton(button))) throw new Error(`no ${button} button`);
         await wait(800);
         shots.push(await shot(name));
+        progress(`screenshot: ${button.toLowerCase()} layer`);
       }
       await clickButton('Table');
       await wait(300);
       await js(`document.querySelector('.country-table tbody button')?.click()`);
       await wait(800);
       shots.push(await shot('map-profile'));
+      progress('screenshot: country profile');
       const countries = await js<number>(
         `document.querySelectorAll('.country-table tbody tr').length`,
       );

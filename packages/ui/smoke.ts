@@ -13,7 +13,7 @@
  * only; normal launches always keep the sandbox.
  */
 
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -42,21 +42,50 @@ const [command, args] = needsXvfb
   ? ['xvfb-run', ['-a', executable, ...electronArgs]]
   : [executable, electronArgs];
 
-const run = spawnSync(command, args, {
+const started = Date.now();
+const elapsed = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
+console.log(`[${elapsed()}] launching Electron${needsXvfb ? ' under Xvfb' : ''}…`);
+
+const child = spawn(command, args, {
   env: {
     ...process.env,
     NATIONWRIGHT_SMOKE_DIR: uiWorld === undefined ? dir : (outDir ?? dir),
     ...(uiWorld === undefined ? {} : { NATIONWRIGHT_SMOKE_MODE: 'ui' }),
     ELECTRON_ENABLE_LOGGING: '0',
   },
-  encoding: 'utf8',
-  timeout: 120_000,
+  stdio: ['ignore', 'pipe', 'pipe'],
 });
+let stdout = '';
+let stderr = '';
+let line: string | undefined;
+let buffered = '';
+child.stdout.setEncoding('utf8');
+child.stdout.on('data', (chunk: string) => {
+  stdout += chunk;
+  buffered += chunk;
+  let newline = buffered.indexOf('\n');
+  while (newline >= 0) {
+    const text = buffered.slice(0, newline);
+    buffered = buffered.slice(newline + 1);
+    if (text.startsWith('PROGRESS '))
+      console.log(`[${elapsed()}] ${text.slice('PROGRESS '.length)}`);
+    if (text.startsWith('SMOKE ')) line = text;
+    newline = buffered.indexOf('\n');
+  }
+});
+child.stderr.setEncoding('utf8');
+child.stderr.on('data', (chunk: string) => (stderr += chunk));
+const killer = setTimeout(() => {
+  console.error(`[${elapsed()}] no result after 120 s; stopping Electron`);
+  child.kill('SIGKILL');
+}, 120_000);
+await new Promise<void>((resolve) => child.on('close', () => resolve()));
+clearTimeout(killer);
 rmSync(dir, { recursive: true, force: true });
+console.log(`[${elapsed()}] Electron exited`);
 
-const line = run.stdout.split('\n').find((l) => l.startsWith('SMOKE '));
 if (line === undefined) {
-  console.error('No smoke result. stdout:\n', run.stdout, '\nstderr:\n', run.stderr);
+  console.error('No smoke result. stdout:\n', stdout, '\nstderr:\n', stderr);
   process.exit(1);
 }
 
