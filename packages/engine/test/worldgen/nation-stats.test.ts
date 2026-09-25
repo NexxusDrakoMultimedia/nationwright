@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   assertGuidingVariables,
+  BORDER_AGREEMENT_CALIBRATION,
   chooseArchetype,
   createStream,
   normalQuantile,
@@ -72,15 +73,10 @@ describe('sampleNation', () => {
   // Variables replaced by consistency rules are checked separately.
   const derived = new Set(['population.growth_rate', 'population.age_15_64_share']);
 
-  // Variables reported by fewer states have gaps that aren't random (rich countries rarely
-  // report literacy), so the model's imputed values rightly shift them away from the
-  // observed-only table. They get a direction check instead of the KS bound.
-  const sparse = (n: number) => n < 0.7 * model.structure.stateCount;
-
-  it('reproduces every well-reported marginal distribution (KS distance < 0.08)', () => {
+  it('reproduces every marginal distribution (KS distance < 0.08)', () => {
     const worst: [string, number][] = [];
     for (const v of model.variables) {
-      if (derived.has(v.id) || v.id.startsWith('economy.sector_') || sparse(v.n)) continue;
+      if (derived.has(v.id) || v.id.startsWith('economy.sector_')) continue;
       const xs = samples.map((s) => s.stats[v.id]!).sort((a, b) => a - b);
       let ks = 0;
       xs.forEach((x, i) => {
@@ -93,11 +89,10 @@ describe('sampleNation', () => {
     expect(worst[0]![1], `worst: ${worst[0]![0]}`).toBeLessThan(0.08);
   });
 
-  it('shifts sparsely reported variables in the expected direction', () => {
-    const literacy = model.variables.find((v) => v.id === 'education.literacy')!;
-    expect(sparse(literacy.n)).toBe(true);
-    const xs = samples.map((s) => s.stats['education.literacy']!).sort((a, b) => a - b);
-    expect(xs[Math.floor(xs.length / 2)]!).toBeGreaterThanOrEqual(literacy.quantiles[50]!);
+  it('gives every nation every variable', () => {
+    for (const s of samples.slice(0, 200)) {
+      for (const v of model.variables) expect(Number.isFinite(s.stats[v.id]), v.id).toBe(true);
+    }
   });
 
   it('reproduces the correlation structure (max |Δρ| < 0.15)', () => {
@@ -173,6 +168,9 @@ describe('sampleNation', () => {
   });
 
   it('copies neighbour archetypes at the calibrated rate', () => {
+    const { archetypeAgreement: a, archetypeAgreementChance: c } = model.spatial;
+    const p = Math.min(1, BORDER_AGREEMENT_CALIBRATION * ((a - c) / (1 - c)));
+    expect(prepared.copyNeighborArchetype).toBeCloseTo(p, 12);
     const stream = createStream(1n, 'test/neighbours');
     let same = 0;
     const n = 4000;
@@ -180,7 +178,8 @@ describe('sampleNation', () => {
       const neighbour = chooseArchetype(prepared, stream);
       if (chooseArchetype(prepared, stream, [neighbour]) === neighbour) same++;
     }
-    expect(Math.abs(same / n - model.spatial.archetypeAgreement)).toBeLessThan(0.03);
+    // One neighbour: copy with probability p, otherwise match by chance.
+    expect(Math.abs(same / n - (p + (1 - p) * c))).toBeLessThan(0.03);
   });
 
   it('is deterministic', () => {

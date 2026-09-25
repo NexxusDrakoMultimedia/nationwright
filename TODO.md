@@ -92,9 +92,9 @@ off as they land; add new ones as work reveals them.
 - [ ] Automatic yearly rebuild reminder (the start year advances even though the data is frozen)
 
 ## M1 — World Generation & Map
-- [x] Guiding variables: 101-percentile marginals, EM-imputed normal scores, 6 k-means
-      archetypes with pooled covariance, categorical tables, structure and spatial statistics
-      (`guiding-variables-2026.json`, model v1)
+- [x] Guiding variables: 101-percentile marginals, normal scores, 6 k-means archetypes,
+      categorical tables, structure and spatial statistics (`guiding-variables-2026.json`,
+      model v2: no imputation, states that don't report a variable are left out of it)
 - [x] Engine sampler: archetype choice with neighbour copying, correlated draw, marginals,
       consistency identities; statistical tests against the model (KS < 0.08, |Δρ| < 0.15)
 - [x] Map cells: jittered hex lattice + Delaunay adjacency, wrapping east–west
@@ -105,7 +105,7 @@ off as they land; add new ones as work reveals them.
 - [x] Continents, subregions, provinces (farthest-point seeds), cities (Zipf)
 - [ ] Sea lanes and distance graph (M3)
 - [x] Nation statistics placed on the map; population spread by habitability²
-- [x] Generator tests: determinism, golden master (v1), invariants on 5 seeds, real
+- [x] Generator tests: determinism, golden master (v2), invariants on 5 seeds, real
       island/landlocked/one-neighbour shares; `scripts/render-map.ts` for eyeballing
 - [x] Culture families (spatially clustered), per-family phonologies, names for countries,
       demonyms, cities, provinces, faiths, languages; blocklist of hashed real country and
@@ -116,7 +116,9 @@ off as they land; add new ones as work reveals them.
       `generator_version`, `guiding_model_version`, `generator_settings` in `meta`); loaded,
       never regenerated; carried into branches
 - [x] World system (`packages/app/src/systems/world.ts`) owning per-country state
-- [ ] Generator statistical validation across ≥ 200 seeds (script, outside CI)
+- [x] Generator statistical validation across 200 seeds (`npm run worldgen:validate`,
+      outside CI; report in `docs/validation/worldgen.md`, PASS); border-agreement calibration
+- [ ] Reduce one-neighbour countries (14% vs. 8% real) and the >14-neighbour tail
 - [x] Map screen: political (graph-coloured), physical (biomes, rivers), statistics
       (quantile choropleth on the validated blue ramp, neutral water, legend, tooltip,
       table view); pan/zoom with east–west wrap; keyboard controls; country profiles
