@@ -114,6 +114,31 @@ describe('economy system', () => {
   });
 });
 
+describe('world system', () => {
+  it('advances foreign countries yearly and keeps the player’s entry current', () => {
+    const session = create('world.nwsave');
+    const world = session.engine.world.slices.world!;
+    const player = world.playerCountry;
+    const foreign = world.countries.find((c) => c.id !== player)!;
+    const before = foreign.stats['population.total']!;
+    expect(world.countries[player]!.model).toBeNull();
+    expect(foreign.model).not.toBeNull();
+    session.advance(24);
+    const after = session.engine.world.slices.world!;
+    expect(after.countries[foreign.id]!.stats['population.total']).not.toBe(before);
+    const indicators = session.engine.indicators;
+    expect(indicators.series('country.population', `country:${foreign.id}`).ticks).toEqual([
+      11, 23,
+    ]);
+    expect(indicators.series('world.gdp_ppp', 'nation').ticks).toEqual([11, 23]);
+    // The player's entry follows the detailed simulation (as of the previous month).
+    const detailed = indicators.series('population.total', 'nation');
+    const entry = after.countries[player]!.stats['population.total']!;
+    expect(entry).toBeCloseTo(detailed.values[detailed.ticks.indexOf(22)]!, 0);
+    session.close();
+  });
+});
+
 describe('census', () => {
   it('reports the nation consistently with its state', () => {
     const session = create('census.nwsave');

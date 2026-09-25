@@ -6,7 +6,12 @@ export { MIGRATIONS, SCHEMA_VERSION, migrate, type Migration } from './save/sche
 export { DEFAULT_RULESET, type Ruleset } from './ruleset.ts';
 export { WorldSession, type CreateWorldOptions, type OpenWorldOptions } from './world-session.ts';
 export { guidingFor, NAME_BLOCKLIST, VALIDATION_BANDS, type ValidationBand } from './reference.ts';
-export { worldSystem, type CountryState, type WorldSlice } from './systems/world.ts';
+export {
+  worldSystem,
+  WORLD_INDICATORS,
+  type CountryState,
+  type WorldSlice,
+} from './systems/world.ts';
 export {
   demographySystem,
   DEMOGRAPHY_INDICATORS,

@@ -161,7 +161,9 @@ off as they land; add new ones as work reveals them.
       income feeds demography); validated with `npm run sim:validate`
 - [ ] Exports and imports respond to the exchange rate and partners (with trade, below)
 - [ ] Gini dynamics (constant so far)
-- [ ] Foreign country mid-depth model
+- [x] Foreign country model, demography and economy parts (reduced form, yearly;
+      validated across 9,750 countries in `npm run sim:validate`); government, elections,
+      and foreign policy come with M4
 - [ ] Trade (gravity), commodities, capital, international migration channels
 - [ ] Economic survey, budget, world comparison reports; flows map layer
 

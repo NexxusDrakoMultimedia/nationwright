@@ -665,6 +665,21 @@ All fields are **generated** (§4.12). Numeric fields are sampled from the guidi
 variables, and leaders, parties, and leader traits come from government type and the
 country's culture pack. No real country or real person is depicted.
 
+**Implementation (M3):** the demography and economy rows run in the engine's
+`world/foreign.ts`, advanced each December by the world system. Population is three age
+bands; births and band death rates are calibrated to the starting birth and death rates,
+and the yearly flows between bands start on the population's current growth path and
+blend toward 1/15 (0–14 → 15–64) and 1/45 (15–64 → 65+) over about 20 years. People 65+
+die at 1 / (0.45·e0 − 18). Fertility and life expectancy drift toward income-typical values
+(1.7 + 4·e^(−income/6,000) children; 55 + 28·(1 − e^(−income/10,000)) years), each
+country's deviation fading with a 30-year half-life. Income per person grows with the
+player's catch-up rule, a fading residual, and a yearly AR(1) cycle (persistence 0.5,
+shock 1.5 points) that also moves inflation and unemployment. Sector shares follow
+income, the price level follows the Balassa–Samuelson rule, and debt follows
+d' = d / nominal growth − balance, with the balance moving toward the fiscal rule. The
+player's entry in the world table is refreshed from the detailed simulation, and each
+country's main figures are recorded yearly as `country.*` indicators.
+
 **Foreign government change:** elections, term limits, coups (low legitimacy +
 military discontent), revolutions (low stability + economic crisis), or defeat in war.
 A new government brings new ideology and goals, which reshapes that country's foreign

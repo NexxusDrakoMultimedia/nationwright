@@ -8,8 +8,9 @@ Implementation is under way. **M0** (skeleton: engine core, saves, CLI, Electron
 reference-data pipeline) is done apart from items that depend on later milestones.
 **M1** (world generation and the map) and **M2** (demography, culture, internal migration,
 cities, census) are done apart from items that wait on later milestones; see TODO.md.
-M3 (economy and world) is under way: the player's economy runs; foreign countries,
-trade, and the economic reports come next. Keep the **Commands** section below
+M3 (economy and world) is under way: the player's economy and the foreign countries'
+reduced-form models run; trade, commodities, capital, and the economic reports come
+next. Keep the **Commands** section below
 current as scripts are added.
 
 ## Source of truth

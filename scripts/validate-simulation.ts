@@ -52,7 +52,22 @@ interface Sample {
   readonly yearMs: number;
   readonly regions: number;
   readonly population: number;
+  /** Every foreign country's figures at the end. */
+  readonly foreign: Map<string, number>[];
 }
+
+/** Foreign-country figures checked at the end (stat ids; bands share them). */
+const FOREIGN = [
+  'population.growth_rate',
+  'population.tfr',
+  'population.life_expectancy',
+  'population.age_65_plus_share',
+  'economy.gdp_per_capita_ppp',
+  'economy.gdp_growth',
+  'economy.inflation',
+  'economy.unemployment',
+  'economy.public_debt',
+] as const;
 
 const samples: Sample[] = [];
 for (let s = 0; s < seedCount; s++) {
@@ -92,6 +107,9 @@ for (let s = 0; s < seedCount; s++) {
     yearMs,
     regions: demography.regions.length,
     population: start.get('population.total') ?? 0,
+    foreign: session.engine.world.slices
+      .world!.countries.filter((c) => c.model !== null)
+      .map((c) => new Map(FOREIGN.map((id) => [id, c.stats[id] ?? NaN]))),
   });
   session.close();
   rmSync(path, { force: true });
@@ -147,6 +165,18 @@ const rows = ids.map((id) => {
   return `| \`${id}\` | ${fmt(band.p50)} | ${fmt(median(start))} | ${fmt(median(end))} | ${pct(startIn)} | ${pct(endIn)} | ${pct(share(start, inMiddle))} | ${pct(share(end, inMiddle))} | ${pass ? 'pass' : '**FAIL**'} |`;
 });
 
+const foreignRows = FOREIGN.map((id) => {
+  const band = bands.get(id);
+  const values = samples.flatMap((s) => s.foreign.map((f) => f.get(id)!)).filter(Number.isFinite);
+  if (band === undefined) return `| \`${id}\` | — | — | — | not scored |`;
+  const inRange = share(values, (x) => x >= band.min && x <= band.max);
+  const inMiddle = share(values, (x) => x >= band.p10 && x <= band.p90);
+  const pass = inRange >= END_IN_RANGE;
+  if (!pass) ok = false;
+  return `| \`${id}\` | ${fmt(band.p50)} | ${fmt(median(values))} | ${pct(inRange)} | ${pct(inMiddle)} | ${pass ? 'pass' : '**FAIL**'} |`;
+});
+const foreignCount = samples.reduce((n, s) => n + s.foreign.length, 0);
+
 const maxGrowth = Math.max(...samples.map((s) => s.maxGrowth));
 const growthOk = maxGrowth <= 8;
 ok = ok && growthOk;
@@ -170,6 +200,15 @@ A figure passes if at least ${pct(START_IN_RANGE)} of nations are within the rea
 | Indicator | Real median | Median, start | Median, end | In range, start | In range, end | Middle 80%, start | Middle 80%, end | Result |
 |---|---|---|---|---|---|---|---|---|
 ${rows.join('\n')}
+
+## Foreign countries after ${years} years
+
+All ${foreignCount.toLocaleString('en-US')} foreign countries across the worlds (reduced-form model). A figure
+passes if at least ${pct(END_IN_RANGE)} are within the real range.
+
+| Figure | Real median | Median | In range | Middle 80% | Result |
+|---|---|---|---|---|---|
+${foreignRows.join('\n')}
 
 ## Sanity
 
