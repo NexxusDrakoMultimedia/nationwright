@@ -1,6 +1,6 @@
 # Nationwright — Design Document
 
-> Status: **Draft v0.2** · Last updated: 2026-09-25
+> Status: **Draft v0.3** · Last updated: 2026-09-25
 >
 > This document describes what Nationwright is, how the simulation works, and how the
 > software is structured. Settled decisions are listed in §0. Remaining open
@@ -16,11 +16,16 @@
 | D1 | Tech stack | **TypeScript** (strict) for engine, application, and UI | §9 |
 | D2 | Player role | **Overseer.** The player sets policy and directs the nation, but elections still decide which parties hold office, and the legislature can block policy. The player never "loses" by being voted out | §8.2 |
 | D3 | Persistence | **SQLite**, one file per save | §6.3 |
-| D4 | Geography | **Schematic regions** for v1; no tile/hex map. Region adjacency is kept so a map can be added later | §4.2, §6.1 |
+| D4 | Geography | **Procedurally generated map in v1** (Voronoi cells with terrain, climate, and rivers). Regions, provinces, borders, and adjacency all come from the map. *(Replaces v0.2's "schematic regions only".)* | §4.12 |
 | D5 | International layer | **Other countries exist** and exert pull on the simulation (trade, migration, investment, diplomacy, conflict, sport) | §4.10 |
+| D12 | World composition | **Completely fictional, procedurally generated world.** Every country (foreign and the player's) is invented: names, geography, borders, blocs, leaders. No real country appears in play. OpenFactBook supplies the **guiding variables**, the statistical distributions and correlations that generated nations are sampled from | §4.12, §10.1 |
 | D6 | Demographic depth | **Track everything:** cohorts carry age, sex, region, urban/rural, education, plus ethnicity, language, and religion shares | §4.1 |
 | D7 | Start date | **Current year only.** Every nation starts in the real-world current year; there are no historical start dates and no era system | §3.1 |
-| D8 | Reference data | **OpenFactBook** is the calibration and validation source, and seeds foreign countries | §10.1 |
+| D8 | Reference data | **OpenFactBook** is the calibration and validation source. It never appears in play directly: it drives procedural generation (D12) | §10.1 |
+| D9 | UI shell | **Electron** (React + Vite renderer). The engine and `better-sqlite3` run in the main/utility process | §9 |
+| D10 | Wars & foreign relations | **Deep.** Full pairwise relations among all countries; foreign countries have governments, leaders, elections, and militaries and act on their own; wars are simulated at the operational level (forces, fronts, occupation, casualties, peace terms) | §4.10, §4.11 |
+| D11 | Stale reference data | **Project forward.** Each reference value is projected from its estimate year to the start year | §10.1 |
+| D13 | World seed | **Random 64-bit seed, encoded as base64** (unpadded base64url, 11 characters). It is the only randomness input for world generation and simulation | §3.3 |
 
 ---
 
@@ -49,24 +54,28 @@ ask "why did this number change?" and get an answer.
   and annual yearbooks are first-class output, not afterthoughts.
 - **Moddable data.** Event definitions, name lists, sports, party ideologies, and tuning
   constants live in data files, not code.
-- **Grounded.** Starting conditions and simulated outcomes are checked against
-  real-world country data (OpenFactBook) so the nation behaves like a plausible
-  present-day country.
+- **Fictional but grounded.** Every nation in the world is procedurally generated, and
+  its statistics are sampled from real-world country data (OpenFactBook). A generated
+  world should be statistically indistinguishable from the real one at the start year,
+  and simulated outcomes are checked against the same data.
 - **Fast.** Simulating 100 years of a nation with ~50 cities and the full foreign-country
   roster should take seconds, not minutes.
 
 ### 1.2 Non-goals (for v1)
 
 - Multiplayer or online features.
-- Real-time gameplay or tactical warfare.
-- Map-based geography. v1 uses schematic regions (D4).
+- Real-time gameplay or **tactical** warfare (individual battles, unit micromanagement).
+  Wars *are* simulated in depth, at the operational level, in monthly steps (§4.11).
+- Tile/hex-based movement or map-level unit control. The v1 map (D4) is a generated
+  geography and an information display, not a game board.
 - Historical start dates or era-based technology gating (D7).
 - Simulating individual citizens (agent-based). The model is aggregate/cohort-based,
   with named individuals only where they matter (politicians, athletes, notable figures).
-- Full-depth simulation of foreign countries. They run a lighter model (§4.10); only the
-  player's nation gets every system.
-- Predicting real-world politics. Foreign countries start from real data but diverge
-  freely once simulation begins.
+- Full-depth *domestic* simulation of foreign countries (cohorts, cities, leagues,
+  education pipelines). They get a mid-depth model: full politics, diplomacy, and
+  military, but reduced-form demography and economy (§4.10).
+- Real countries, real people, or real-world geopolitics. Real data shapes the
+  *distributions* nations are drawn from (D12), never their identities.
 
 ---
 
@@ -76,11 +85,15 @@ ask "why did this number change?" and get an answer.
 |---|---|
 | **Nation** | The player's country. The main aggregate in a save. |
 | **World** | The root aggregate: the player's nation plus all foreign countries and global conditions. |
-| **Foreign country** | A real-world country seeded from OpenFactBook data and simulated with a lighter model (§4.10). |
+| **Foreign country** | A procedurally generated fictional country (§4.12). It has its own government, diplomacy, and military, and reduced-form demography and economy (§4.10). |
+| **Guiding variables** | The statistical model fitted to OpenFactBook data (marginal distributions, correlations, category frequencies) that the world generator samples from (§4.12, §10.1). |
+| **World seed** | A random 64-bit value, shown as 11 characters of base64url (e.g. `q3Zk1d0XbAc`), that determines the generated world and all simulation randomness (§3.3). |
+| **Province** | A war-relevant subdivision of a foreign country (border zones, heartland, capital) used for fronts and occupation (§4.11). The player's regions play the same role at home. |
+| **Front** | An active line of conflict between two belligerents across adjacent regions/provinces (§4.11). |
 | **Region** | Administrative subdivision (state/province). Contains cities and rural population. Every nation has at least one. |
 | **City** | A settlement with its own population, economy share, infrastructure, and institutions (e.g. universities, sports teams). |
 | **Cohort** | A population bucket keyed by region × urban/rural × age band × sex × education level, carrying ethnicity, language, and religion shares. The unit of demographic simulation. |
-| **Reference snapshot** | A versioned copy of OpenFactBook data bundled with the game and used for seeding and validation (§10.1). |
+| **Reference snapshot** | A versioned copy of OpenFactBook data projected to the start year. Used to fit the guiding variables and validation bands, never placed in the world directly (§10.1). |
 | **Tick** | One simulation step. The base tick is **one month**. Larger steps are repeated ticks. |
 | **System** | A self-contained simulation module (Demography, Economy, Politics…) that reads state and writes its own slice of state each tick. |
 | **Indicator** | A named, recorded time series (e.g. `population.total`, `economy.gdp_real`, `education.literacy_rate`). |
@@ -102,8 +115,8 @@ ask "why did this number change?" and get an answer.
     reports and anniversaries), but simulation always begins in the present.
   - All technology, infrastructure types, and sports are present-day. There is no era
     system.
-  - The reference snapshot (§10.1) should match the start year. If the newest snapshot
-    is older, the game warns and uses the nearest available year.
+  - Reference values older than the start year are **projected forward** to it (D11,
+    §10.1), so the world always starts at the current year.
 - Some systems run on coarser cadences inside the monthly tick:
   - Monthly: economy flows, approval, event checks, sports fixtures during season.
   - Quarterly: GDP accounting, unemployment, inflation.
@@ -122,35 +135,76 @@ start of the tick plus outputs of systems earlier in the same tick.
  1. Calendar          advance date, determine which cadences fire
  2. Events (pre)      fire scheduled events, roll random events, evaluate triggers
  3. Policy            apply player decisions queued since last tick
- 4. World             foreign countries update; global prices, demand, and relations
- 5. Demography        births, deaths, aging, migration (internal + international)
- 6. Education         enrollment, graduation, attainment shifts in cohorts
- 7. Economy           labor supply → output → incomes → prices → trade → public finance
- 8. Infrastructure    capacity, utilization, construction progress, decay
- 9. Cities            urbanization, city growth, service levels
-10. Politics          approval, party support, stability, legislation progress
-11. Elections         run any elections scheduled for this tick
-12. Sports            fixtures, results, standings, season transitions
-13. Events (post)     evaluate condition-triggered events from new state
-14. Indicators        record time series for this tick
-15. Validation        (debug/test builds) check indicators against reference bands
-16. Chronicle         append notable changes and events
+ 4. World             foreign countries' economies, demography, politics, elections;
+                      global prices and demand
+ 5. Diplomacy         AI foreign-policy decisions, pairwise relations, treaties,
+                      sanctions, alliance calls, war declarations and peace deals
+ 6. War               resolve every active front: combat, supply, occupation,
+                      casualties, damage, displacement, war score
+ 7. Demography        births, deaths (incl. war casualties), aging, migration
+                      (internal, international, refugees)
+ 8. Education         enrollment, graduation, attainment shifts in cohorts
+ 9. Economy           labor supply → output → incomes → prices → trade → public finance
+10. Defense           recruitment, conscription, procurement, readiness, force upkeep
+11. Infrastructure    capacity, utilization, construction/repair, decay, war damage
+12. Cities            urbanization, city growth, service levels
+13. Politics          approval, war weariness, party support, stability, legislation
+14. Elections         run any elections scheduled for this tick
+15. Sports            fixtures, results, standings, season transitions
+16. Events (post)     evaluate condition-triggered events from new state
+17. Indicators        record time series for this tick
+18. Validation        (debug/test builds) check indicators against reference bands
+19. Chronicle         append notable changes and events
 ```
 
-Ordering rationale: the world updates first, so foreign conditions (prices, demand,
-migration pressure) are fixed for the tick. Demography produces the people that
-education and the economy then use. The economy produces the revenue that
-infrastructure and politics depend on. Politics reacts to the outcomes of everything
-before it.
+Ordering rationale: the world and diplomacy update first, so foreign conditions and the
+set of active wars are fixed for the tick. War resolves next, so its casualties,
+displacement, and damage feed straight into demography, the economy, and
+infrastructure. Demography produces the people that education and the economy then use.
+The economy funds defense, infrastructure, and politics. Politics reacts to the outcomes
+of everything before it, including war weariness.
 
 ### 3.3 Determinism
 
-- A single seeded PRNG (e.g. PCG32 or xoshiro128\*\*) is owned by the simulation.
-- Each system derives its own **sub-stream** from `(seed, system_id, tick)` so that adding
-  randomness to one system does not shift outcomes in another.
+#### World seed (D13)
+
+- Every world is based on one **64-bit seed**, drawn from a cryptographically secure
+  source (`crypto.getRandomValues`) when a new world is created. It is the only
+  randomness input to the engine.
+- **Encoding:** the seed's 8 bytes (big-endian) are written as **unpadded base64url**
+  (RFC 4648 §5): 11 characters from `A–Z a–z 0–9 - _`, e.g. `q3Zk1d0XbAc`. This form is
+  safe in file names, URLs, and chat messages.
+  - 11 characters carry 66 bits, so the last character holds only 4 seed bits. Its low
+    2 bits must be zero: it must be one of `AEIMQUYcgkosw048`. The parser **rejects**
+    non-canonical strings instead of silently normalizing them, so every seed has
+    exactly one spelling.
+  - The parser also accepts standard base64 (`+` `/`) and a trailing `=`, and converts
+    them to the canonical base64url form before validation, so pasted seeds still work.
+  - Internally the seed is held as a `bigint` (or two `uint32` halves in hot code) and
+    stored in SQLite as an 8-byte BLOB, with the canonical string alongside.
+- **Player-facing:** the seed is shown on the world screen and in every report footer,
+  with a copy button. "New world" takes an optional seed field; pasting a seed recreates
+  that world.
+- **Reproducibility contract:** seed + generator version + guiding-variables version +
+  generator settings (§4.12) ⇒ an identical world. A save records all four. When a
+  shared seed is opened on a different generator version, the game warns that the world
+  will differ.
+
+#### PRNG and streams
+
+- Generator: **xoshiro256\*\*** with its 256-bit state expanded from the 64-bit seed
+  by **SplitMix64**, the expansion the algorithm's authors recommend. It is implemented
+  with 32-bit integer operations for speed; `bigint` is used only at the boundaries.
+- **Domain separation:** each consumer derives its own stream as
+  `SplitMix64(seed ⊕ hash(domain)) → xoshiro state`, where `domain` is a string such as
+  `worldgen/elevation`, `worldgen/countries`, `sim/demography@tick:123`, or
+  `sim/war/front:45@tick:123`. `hash` is a fixed 64-bit string hash (e.g. FNV-1a 64),
+  pinned in the spec.
+  - Adding randomness to one system therefore never shifts outcomes in another.
+  - Changing the war model never changes the generated map.
 - No wall-clock time, unordered map iteration, or floating-point non-determinism in the
   engine (avoid parallel reductions whose order can vary).
-- A save stores the seed plus a log of player inputs, which enables **replay** and
+- A save stores the world seed plus a log of player inputs, which enables **replay** and
   **branching** ("what if I had lost that election?").
 
 ### 3.4 Engine / UI separation
@@ -478,34 +532,85 @@ chronicle: "{year}: A major epidemic struck {largest_city}."
 
 ### 4.10 World & Foreign Countries
 
-The player's nation sits inside a world of **real countries** (D5), seeded from the
-OpenFactBook reference snapshot at the start year (§10.1). They are not background
-decoration: they constantly pull on the nation's economy, population, politics, and
-sport.
+The player's nation sits inside a world of **fictional, procedurally generated
+countries** (D5, D12). Section 4.12 describes how they are generated. They are not
+background decoration: they constantly pull on the nation's economy, population,
+politics, and sport.
 
-**Placement:** at creation the player picks a continent/subregion and 1–8 **neighbor**
-countries. Neighbors get a land border (proximity = 1). Proximity to everyone else comes
-from the chosen subregion and real capital coordinates.
+**Placement:** the world generator builds continents, subregions, and a border graph
+(§4.12.2). At creation the player picks a slot in that world: a continent/subregion and
+a coastal or landlocked position. That slot fixes the player's neighbors. The player can
+reroll the world or the slot. Proximity between any two countries comes from the
+generated capital coordinates.
 
-**Foreign country state (lighter model):**
+#### 4.10.1 Foreign country model (mid-depth, D10)
 
-| Group | Fields (seeded from reference data) |
+| Group | Fields | Depth |
+|---|---|---|
+| Demography | population, growth rate, TFR, life expectancy, median age, net migration, age structure (3 broad bands: 0–14, 15–64, 65+) | Reduced-form |
+| Economy | GDP (PPP and nominal), GDP per capita, real growth, inflation, unemployment, sector shares, exports/imports, main export commodities, public debt, defense spending % GDP | Reduced-form |
+| Government | government type, head of state and head of government (named, generated), ruling party/coalition ideology, legislature balance, term schedule, stability, legitimacy | **Full** |
+| Elections | scheduled elections by government type; outcomes from economy, stability, incumbency, and war | **Full** (aggregate vote model, no districts) |
+| Foreign policy | leader traits (aggression, risk tolerance), strategic goals, threat perceptions, alliance commitments | **Full** |
+| Military | see §4.11 | **Full** |
+| Provinces | 3–6 generated provinces (capital, heartland, border zones facing each neighbor), each with population and economic share | For war only |
+| Society | languages, religions, ethnic groups, literacy | Static shares with slow drift |
+| Sport | popularity per sport (content data), national team strength (derived) | Reduced-form |
+
+All fields are **generated** (§4.12). Numeric fields are sampled from the guiding
+variables, and leaders, parties, and leader traits come from government type and the
+country's culture pack. No real country or real person is depicted.
+
+**Foreign government change:** elections, term limits, coups (low legitimacy +
+military discontent), revolutions (low stability + economic crisis), or defeat in war.
+A new government brings new ideology and goals, which reshapes that country's foreign
+policy.
+
+#### 4.10.2 Relations (full pairwise)
+
+A **relations matrix** covers every pair of countries, the player's nation included:
+
+| Field | Meaning |
 |---|---|
-| Demography | population, growth rate, TFR, life expectancy, median age, net migration rate |
-| Economy | GDP (PPP and nominal), GDP per capita, real growth, inflation, unemployment, sector shares, export/import totals, main export commodities, public debt |
-| Politics | government type, stability index (derived), alignment on the same ideological axes as parties |
-| Society | languages, religions, ethnic groups, literacy |
-| Sport | popularity per sport (content data), national team strength (derived) |
+| `score` | −100…+100 overall disposition |
+| `trust` | Reliability memory: broken treaties and betrayals lower it slowly and recover slowly |
+| `threat` | Perceived military threat (capability × hostility × proximity) |
+| `trade_tier` | none, MFN, FTA, customs union, single market |
+| `tariffs`, `sanctions` | By direction; sanctions can be targeted (sectors, finance, arms) |
+| `visa_regime` | Closed, visa required, visa-free, free movement |
+| `treaties[]` | Defense pact, non-aggression, arms control, basing rights, border treaty |
+| `claims[]` | Territorial claims on specific regions/provinces, with origin and strength |
+| `diaspora`, `trade_flows`, `fdi_stock` | Economic and human ties (both directions) |
+| `history[]` | Log of wars, treaties, incidents: feeds `trust` and narrative |
 
-Foreign countries advance each tick with **reduced-form trend models**: population
-follows its own cohort-free growth path, GDP follows trend growth plus shocks, and
-stability mean-reverts plus shocks. They do not run elections, cities, or sports leagues
-in detail. Headline events (government change, recession, conflict, disaster) come from
-the event engine.
+**Score drift** each tick = f(ideological distance of governments, trade dependence,
+shared bloc membership, shared rivals ("enemy of my enemy"), border disputes, recent
+incidents, diaspora ties, trust) with mean reversion toward a structural baseline.
 
-**Bilateral relationship state (nation ↔ each foreign country):** relations score
-(−100…+100), trade agreement tier, tariff level, visa/migration regime, alliance or
-treaty memberships, diaspora sizes (both directions), trade flows, FDI stock.
+**Blocs & alliances:** data-defined organizations (military alliances, trade blocs,
+a global assembly) with membership rules, obligations (mutual defense, common tariff,
+free movement), and votes on resolutions (sanctions, condemnations, peacekeeping).
+Blocs are generated with the world (§4.12.4). Membership follows proximity, ideology, and
+development, and the number and size of blocs are guided by real-world bloc statistics.
+
+#### 4.10.3 Foreign-policy AI
+
+Each foreign government chooses actions monthly using **utility scoring**:
+
+1. Evaluate state: threats, opportunities (weak neighbors with claims), economic needs,
+   domestic pressure (approval, upcoming election), and alliance obligations.
+2. Generate candidate actions: improve/worsen relations, propose or leave treaties, set
+   tariffs, impose or lift sanctions, arms buildup, join or leave blocs, issue
+   ultimatums, declare war, offer or accept peace, send aid, host or boycott events.
+3. Score each action with the leader's traits and the government's goals; add seeded
+   noise; take the best action above a threshold (at most K actions per month).
+
+The same AI can play the **player's nation on autopilot** (§8.2), using the governing
+coalition's ideology as its goals.
+
+**Salience tiers (performance):** pairs involving neighbors, top-10 trade partners,
+allies, rivals, great powers, or active disputes update **monthly**. All other pairs
+update **annually**. That keeps the ~26,000-pair matrix cheap.
 
 **Channels of pull on the player's nation:**
 
@@ -516,18 +621,255 @@ treaty memberships, diaspora sizes (both directions), trade flows, FDI stock.
 | Migration | Bilateral flows from wage and stability gaps, diaspora networks, refugee surges | Demography §4.1 |
 | Capital | FDI and portfolio flows by relations and relative returns; sudden stops in crises | Economy, exchange rate |
 | Ideas & culture | Neighbor/partner political alignment nudges party ideology preferences | Politics §4.4 |
-| Security | Tensions with hostile neighbors raise defense spending pressure; conflict events | Budget, stability, events |
-| Sport | International fixtures and tournaments | Sports §4.8 |
-| Diplomacy | Player actions: sign/leave trade deals, set tariffs and visa policy, join blocs, send aid | Relations → all above |
+| Security | Threat from hostile states raises defense spending pressure; alliance calls to war; invasion | Budget, stability, War §4.11 |
+| Foreign wars | Wars between third countries disrupt trade and commodity prices, send refugees, and can drag in allies | Economy, demography, diplomacy |
+| Sport | International fixtures and tournaments; boycotts and bans follow relations | Sports §4.8 |
+| Diplomacy | Player actions (§8.3) and foreign AI actions | Relations → all above |
 
 **Pull strength** is weighted by `partner size × proximity × trade intensity`. Large,
 close, deeply connected partners dominate, as they do in reality. A per-save
 **"world influence" slider** (0.5×–2×) lets players dial overall foreign pull up or down.
 
-**Performance:** at most ~260 entities (the snapshot filtered to populated countries and
-territories; oceans and Antarctica excluded), each with a small fixed state, are cheap.
-Bilateral state is one record per foreign country (nation ↔ foreign only; foreign ↔ foreign relations are not modelled in
-v1, apart from coarse bloc membership).
+**Scope:** sovereign states are full actors. Generated dependencies (small
+territories, at a frequency guided by the real ratio of dependencies to sovereign
+states) inherit foreign policy and military from their administering country but keep
+their own economic and demographic figures.
+
+### 4.11 Military & War
+
+Wars are simulated in depth (D10) at the **operational** level: armies, fronts, supply,
+and occupation, resolved monthly. There are no individual battles to control.
+
+#### 4.11.1 Armed forces
+
+Every country (player's nation and foreign) has:
+
+| Component | Fields |
+|---|---|
+| Personnel | active, reserve, paramilitary; conscription model (none, selective, universal) and service length |
+| Branches | land, air, naval (each with strength, equipment quality, readiness) |
+| Equipment | quality index (0–1) from procurement spending and technology level; stockpiles depleted by war |
+| Defense industry | domestic production capacity; share imported (arms trade depends on relations) |
+| Logistics | supply capacity, tied to transport infrastructure (§4.7) and ports |
+| Doctrine | defensive, balanced, or expeditionary: modifies attack/defense and power projection |
+| Strategic deterrent | nuclear status (from reference/content data); affects AI escalation decisions only |
+| Morale | driven by legitimacy, war goals, casualties, and recent results |
+| Command | named generated commanders with skill ratings; purges and coups affect them |
+
+**Combat power** of a force = personnel × equipment quality × readiness × morale ×
+doctrine modifier × supply factor. Starting values are generated from the guiding
+variables (defense spending % GDP and personnel per capita, conditioned on GDP per
+capita, government type, and threat environment), then derived from ongoing budgets.
+Deterrent status is assigned to a small number of generated great powers, at a rate
+guided by the real-world share.
+
+**Defense system (tick step 10):** the budget funds upkeep, procurement, and training.
+Underfunding erodes readiness and equipment. Conscription draws from the
+military-age cohorts (§4.1), which removes labor from the economy.
+
+#### 4.11.2 Path to war
+
+```
+ rivalry/claims ─▶ tension ─▶ crisis ─▶ ultimatum ─▶ war ─▶ ceasefire ─▶ peace treaty
+        ▲             │          │           │                 │              │
+        └─ de-escalation, mediation, bloc pressure, deterrence ◀┘       post-war period
+```
+
+- **Casus belli:** territorial claims, protection of co-ethnics abroad, alliance
+  obligation, regime hostility, resource disputes, or an unprovoked attack (which costs
+  large amounts of legitimacy and trust worldwide).
+- **War powers** follow each constitution: who can declare war (executive alone,
+  legislature vote, referendum). For the player, a legislature that refuses to authorize
+  war blocks the declaration, consistent with the overseer role (D2).
+- **Alliance calls:** defense pacts trigger calls to arms. Refusing breaks the treaty and
+  damages trust.
+- **Escalation control:** AI weighs expected war score, costs, domestic support, and
+  the deterrent status of targets. Nuclear-armed states are very unlikely to be invaded
+  in their core provinces. Nuclear *use* is not simulated in v1.
+
+#### 4.11.3 War resolution (monthly)
+
+**Theater graph:** nodes are the player's regions and foreign provinces, taken from the
+map (§4.12.2). Edges are shared land borders and generated sea lanes between coastal
+nodes. Terrain modifiers come from the map cells in each node (mountains, forest,
+rivers, desert). A **front** exists on each edge between hostile nodes where at least one
+side has forces. Fronts, occupation, and control are drawn on the map (§4.12.5).
+
+Each tick, for each front:
+1. **Force allocation:** each belligerent distributes land/air power across its fronts
+   and home defense (AI or player posture: defend, hold, advance, all-out).
+2. **Engagement:** Lanchester-style attrition with modifiers for terrain, fortification,
+   air superiority, supply, weather/season, and commander skill.
+   `losses_A = k · power_B · mod_B`, `losses_B = k · power_A · mod_A`, with seeded noise.
+3. **Control shift:** a sustained power ratio above a threshold moves the node's
+   **control** (0–100%). At 100% the node is occupied.
+4. **Naval theater:** blockades cut the target's trade (§4.3) and sea supply; naval
+   strength decides sea control.
+5. **Air/strike campaigns:** damage infrastructure (§4.7) and industry in reachable nodes.
+
+**Consequences feed every system:**
+
+| Effect | Target |
+|---|---|
+| Military deaths and wounded, by age and sex of the forces | Demography cohorts §4.1 |
+| Civilian casualties (from intensity in contested/occupied nodes) | Demography |
+| Displacement: internal (between regions) and refugees (to neighbors) | Demography, foreign countries |
+| Infrastructure destruction in contested nodes | Infrastructure §4.7 |
+| Mobilization pulls labor; war spending, debt, inflation; trade collapse with the enemy | Economy §4.3 |
+| Occupied regions stop contributing taxes and labor to their owner | Economy, politics |
+| War weariness (casualties, duration, occupation of home regions) lowers approval; rally-round-the-flag at the start | Politics §4.4 |
+| Elections held in wartime; possible postponement per constitution | Elections §4.5 |
+| Sports: suspended leagues, international bans | Sports §4.8 |
+| Third-country reactions: sanctions, aid, arms supply, joining the war | Diplomacy §4.10 |
+
+**War score** (−100…+100) summarizes occupation, casualties ratio, blockade, and war-goal
+progress, and drives peace negotiations.
+
+#### 4.11.4 Peace & aftermath
+
+- **Ceasefire** when both sides' expected gain from continuing drops below cost, or when
+  imposed by bloc pressure.
+- **Peace terms** are bought with war score: territory transfer (regions/provinces with
+  their cohorts, cities, and infrastructure), reparations, demilitarized zones, regime
+  change, treaty obligations, or white peace.
+- **Territory transfer** of a player region moves its population, cities, and teams to
+  the foreign country (their data is kept in reduced form). Gained provinces are
+  converted into new player regions with generated cities and cohorts derived from the
+  province's population and the owner's demographics.
+- **Aftermath:** demobilization, veterans, reconstruction projects, revanchist claims
+  (claims persist with decaying strength), trust damage, and memorial events for the
+  chronicle.
+- **Occupation & insurgency:** occupied nodes with hostile populations generate
+  insurgency that bleeds occupier strength and stability.
+- **Civil wars:** severe instability can split a country (the player's included) into
+  government and rebel factions that fight over regions with the same model.
+
+### 4.12 World Generation & Map
+
+Every country is fictional and procedurally generated (D12). The world has a real
+geographic map in v1 (D4). OpenFactBook data is never shown as a country. It is
+distilled into **guiding variables** that make the generated world statistically
+realistic.
+
+Generator inputs:
+- the **world seed**: 64-bit, base64url (§3.3);
+- number of countries (default ≈ the real number of sovereign states in the snapshot;
+  range 20–250);
+- land fraction, climate bias, and optional archetype mix overrides.
+
+Under the reproducibility contract in §3.3, the same inputs always produce the same
+world. Settings left at their defaults are not needed, so sharing a world usually means
+sharing just the 11-character seed.
+
+#### 4.12.1 Guiding variables
+
+Built offline by the reference-data pipeline (§10.1) and shipped as a versioned
+`guiding-variables.json` next to the snapshot:
+
+| Component | What it captures | Method |
+|---|---|---|
+| Marginals | Distribution of each numeric variable (population, area, GDP per capita, TFR, life expectancy, urbanization, literacy, sector shares, debt, defense % GDP, …) | Empirical quantile functions; log transform for skewed variables |
+| Dependence | How variables move together (rich ⇒ lower TFR, higher life expectancy, more urban, more services) | Gaussian copula on rank-normalized variables |
+| Archetypes | Clusters of similar countries (e.g. "low-income agrarian", "resource exporter", "high-income service economy") | k-means/GMM on standardized variables; each cluster keeps its own copula and frequency weight |
+| Categorical tables | Government type, number of major languages/religions, ethnic fractionalization, landlocked share, island-nation share, dependency ratio to sovereign states | Frequencies conditioned on archetype |
+| Structure | Distribution of country areas and populations (heavy-tailed), neighbor counts, coastline share | Fitted distributions used by the map generator |
+| Spatial similarity | How similar neighbors are to each other | Correlation of indicators across real borders |
+
+Only aggregated statistics are stored. No per-country records ship in
+`guiding-variables.json`. The raw snapshot stays a development and validation asset.
+
+#### 4.12.2 Map generation
+
+A 2D world on a plane that wraps east–west:
+
+1. **Cells:** Poisson-disk points (≈ 10k–30k, scaled to country count) → Voronoi cells
+   (`d3-delaunay`), with 1–2 rounds of Lloyd relaxation.
+2. **Elevation:** layered simplex noise plus plate-like ridges; the sea level is chosen
+   to hit the target land fraction (default: the real Earth value, ~29%).
+3. **Climate:** temperature from latitude and elevation; moisture from prevailing winds
+   and distance to the ocean → biomes (ice, tundra, boreal, temperate forest,
+   grassland, desert, savanna, tropical forest, mountains, wetlands).
+4. **Hydrology:** downhill flow accumulation → rivers and lakes.
+5. **Habitability:** per-cell score (climate, water, terrain, coast) → population
+   density potential and agricultural capacity. Resource deposits (energy, minerals)
+   are placed by geology rules.
+6. **Countries:** capitals are seeded in habitable cells, then grown by weighted flood
+   fill (mountains and rivers are expensive to cross, so they tend to become borders)
+   until each reaches an area target sampled from the guiding area distribution.
+   Constraints nudge the result toward the real neighbor-count distribution and
+   landlocked/island shares.
+7. **Continents & subregions:** connected landmasses, clustered into named subregions.
+8. **Provinces & regions:** each foreign country is split into provinces (count scales
+   with area and population). The player's country is split into regions per the
+   wizard setting, with borders editable by merging/splitting cells.
+9. **Cities:** placed on high-habitability coastal and river cells; sizes follow the
+   rank-size rule, scaled to the country's urban population.
+10. **Sea lanes & distances:** a navigation graph over ocean cells gives shipping
+    distances. Land and sea distance feed proximity for trade and migration (§4.10).
+
+The finished map is **stored in the save** (cells, geometry, terrain, ownership), not
+regenerated on load. Engine updates therefore never alter an existing world. During
+play only ownership, control, and infrastructure overlays change.
+
+#### 4.12.3 Nation statistics
+
+For each country, including the player's defaults:
+
+1. Choose an **archetype**, weighted by real frequency and smoothed across borders so
+   neighbors resemble each other (guided by spatial similarity).
+2. Sample a correlated vector from that archetype's copula and map it through the
+   marginals.
+3. Condition on geography: population is scaled to habitable land; landlocked,
+   resource-rich, and island positions shift trade, sector shares, and GDP.
+4. **Derive consistent values:** GDP = population × GDP per capita; the age structure
+   comes from TFR and life expectancy (stable-population model); sector shares
+   normalized to 1; budget and debt consistent with GDP.
+5. Categorical traits: government type, legislature, electoral system, number of
+   languages and religions, and fractionalization.
+6. **Culture pack:** generated names for the country, cities, people, parties,
+   languages, ethnic groups, and religions (syllable/Markov generators per fictional
+   culture family). Neighboring countries share culture families at a rate set by
+   spatial similarity.
+
+The player's nation goes through the same generator. The wizard's "randomize" and
+archetype templates (§8.1) draw from it.
+
+#### 4.12.4 Starting relations & backstory
+
+- Initial relations, blocs, alliances, and rivalries are generated from proximity,
+  ideology, culture-family similarity, and trade.
+- **Burn-in (recommended):** a fast diplomacy-and-war pre-run of ~30 simulated years
+  before the start date. It produces organic alliances, territorial claims, grudges, and
+  a few past wars. Its events become the world's backstory in the chronicle. Its
+  statistical drift is then discarded, so each country's statistics still match its
+  sampled start values.
+
+#### 4.12.5 The map in the UI
+
+The map is a first-class screen, not decoration:
+
+| Layer | Shows |
+|---|---|
+| Political | Countries, the player's regions, capitals, cities |
+| Physical | Elevation, biomes, rivers, resources |
+| Choropleth | Any indicator: the player's regions, or all countries on the world view |
+| Infrastructure | Roads, rail, ports, airports, grid coverage |
+| Flows | Trade, migration, and refugee arcs, weighted by volume |
+| Diplomacy | Relations with a selected country, blocs, alliances, sanctions |
+| War | Fronts, control/occupation shading, force positions, blockades |
+| Elections | Results by district or region, swing |
+| Sport | Team locations, champions by city |
+
+- Pan/zoom from the world view down to the player's regions and cities. Clicking any
+  feature opens its profile. A time slider replays a layer over history.
+- Rendering: Canvas 2D with precomputed polygon paths (WebGL via PixiJS if profiling
+  requires it); SVG/PNG export for reports.
+
+#### 4.12.6 Generator validation
+
+Across many world seeds, the generated world must match the reference:
+Kolmogorov–Smirnov tests per variable, correlation-matrix distance, category-frequency
+differences, and neighbor-count distributions, all within tolerances (§10).
 
 ---
 
@@ -574,16 +916,22 @@ Design rules for interactions:
 
 ```
 World
-├── meta: start_year, current_date, seed, ruleset_version, reference_snapshot_id
-├── global: commodity_prices{}, world_demand, reference_currency
-├── foreign_countries[]: id, iso3, name, subregion, capital_coords, state (§4.10)
-├── relations[]: foreign_country_id, score, trade_tier, tariffs, visa_regime,
-│               treaties[], diaspora_in, diaspora_out, trade_flows, fdi_stock
-└── nation: Nation
+├── meta: world_seed (8 bytes + base64url string), generator_version,
+│         guiding_variables_version, generator_settings, start_year, current_date,
+│         ruleset_version, reference_snapshot_id
+├── map: cells[] (site, polygon, elevation, biome, river flow, resources, owner,
+│        province_id, control), continents[], subregions[], sea_lanes graph
+├── global: commodity_prices{}, world_demand, reference_currency, blocs[]
+├── countries[]: id, generated name, culture_family, archetype, capital_cell,
+│               provinces[], government, military, state (§4.10, §4.11)
+│               (the player's nation is also listed here, flagged is_player)
+├── relations: pairwise matrix over countries (§4.10.2)
+├── wars[]: belligerents, war goals, fronts[], war_score, start/end, peace terms
+└── nation: Nation (full-depth state for the player's country)
 
 Nation
-├── meta: name, founding_date (flavor), neighbors[], subregion
-├── geography: regions[] (with adjacency), terrain/climate traits
+├── meta: name, founding_date (flavor), culture_family
+├── geography: regions[] (cell sets; adjacency derived from the map)
 ├── demography: cohorts[region][urban|rural][age][sex][education]
 │               + shares{ethnicity[], language[], religion[]} per cell
 ├── cities[]: id, name, region_id, population, traits, institutions[]
@@ -615,20 +963,26 @@ Nation
 **SQLite, one file per save (D3).**
 
 - **Tables (sketch):**
-  - `meta` — schema_version, seed, start_year, reference_snapshot_id, created_at
+  - `meta` — schema_version, world_seed (BLOB, 8 bytes), world_seed_b64 (TEXT,
+    canonical base64url), generator_version, guiding_variables_version,
+    generator_settings (JSON), start_year, reference_snapshot_id, created_at
+  - `map_cells`, `map_geometry` — generated once at world creation; only ownership and
+    control columns change during play
   - `snapshot` — the latest full engine state, serialized per system (one row per system,
     MessagePack blob) for fast load
   - `commands` — the append-only player command log (tick, type, payload) for replay and
     branching
   - `indicators` — `(indicator_id, tick, scope, value)` with an index on
     `(indicator_id, scope, tick)`; `scope` is `nation`, `region:N`, `city:N`, or
-    `country:ISO3`
+    `country:N`
   - `entities` — cities, parties, politicians, teams, universities, foreign countries
     (queryable columns + JSON detail)
   - `elections`, `election_results`, `matches`, `standings` — high-volume history
   - `chronicle` — dated event log with category and references
-  - `reference_*` — the OpenFactBook values used to seed this save (a frozen copy, so
-    validation stays reproducible if the bundled snapshot is updated later)
+  - `wars`, `fronts`, `relations_history` — conflict and diplomacy history
+  - `reference_bands` — a frozen copy of the validation bands and guiding-variables
+    version used by this save, so validation stays reproducible if the bundled data is
+    updated later
 - **Driver:** `better-sqlite3` for the Node/desktop build (synchronous, fast, simple
   transactions). A WASM SQLite build (e.g. the official SQLite WASM with OPFS) is used
   if a browser build is added. The application layer hides the driver behind a small
@@ -653,12 +1007,15 @@ from the engine.
 | **Census** | Population pyramid, regional breakdown, urbanization, city table, ethnicity/language/religion, education attainment, foreign-born, households | Every 10 years (configurable) + on demand |
 | **Economic Survey** | GDP, growth, sectors, labor, inflation, fiscal balance, debt | Quarterly / annual |
 | **Budget Report** | Revenue and spending breakdown, deficit, projections | Annual |
-| **Election Report** | Results by district, seats, turnout, swing, maps/schematics | Per election |
+| **Election Report** | Results by district, seats, turnout, swing, results map | Per election |
 | **Education Report** | Enrollment, attainment, literacy, university list | Annual |
 | **Infrastructure Report** | Coverage, capacity vs. demand, projects | Annual |
 | **Sports Almanac** | Standings, champions, records, team histories | Per season |
 | **Foreign Relations** | Relations table, trade by partner, migration by origin/destination, treaties, diaspora | Annual + on demand |
-| **World Comparison** | The nation ranked against all foreign countries on any indicator, and its percentile against the reference snapshot | Always available |
+| **World Comparison** | The nation ranked against all generated countries on any indicator, and its percentile against the real-world reference distribution | Always available |
+| **War Report** | Belligerents, fronts and control over time, casualties (military/civilian), displacement, costs, war score, peace terms | Monthly during war + final |
+| **Defense Review** | Forces by branch, readiness, equipment, spending, threat assessment | Annual |
+| **World Atlas** | Map layers (§4.12.5), country profiles, blocs, world seed and generator info | Always available |
 | **Yearbook** | Narrative summary of the year: key events, statistics, milestones | Annual |
 | **History** | Full chronicle, filterable by category and period | Always available |
 | **Custom Query** | Pick any indicators, regions, date range → chart/table | Always available |
@@ -680,22 +1037,27 @@ A guided wizard with sensible defaults and a "randomize" button for each step:
 
 1. Name, flag colors, flavor founding date, name/culture pack. The simulation start date
    is fixed to the current year (D7) and is shown but not editable.
-2. **Place in the world:** continent/subregion and neighbor countries (§4.10). The wizard
-   shows the neighbors' reference stats.
-3. Geography: number of regions, adjacency, climate, resources.
-4. **Starting profile:** population size and development level. Presets are
-   **templates drawn from the reference snapshot**, e.g. "like a typical
-   upper-middle-income country in this subregion" (the median of matching countries).
-   Every starting value can be edited afterwards, and each shows its percentile among
-   real countries.
-5. Society: ethnic, linguistic, and religious groups and their regional distribution
-   (defaults suggested from the chosen neighbors' reference data).
-6. Cities: auto-generated from region settings, then editable.
-7. Constitution: government type, legislature, electoral system.
-8. Parties: generated from ideological spectrum or custom.
-9. Sports: choose national sports and league structures (defaults suggested from
-   subregion popularity).
-10. **Plausibility review:** any starting indicator outside the real-world range is
+2. **World:** a random 64-bit seed is pre-filled in base64 (§3.3). The player can reroll
+   it, paste a shared seed, or adjust generator settings (§4.12). The world map
+   previews live as the seed changes.
+3. **Place in the world:** pick a slot on the map (a subregion; coastal, landlocked, or
+   island). The slot fixes the neighbors, and the wizard shows their generated stats.
+4. Geography: the number of regions (the map splits the territory, and borders can be
+   edited by merging or splitting cells). Climate and resources come from the map.
+5. **Starting profile:** population size and development level. Presets are the
+   **archetypes** from the guiding variables (§4.12.1), e.g. "upper-middle-income
+   service economy". The profile is sampled with the same copula as every other country,
+   so values stay mutually consistent. Every starting value can be edited afterwards,
+   and each shows its percentile against real-world data.
+6. Society: ethnic, linguistic, and religious groups (fictional, from the culture pack)
+   and their regional distribution. Counts and fractionalization are sampled from the
+   guiding variables.
+7. Cities: placed by the map generator, then editable (rename, move, resize).
+8. Constitution: government type, legislature, electoral system.
+9. Parties: generated from ideological spectrum or custom.
+10. Sports: choose national sports and league structures (defaults suggested from
+    subregion popularity).
+11. **Plausibility review:** any starting indicator outside the real-world range is
     flagged before the game starts (§10.1). The player may proceed anyway.
 
 ### 8.2 Player role: the Overseer (D2)
@@ -726,7 +1088,11 @@ character inside it. Concretely:
 - **Policy:** tax rates, spending allocations, immigration policy, compulsory schooling
   age, retirement age, child benefits, minimum wage, healthcare model.
 - **Foreign policy:** tariffs, trade agreements, visa regimes, bloc membership, aid,
-  ambassadorial stance (improve/worsen relations) per country.
+  sanctions, defense pacts, border treaties, territorial claims, mediation offers,
+  ultimatums, and ambassadorial stance (improve/worsen relations) per country.
+- **Defense & war:** defense budget split (personnel, procurement, readiness), conscription
+  model, doctrine, arms purchases, and basing agreements. Declaring war (subject to war
+  powers, §4.11.2), front postures, war goals, and accepting or offering peace terms.
 - **Projects:** infrastructure, new universities, stadiums, new cities.
 - **Politics:** propose laws, call snap elections (if the constitution allows), propose
   constitutional amendments.
@@ -738,8 +1104,8 @@ character inside it. Concretely:
 
 ## 9. Technology
 
-**TypeScript throughout (D1).** Settled: language and database. The rest of the table is
-recommended and can change without affecting the architecture.
+**TypeScript throughout (D1), Electron desktop app (D9).** The rows marked Settled are
+fixed. The rest are recommended and can change without affecting the architecture.
 
 | Layer | Choice | Status | Rationale |
 |---|---|---|---|
@@ -747,8 +1113,11 @@ recommended and can change without affecting the architecture.
 | Engine | Pure TS over plain data; typed arrays (`Float64Array`) for cohort grids | Settled | Deterministic, fast, serializable |
 | Persistence | SQLite via `better-sqlite3` behind a storage interface | Settled | D3; see §6.3 |
 | Runtime | Node.js (current LTS) for engine, CLI, and data tooling | Recommended | Native SQLite driver, headless batch runs |
-| UI | React + Vite, packaged as a desktop app with Electron | Recommended | Charts/tables are the core UI; Electron hosts Node, so `better-sqlite3` works unchanged |
+| Desktop shell | **Electron** | Settled | D9; hosts Node, so `better-sqlite3` works unchanged |
+| UI | React + Vite in the Electron renderer | Recommended | Charts/tables are the core UI |
 | Charts | ECharts or Observable Plot | Recommended | Time series, pyramids, stacked bars |
+| Map | `d3-delaunay` (Voronoi), `simplex-noise` (terrain), Canvas 2D rendering; PixiJS/WebGL if profiling requires it | Recommended | Deterministic geometry; fast polygon rendering for ~30k cells |
+| Seed codec | Small in-house module: 8-byte ⇄ base64url with canonical check | Recommended | ~40 lines, no dependency; exhaustive round-trip tests |
 | Content | YAML data packs validated with JSON Schema (via `zod` types) | Recommended | Moddability, typed at load |
 | Tests | Vitest; golden-master and property-based tests (`fast-check`) | Recommended | Determinism and balance |
 | Repo layout | Monorepo workspaces: `packages/engine`, `packages/app`, `packages/ui`, `packages/cli`, `packages/reference-data`, `content/` | Recommended | Enforces engine/UI separation |
@@ -761,8 +1130,29 @@ Determinism notes for TypeScript:
 - Integer-valued quantities (people, seats) are rounded with a documented rule
   (largest-remainder) so totals are conserved.
 
+**Electron process layout:**
+
+```
+ main process ──── window lifecycle, menus, file dialogs, auto-update
+     │
+ utility process ─ engine + better-sqlite3 (simulation runs here, off the UI thread)
+     │  typed IPC: commands / queries / progress events (via MessagePort)
+ renderer ──────── React UI, charts, map (no Node access; contextIsolation on,
+                   nodeIntegration off, strict CSP; a preload script exposes a
+                   narrow typed API)
+```
+
+- Running the engine in a utility process keeps the UI responsive during multi-year
+  runs, and progress streams back per tick.
+- `better-sqlite3` is a native module, so it must be rebuilt for Electron's Node ABI
+  (`@electron/rebuild` or electron-builder's built-in rebuild step).
+- Packaging: electron-builder for Windows, macOS, and Linux installers. The reference
+  snapshot and guiding variables ship as read-only app resources.
+- The same engine package runs in plain Node for the CLI batch runner and tests.
+
 Performance fallback: if the M1 benchmark misses the target, hot loops (cohort update,
-match simulation) can move to a Rust/WASM module behind the same TypeScript interface.
+war resolution, match simulation) can move to a Rust/WASM module behind the same
+TypeScript interface.
 
 ---
 
@@ -778,9 +1168,22 @@ match simulation) can move to a Rust/WASM module behind the same TypeScript inte
   real-world bands derived from OpenFactBook (§10.1) across many seeds.
 - **Balance runs:** batch-simulate N seeds × M years headless and produce distribution
   reports, to catch runaway feedback loops (e.g. infinite growth or collapse).
-- **Foreign-model backtest:** starting from the snapshot, foreign-country trend models
-  should not drift outside the real-world bands within 20 simulated years without an
-  event explaining it.
+- **Seed codec tests:** round-trip for random and edge seeds (`0`, `2^64−1`); rejection of
+  non-canonical strings (wrong length, bad alphabet, non-zero trailing bits);
+  acceptance of standard-base64 and padded input.
+- **World-generation reproducibility:** a fixed list of seeds must produce
+  byte-identical maps and country tables. These are golden masters, bumped only with
+  `generator_version`.
+- **Generator statistical tests (§4.12.6):** across ≥ 200 seeds, generated
+  distributions match the reference (KS statistic below a tolerance per variable;
+  Spearman correlation matrix within a max absolute difference; category frequencies
+  within ±5 percentage points; neighbor-count and landlocked shares within tolerance).
+- **Foreign-model drift:** generated countries should not leave the real-world bands
+  within 20 simulated years unless an event explains it (war, collapse).
+- **War model sanity:** in scripted scenarios (a strong vs. a weak neighbor; balanced
+  alliances; a blockaded island), outcome distributions over many seeds match design
+  expectations. Casualty rates, war duration, and the share of worlds with at least one
+  war per decade are checked against tuning targets.
 - **Save migration tests:** load fixtures from every past schema version.
 
 ### 10.1 Reference data: OpenFactBook (D8)
@@ -792,18 +1195,39 @@ draws on the CIA World Factbook, World Bank Open Data, and the REST Countries AP
 
 **Uses in Nationwright:**
 
-1. **Seeding foreign countries** (§4.10) at the start year.
-2. **Starting-profile templates** in the creation wizard (§8.1).
-3. **Validation bands** for the player's nation, at creation and during simulation.
-4. **Parameter calibration**: fitting the relationships in §4 (e.g. TFR vs. income and
+1. **Guiding variables for procedural generation** (D12, §4.12.1): the distributions,
+   correlations, archetypes, and structure statistics that every fictional nation is
+   sampled from. No real country is placed in the world.
+2. **Validation bands** for all countries, at creation and during simulation.
+3. **Parameter calibration:** fitting the relationships in §4 (e.g. TFR vs. income and
    female education, life expectancy vs. health spending, urbanization vs. GDP per
    capita) to the cross-section of real countries.
 
 **Current year only (D7):** for each field, use the **most recent value** in the
 snapshot. Factbook-style data mixes estimate years across fields (e.g. population
 "2025 est.", GDP "2023 est."). The ingest therefore stores each value's **estimate
-year**. Values older than a configurable age (default: 3 years before the start year)
-are flagged. The game never uses historical series, only the latest cross-section.
+year**. The game uses no historical series to drive the simulation, only the latest
+cross-section, projected to the start year.
+
+**Projection to the start year (D11):** every value whose estimate year is earlier than
+the start year is projected forward before guiding variables and bands are computed:
+
+| Kind of field | Projection rule |
+|---|---|
+| Stocks with a growth rate (population, GDP real) | Compound by the country's own latest growth rate: `v · (1 + g)^Δy` |
+| Nominal values (GDP nominal, debt, budget) | Real growth plus the latest inflation, converted with the reference currency |
+| Derived per-capita values | Recomputed from projected numerator and denominator (never projected directly) |
+| Rates and shares (TFR, life expectancy, urbanization, literacy, sector shares) | Latest value plus a damped convergence trend toward its archetype's median, capped per year (e.g. TFR ±0.05/yr, life expectancy +0.3/yr, urbanization +0.5 pp/yr) |
+| Structural facts (area, borders, government type, languages) | Carried forward unchanged |
+
+- Projections are done by the pipeline, **not at runtime**. Each value keeps
+  `est_year`, `projected: true|false`, and `projection_years`.
+- A projection horizon above a threshold (default 5 years) marks the value as
+  **low-confidence**. Low-confidence values are down-weighted when fitting guiding
+  variables, and the pipeline report lists them.
+- When the game's start year is later than the snapshot's target year, the pipeline's
+  projection rules are applied once at world creation to reach the start year. The
+  result is frozen into the save (`reference_bands`).
 
 **Ingest pipeline (`packages/reference-data`):**
 
@@ -813,7 +1237,10 @@ fetch (OpenFactBook JSON API)
   → parse (text fields like "8,997,000 (2024 est.)" → value + unit + est_year)
   → normalize (units, currencies to a common base, ISO 3166 codes, names)
   → validate (schema, ranges, missing-field report)
+  → project (to the target start year; see "Projection" above)
   → snapshot/<YYYY-MM-DD>.sqlite + manifest.json (source URLs, fetch date, field coverage)
+  → fit guiding variables (marginals, copulas, archetypes, structure statistics)
+  → guiding-variables.json + validation-bands.json (versioned together)
 ```
 
 - The pipeline runs **offline as a developer tool**, never at game runtime. The game
@@ -860,14 +1287,16 @@ written in. The ingest should keep all source-specific details in one adapter mo
 
 | Milestone | Scope |
 |---|---|
-| **M0 — Skeleton** | TS monorepo, engine/app/UI separation, tick loop, seeded RNG, SQLite save/load, indicator store, CLI batch runner. **Reference-data pipeline:** confirm OpenFactBook API/licensing, first snapshot, validation-band computation |
-| **M1 — People & Places** | Demography (full cohort grid + culture shares), regions with adjacency, cities, internal migration, census report, population pyramid, validation against bands. Performance benchmark |
-| **M2 — Economy & World** | Sectors, labor market, public finance; foreign countries seeded from the snapshot, trade/commodities/migration/capital channels, relations; economic survey, budget, foreign relations, and world comparison reports |
-| **M3 — Politics & Elections** | Constitution, parties, approval, FPTP + list PR, government formation, election report |
-| **M4 — Education & Infrastructure** | Education pipeline, human capital link, infrastructure assets and projects |
-| **M5 — Events & Chronicle** | Data-driven event engine, choices, modifier registry with explanations, yearbook |
-| **M6 — Sports** | Sports/leagues/teams data model, match engine, seasons, international competitions, almanac |
-| **M7 — Creation Wizard & Polish** | Nation creation flow (world placement, reference templates, plausibility review), overseer autopilot, dashboards, exports, comparative views, attribution screen, onboarding |
+| **M0 — Skeleton** | TS monorepo, Electron shell with utility-process engine, tick loop, world seed codec + xoshiro256\*\*/SplitMix64 streams, SQLite save/load, indicator store, CLI batch runner. **Reference-data pipeline:** confirm OpenFactBook API/licensing, first snapshot, forward projection, validation bands |
+| **M1 — World Generation & Map** | Guiding-variable fitting (marginals, copulas, archetypes); map generator (cells, terrain, climate, rivers, countries, provinces, cities); culture/name packs; nation statistics sampling; generator statistical tests; map screen with political, physical, and choropleth layers |
+| **M2 — People & Places** | Demography (full cohort grid + culture shares), regions from the map, cities, internal migration, census report, population pyramid, validation against bands. Performance benchmark |
+| **M3 — Economy & World** | Sectors, labor market, public finance; foreign country mid-depth model, trade/commodities/migration/capital channels; economic survey, budget, and world comparison reports; flows map layer |
+| **M4 — Politics, Elections & Diplomacy** | Constitution, parties, approval, FPTP + list PR, government formation, election report; foreign governments and elections; pairwise relations, blocs, foreign-policy AI; foreign relations report |
+| **M5 — Military & War** | Armed forces, defense budget, path to war, theater graph and front resolution, occupation, casualties/displacement feeding demography, peace terms, territory transfer, civil wars, burn-in backstory; war report, defense review, war map layer; war sanity tests |
+| **M6 — Education & Infrastructure** | Education pipeline, human capital link, infrastructure assets and projects, war damage and repair; infrastructure map layer |
+| **M7 — Events & Chronicle** | Data-driven event engine, choices, modifier registry with explanations, yearbook |
+| **M8 — Sports** | Sports/leagues/teams data model, match engine, seasons, international competitions, almanac |
+| **M9 — Creation Wizard & Polish** | Nation creation flow (seed entry/reroll with live map preview, slot placement, archetype profiles, plausibility review), overseer autopilot, dashboards, world atlas, exports, comparative views, attribution screen, installers, onboarding |
 | **v1.x** | More electoral systems, named athletes, branching timelines UI, modding docs |
 
 Each milestone ends with a playable build and updated golden-master tests.
@@ -876,24 +1305,23 @@ Each milestone ends with a playable build and updated golden-master tests.
 
 ## 12. Open Questions
 
-Questions from v0.1 were resolved as D1–D8 (§0). Remaining:
+Earlier questions were resolved as D1–D13 (§0). Remaining:
 
-1. **UI shell** (§9) — Electron (recommended; runs `better-sqlite3` natively) vs. Tauri
-   (smaller binary, but SQLite would move to Rust or WASM).
-2. **Foreign country depth** (§4.10) — are the reduced-form models enough, or should
-   major neighbors get fuller simulation (e.g. their own elections)?
-   Recommendation: reduced-form for v1; neighbors get elections in v1.x.
-3. **Foreign ↔ foreign relations** — model blocs only (v1 recommendation), or full
-   pairwise relations?
-4. **Conflict** — how far do wars go? Recommendation: abstract conflict events
-   (economic, casualty, migration, and stability effects) without military simulation.
-5. **Start-year vs. snapshot mismatch** (§3.1) — when the start year is newer than the
-   bundled snapshot, use the snapshot values as-is (recommended) or project them forward
-   by trend?
-6. **Culture share correlations** (§4.1) — are independent share vectors enough, or does
+1. **Culture share correlations** (§4.1) — are independent share vectors enough, or does
    politics need joint ethnicity × religion distributions?
-7. **Reference licensing** (§10.1) — confirm per-field licenses and attribution wording
-   once the OpenFactBook API is inspected.
+2. **Reference licensing** (§10.1) — confirm per-field licenses and attribution wording
+   once the OpenFactBook API is inspected. Since only aggregated statistics ship
+   (§4.12.1), attribution may be the only obligation. Confirm this.
+3. **Nuclear use** (§4.11.2) — v1 models deterrence only. Should nuclear use ever be
+   simulated, or stay out of scope permanently?
+4. **War-crime and atrocity modelling** — deep wars raise the question of civilian
+   targeting, occupation abuses, and war-crimes tribunals. Recommendation: model
+   civilian harm as an aggregate outcome with diplomatic consequences, and never as a
+   player-selectable action.
+5. **World size limits** (§4.12) — confirm the 20–250 country range and the cell budget
+   once the M1 performance benchmark is in.
+6. **Burn-in** (§4.12.4) — keep the 30-year diplomatic/war pre-run, or generate starting
+   relations by rules only (faster world creation)?
 
 ---
 
@@ -915,3 +1343,16 @@ Questions from v0.1 were resolved as D1–D8 (§0). Remaining:
   from the reference snapshot.
 - **Overseer** — the player's role: sets direction above politics, constrained by
   institutions, never removed from power.
+- **base64url** — the URL- and filename-safe base64 alphabet (RFC 4648 §5), using `-` and
+  `_` instead of `+` and `/`.
+- **xoshiro256\*\* / SplitMix64** — a fast, high-quality 64-bit PRNG, and the generator
+  used to expand a 64-bit seed into its 256-bit state.
+- **Gaussian copula** — a way to sample correlated variables with arbitrary individual
+  distributions, by correlating normal variables and mapping them through each
+  variable's quantile function.
+- **Archetype** — a cluster of statistically similar real countries, used as a template
+  for generating fictional ones.
+- **Lanchester model** — attrition equations in which each side's losses scale with the
+  opponent's combat power.
+- **Voronoi cell** — the region of the plane closer to one seed point than to any
+  other; the map's basic unit.
