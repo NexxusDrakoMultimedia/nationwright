@@ -74,6 +74,8 @@ export interface CountryRecord {
   readonly name: string;
   /** Every name form in the profile (lowercase), for matching border references. */
   readonly nameForms: readonly string[];
+  /** Name of the capital city (for the name blocklist only). */
+  readonly capitalName: string | null;
   readonly kind: EntityKind;
   readonly fields: Readonly<Record<string, Observation>>;
   readonly borders: readonly Border[];
@@ -137,6 +139,8 @@ export function parseProfile(
     region,
     name: countryName(government),
     nameForms: nameForms(government),
+    capitalName:
+      textAt((government['Capital'] as Record<string, unknown> | undefined)?.['name']) ?? null,
     kind,
     fields,
     borders: parseBorders(profile['Geography']?.['Land boundaries']),

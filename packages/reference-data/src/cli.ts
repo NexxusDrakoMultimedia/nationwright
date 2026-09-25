@@ -49,6 +49,7 @@ if (command === 'fetch') {
   write(`validation-bands-${targetYear}.json`, `${JSON.stringify(result.bands, null, 2)}\n`);
   if (result.guiding === null) throw new Error('Too few states to fit the guiding variables.');
   write(`guiding-variables-${targetYear}.json`, `${JSON.stringify(result.guiding)}\n`);
+  write('name-blocklist.json', `${JSON.stringify(result.nameBlocklist)}\n`);
   write(`report-${targetYear}.md`, renderReport(result));
   console.log(
     `${result.manifest.entities.state} states, ${result.manifest.entities.territory} territories, ` +

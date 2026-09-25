@@ -18,7 +18,15 @@ import {
   placeCapitals,
   sampleNations,
 } from './countries.ts';
+import {
+  generateCultures,
+  type CountryCulture,
+  type CultureFamily,
+  type WorldCultures,
+} from './culture.ts';
 import { cellDistance, generateGrid, type CellGrid } from './grid.ts';
+import { NameGuard } from './name-check.ts';
+import { Names, uniqueName } from './names.ts';
 import type { GuidingVariables } from './guiding.ts';
 import { generateHydrology, type Hydrology } from './hydrology.ts';
 import { prepareModel, type NationSample } from './nation-stats.ts';
@@ -41,6 +49,10 @@ import { generateClimate, generateElevation, type Terrain } from './terrain.ts';
 
 export interface GeneratedCountry {
   readonly id: number;
+  readonly name: string;
+  /** Adjective and people, e.g. "Talvari". */
+  readonly demonym: string;
+  readonly culture: CountryCulture;
   readonly capitalCell: number;
   readonly nation: NationSample;
   readonly cellCount: number;
@@ -72,16 +84,27 @@ export interface GeneratedWorld {
   readonly settings: GeneratorSettings;
   readonly map: WorldMapLayers;
   readonly countries: readonly GeneratedCountry[];
-  readonly cities: readonly City[];
+  readonly cities: readonly NamedCity[];
+  readonly provinceNames: readonly string[];
+  readonly cultures: Omit<WorldCultures, 'countries'>;
   /** Landmasses with at least two countries or 2% of all land, largest first. */
   readonly continentCount: number;
   readonly subregionCount: number;
 }
 
+export interface NamedCity extends City {
+  readonly name: string;
+}
+
+/**
+ * @param nameBlocklist hashes of real country and capital names (`nameHash`), from
+ *   packages/reference-data/data/name-blocklist.json; generated names never match them.
+ */
 export function generateWorld(
   seed: WorldSeed,
   settings: GeneratorSettings,
   guiding: GuidingVariables,
+  nameBlocklist: readonly string[] = [],
 ): GeneratedWorld {
   validateSettings(settings);
   const stream = (stage: string) => createStream(seed, `worldgen/${stage}`);
@@ -176,6 +199,52 @@ export function generateWorld(
   });
   const subregion = assignSubregions(neighbors, continent);
 
+  // Cultures and names.
+  const guard = new NameGuard(nameBlocklist);
+  const cultureStream = stream('culture');
+  const cultures = generateCultures(
+    grid,
+    {
+      capitals,
+      neighbors,
+      ethnicGroupCounts: nations.map((n) => n.ethnicGroups),
+      religionCounts: nations.map((n) => n.religions),
+      languageCounts: nations.map((n) => n.languages),
+      ethnicFractionalization: nations.map(
+        (n) => n.stats['society.ethnic_fractionalization'] ?? 0.3,
+      ),
+      religiousFractionalization: nations.map(
+        (n) => n.stats['society.religious_fractionalization'] ?? 0.3,
+      ),
+    },
+    guard,
+    cultureStream,
+  );
+  const nameStream = stream('names');
+  const phonologyOf = (k: number) =>
+    (cultures.families[(cultures.countries[k] as CountryCulture).family] as CultureFamily)
+      .phonology;
+  const countryNames = capitals.map((_, k) =>
+    uniqueName(guard, (attempt) => {
+      const countryRoot = cultures.countryRoots[k] as string;
+      // Keep the demonym's root; if its endings are all taken, extend the root.
+      const extended =
+        attempt < 20
+          ? countryRoot
+          : countryRoot + Names.countryRoot(phonologyOf(k), nameStream).slice(0, 2);
+      return Names.country(phonologyOf(k), nameStream, extended);
+    }),
+  );
+  const namedCities: NamedCity[] = cities.map((city) => ({
+    ...city,
+    name: uniqueName(guard, () => Names.city(phonologyOf(city.country), nameStream)),
+  }));
+  const provinceNames: string[] = [];
+  provinceCounts.forEach((count, k) => {
+    for (let p = 0; p < count; p++)
+      provinceNames.push(uniqueName(guard, () => Names.province(phonologyOf(k), nameStream)));
+  });
+
   const cellArea = (grid.width * grid.height) / grid.count;
   let firstProvince = 0;
   const countries: GeneratedCountry[] = capitals.map((capitalCell, k) => {
@@ -183,6 +252,11 @@ export function generateWorld(
     const coastal = list.some((c) => terrain.coastal[c] === 1);
     const country: GeneratedCountry = {
       id: k,
+      name: countryNames[k] as string,
+      demonym: cultures.ethnicGroups[
+        (cultures.countries[k] as CountryCulture).ethnic[0]?.id ?? 0
+      ] as string,
+      culture: cultures.countries[k] as CountryCulture,
       capitalCell,
       nation: nations[k] as NationSample,
       cellCount: list.length,
@@ -205,7 +279,14 @@ export function generateWorld(
     settings,
     map: { grid, terrain, hydrology, habitability, landmass, owner, province, population },
     countries,
-    cities,
+    cities: namedCities,
+    provinceNames,
+    cultures: {
+      families: cultures.families,
+      ethnicGroups: cultures.ethnicGroups,
+      faiths: cultures.faiths,
+      languages: cultures.languages,
+    },
     continentCount: Math.max(1, continentLandmasses.length),
     subregionCount: Math.max(0, ...subregion) + 1,
   };

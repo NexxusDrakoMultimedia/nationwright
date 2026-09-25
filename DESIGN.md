@@ -903,10 +903,13 @@ For each country, including the player's defaults:
    ethnic groups, languages, and religions, their overall shares, and fractionalization
    (all from the guiding variables).
 6. **Culture pack:** generated names for the country, cities, people, parties,
-   languages, ethnic groups, and religions (syllable/Markov generators per fictional
-   culture family). Neighboring countries share culture families at a rate set by
-   spatial similarity. Groups can span borders, e.g. a neighbor's majority religion or
-   language appearing as a local minority.
+   languages, ethnic groups, and religions: syllable generators over a per-family phoneme
+   inventory, syllable shapes, and endings. Families (about one per 12 countries) are
+   spread by farthest-point seeds with jittered nearest-seed assignment, so neighbours
+   usually share one. Groups can span borders, e.g. a neighbour's people or language
+   appearing as a local minority. Generated names are checked against a blocklist of
+   hashed real country and capital names (from the reference pipeline) and an
+   offensive-substring filter, and are unique within a world.
 7. **Randomized culture associations (D14):** draw how ethnicity, religion, and
    language combine, using the stream `worldgen/culture/<country>`:
    - an **alignment** value in [0, 1] per pair of dimensions (E–R, E–L, R–L), where 0

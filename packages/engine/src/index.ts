@@ -31,3 +31,6 @@ export * from './worldgen/hydrology.ts';
 export * from './worldgen/countries.ts';
 export * from './worldgen/places.ts';
 export * from './worldgen/generate.ts';
+export * from './worldgen/name-check.ts';
+export * from './worldgen/names.ts';
+export * from './worldgen/culture.ts';

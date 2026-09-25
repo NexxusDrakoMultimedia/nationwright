@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { computeBands, MIN_BAND_SIZE, type Band } from './bands.ts';
 import { parseProfile, resolveBorders, type CountryRecord, type EntityKind } from './country.ts';
 import { FIELDS, type ExtractIssue } from './fields.ts';
-import type { GuidingVariables } from '@nationwright/engine';
+import { nameHash, normalizeName, type GuidingVariables } from '@nationwright/engine';
 import { fitGuidingVariables } from './fit.ts';
 import { projectAll, type ProjectedCountry, type ProjectionOptions } from './project.ts';
 import { REGION_DIRECTORIES, SOURCE } from './source.ts';
@@ -26,6 +26,8 @@ export interface PipelineResult {
   readonly bands: BandsFile;
   /** Null when there are too few states to fit a model (test fixtures). */
   readonly guiding: GuidingVariables | null;
+  /** Hashes of real country and capital names that generated names must avoid. */
+  readonly nameBlocklist: readonly string[];
   readonly issues: readonly ExtractIssue[];
   readonly warnings: readonly ConsistencyWarning[];
 }
@@ -153,7 +155,30 @@ export function runPipeline(
         : null,
     issues: issues.sort((a, b) => (a.field < b.field ? -1 : a.field > b.field ? 1 : 0)),
     warnings: consistencyWarnings(records),
+    nameBlocklist: nameBlocklist(records),
   };
+}
+
+/**
+ * Every name form of every entity (states, territories, and excluded places) plus capital
+ * names, as sorted unique hashes. Parenthetical parts are dropped ("Congo (Brazzaville)").
+ */
+export function nameBlocklist(records: readonly CountryRecord[]): string[] {
+  const hashes = new Set<string>();
+  const add = (name: string | null) => {
+    if (name === null) return;
+    for (const part of [name, name.replace(/\s*\([^)]*\)/g, '')]) {
+      if (normalizeName(part).length >= 3) hashes.add(nameHash(part));
+    }
+  };
+  for (const r of records) {
+    add(r.name);
+    r.nameForms.forEach(add);
+    // Capitals like "Vienna"; some list several ("Amsterdam; The Hague").
+    for (const capital of (r.capitalName ?? '').split(/[;,]/))
+      add(capital.replace(/note:.*$/i, '').trim());
+  }
+  return [...hashes].sort();
 }
 
 /** A human-readable report for reviewing a pipeline run as a code change. */

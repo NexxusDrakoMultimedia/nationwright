@@ -107,8 +107,11 @@ off as they land; add new ones as work reveals them.
 - [x] Nation statistics placed on the map; population spread by habitability²
 - [x] Generator tests: determinism, golden master (v1), invariants on 5 seeds, real
       island/landlocked/one-neighbour shares; `scripts/render-map.ts` for eyeballing
-- [ ] Culture packs and name generators (fictional only)
-- [ ] Randomized ethnicity × religion × language associations (alignment draws + IPF)
+- [x] Culture families (spatially clustered), per-family phonologies, names for countries,
+      demonyms, cities, provinces, faiths, languages; blocklist of hashed real country and
+      capital names (`name-blocklist.json`, 1,066 hashes) plus an offensive-substring filter
+- [x] Randomized ethnicity × religion × language associations (alignment draws + IPF),
+      shares matching sampled fractionalization with a 1% floor
 - [ ] Store the generated map in the save; `generator_version`
 - [ ] Generator statistical validation across ≥ 200 seeds (script, outside CI)
 - [ ] Map screen: political, physical, choropleth layers; pan/zoom; profiles

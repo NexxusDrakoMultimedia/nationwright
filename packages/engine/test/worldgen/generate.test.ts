@@ -21,6 +21,12 @@ const guiding = JSON.parse(
     'utf8',
   ),
 ) as GuidingVariables;
+const blocklist = JSON.parse(
+  readFileSync(
+    new URL('../../../reference-data/data/name-blocklist.json', import.meta.url),
+    'utf8',
+  ),
+) as string[];
 
 function seed(text: string): bigint {
   const r = parseSeed(text);
@@ -45,11 +51,11 @@ function fingerprint(world: GeneratedWorld): string {
 }
 
 const SEEDS = ['q3Zk1d0XbAc', 'AAAAAAAAAAE', 'Zm9vYmFyMDA', 'n4tionwr1gE', 'W0rldSeed0A'];
-const worlds = SEEDS.map((s) => generateWorld(seed(s), defaultSettings(), guiding));
+const worlds = SEEDS.map((s) => generateWorld(seed(s), defaultSettings(), guiding, blocklist));
 
 describe('generateWorld', () => {
   it('is deterministic', () => {
-    const again = generateWorld(seed(SEEDS[0]!), defaultSettings(), guiding);
+    const again = generateWorld(seed(SEEDS[0]!), defaultSettings(), guiding, blocklist);
     expect(fingerprint(again)).toBe(fingerprint(worlds[0]!));
     expect(fingerprint(worlds[1]!)).not.toBe(fingerprint(worlds[0]!));
   });
@@ -57,7 +63,7 @@ describe('generateWorld', () => {
   // Golden master: pins generator v1. If this changes, bump GENERATOR_VERSION and update.
   it('matches the golden master for generator v1', () => {
     expect(GENERATOR_VERSION).toBe(1);
-    expect(fingerprint(worlds[0]!)).toMatchInlineSnapshot(`"ae384db7655e8283"`);
+    expect(fingerprint(worlds[0]!)).toMatchInlineSnapshot(`"e15cea6e5f61c184"`);
   });
 
   it.each(SEEDS.map((s, i) => [s, i] as const))('builds a consistent world for %s', (_, i) => {

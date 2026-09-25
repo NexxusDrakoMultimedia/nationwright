@@ -12,6 +12,7 @@
     "country of aruba",
     "land aruba (dutch); pais aruba (papiamento)"
    ],
+   "capitalName": "Oranjestad",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -390,6 +391,7 @@
    "nameForms": [
     "antigua and barbuda"
    ],
+   "capitalName": "Saint John's",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -762,6 +764,7 @@
     "uae",
     "united arab emirates"
    ],
+   "capitalName": "Abu Dhabi",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -1201,6 +1204,7 @@
     "islamic republic of afghanistan (prior to 15 august 2021); current country name disputed",
     "jamhuri-ye islami-ye afghanistan (prior to 15 august 2021; current country name is disputed)"
    ],
+   "capitalName": "Kabul",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -1697,6 +1701,7 @@
     "algeria",
     "people's democratic republic of algeria"
    ],
+   "capitalName": "Algiers",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -2117,6 +2122,7 @@
     "azerbaijan",
     "republic of azerbaijan"
    ],
+   "capitalName": "Baku (Baki, Baky)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -2616,6 +2622,7 @@
     "republika e shqiperise",
     "shqiperia"
    ],
+   "capitalName": "Tirana (Tirane)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -3066,6 +3073,7 @@
     "hayastani hanrapetut'yun",
     "republic of armenia"
    ],
+   "capitalName": "Yerevan",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -3551,6 +3559,7 @@
     "principality of andorra",
     "principat d'andorra"
    ],
+   "capitalName": "Andorra la Vella",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -3922,6 +3931,7 @@
     "republic of angola",
     "republica de angola"
    ],
+   "capitalName": "Luanda",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -4390,6 +4400,7 @@
     "american samoa",
     "as"
    ],
+   "capitalName": "Pago Pago",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -4690,6 +4701,7 @@
     "argentine republic",
     "república argentina"
    ],
+   "capitalName": "Buenos Aires",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -5143,6 +5155,7 @@
     "australia",
     "commonwealth of australia"
    ],
+   "capitalName": "Canberra",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -5608,6 +5621,7 @@
     "republic of austria",
     "republik oesterreich"
    ],
+   "capitalName": "Vienna",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -6083,6 +6097,7 @@
    "nameForms": [
     "anguilla"
    ],
+   "capitalName": "The Valley",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -6397,6 +6412,7 @@
    "nameForms": [
     "akrotiri"
    ],
+   "capitalName": "Episkopi Cantonment (base administrative center for Akrotiri and Dhekelia)",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -6474,6 +6490,7 @@
     "kingdom of bahrain",
     "mamlakat al bahrayn"
    ],
+   "capitalName": "Manama",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -6880,6 +6897,7 @@
    "nameForms": [
     "barbados"
    ],
+   "capitalName": "Bridgetown",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -7275,6 +7293,7 @@
     "botswana",
     "republic of botswana"
    ],
+   "capitalName": "Gaborone",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -7730,6 +7749,7 @@
    "nameForms": [
     "bermuda"
    ],
+   "capitalName": "Hamilton",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -8111,6 +8131,7 @@
     "kingdom of belgium",
     "royaume de belgique (french)/koninkrijk belgie (dutch)/koenigreich belgien (german)"
    ],
+   "capitalName": "Brussels",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -8563,6 +8584,7 @@
     "commonwealth of the bahamas",
     "the bahamas"
    ],
+   "capitalName": "Nassau",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -8951,6 +8973,7 @@
     "gana prajatantri bangladesh",
     "people's republic of bangladesh"
    ],
+   "capitalName": "Dhaka",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -9356,6 +9379,7 @@
    "nameForms": [
     "belize"
    ],
+   "capitalName": "Belmopan",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -9807,6 +9831,7 @@
     "bosna i hercegovina",
     "bosnia and herzegovina"
    ],
+   "capitalName": "Sarajevo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -10251,6 +10276,7 @@
     "estado plurinacional de bolivia",
     "plurinational state of bolivia"
    ],
+   "capitalName": "La Paz (administrative capital); Sucre (constitutional [legislative and judicial] capital)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -10726,6 +10752,7 @@
     "pyidaungzu thammada myanma naingngandaw (translated as the republic of the union of myanmar)",
     "union of burma"
    ],
+   "capitalName": "Rangoon (aka Yangon, continues to be recognized as the primary Burmese capital by the US Government); Nay Pyi Taw is the administrative capital",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -11184,6 +11211,7 @@
     "republic of benin",
     "république du benin"
    ],
+   "capitalName": "Porto-Novo (constitutional capital); Cotonou (seat of government)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -11670,6 +11698,7 @@
     "republic of belarus",
     "respublika byelarus' (belarusian)/ respublika belarus' (russian)"
    ],
+   "capitalName": "Minsk",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -12118,6 +12147,7 @@
    "nameForms": [
     "solomon islands"
    ],
+   "capitalName": "Honiara",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -12479,6 +12509,7 @@
     "federative republic of brazil",
     "república federativa do brasil"
    ],
+   "capitalName": "Brasília",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -12975,6 +13006,7 @@
     "druk yul",
     "kingdom of bhutan"
    ],
+   "capitalName": "Thimphu",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -13370,6 +13402,7 @@
     "republic of bulgaria",
     "republika bulgaria"
    ],
+   "capitalName": "Sofia",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -13816,6 +13849,7 @@
     "brunei darussalam",
     "negara brunei darussalam"
    ],
+   "capitalName": "Bandar Seri Begawan",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -14206,6 +14240,7 @@
     "republic of burundi",
     "république du burundi (french)/ republika y'u burundi (kirundi)"
    ],
+   "capitalName": "Gitega (political capital), Bujumbura (commercial capital)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -14612,6 +14647,7 @@
    "nameForms": [
     "canada"
    ],
+   "capitalName": "Ottawa",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -15100,6 +15136,7 @@
     "kingdom of cambodia",
     "preahreacheanachakr kampuchea (phonetic transliteration)"
    ],
+   "capitalName": "Phnom Penh",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -15537,6 +15574,7 @@
     "république du tchad/jumhuriyat tshad",
     "tchad/tshad"
    ],
+   "capitalName": "N'Djamena",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -16049,6 +16087,7 @@
     "shri lanka prajatantrika samajavadi janarajaya (sinhala)/ ilankai jananayaka choshalichak kutiyarachu (tamil)",
     "sri lanka"
    ],
+   "capitalName": "Colombo (commercial capital); Sri Jayewardenepura Kotte (legislative capital)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -16474,6 +16513,7 @@
     "republic of the congo",
     "république du congo"
    ],
+   "capitalName": "Brazzaville",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -16946,6 +16986,7 @@
     "rdc",
     "république démocratique du congo"
    ],
+   "capitalName": "Kinshasa",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -17402,6 +17443,7 @@
     "zhongguo",
     "zhonghua renmin gongheguo"
    ],
+   "capitalName": "Beijing",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -17933,6 +17975,7 @@
     "republic of chile",
     "república de chile"
    ],
+   "capitalName": "Santiago; note - Valparaiso is the seat of the national legislature",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -18399,6 +18442,7 @@
    "nameForms": [
     "cayman islands"
    ],
+   "capitalName": "George Town (on Grand Cayman)",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -18790,6 +18834,7 @@
     "cocos (keeling) islands",
     "territory of cocos (keeling) islands"
    ],
+   "capitalName": "West Island",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -18955,6 +19000,7 @@
     "republic of cameroon",
     "république du cameroun (french)/republic of cameroon (english)"
    ],
+   "capitalName": "Yaounde",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -19439,6 +19485,7 @@
     "udzima wa komori (comorian)/union des comores (french)/al ittihad al qumuri (arabic)",
     "union of the comoros"
    ],
+   "capitalName": "Moroni",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -19819,6 +19866,7 @@
     "republic of colombia",
     "república de colombia"
    ],
+   "capitalName": "Bogotá",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -20285,6 +20333,7 @@
     "commonwealth of the northern mariana islands",
     "northern mariana islands"
    ],
+   "capitalName": "Saipan",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -20569,6 +20618,7 @@
     "republic of costa rica",
     "república de costa rica"
    ],
+   "capitalName": "San José",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -21000,6 +21050,7 @@
     "central african republic",
     "république centrafricaine"
    ],
+   "capitalName": "Bangui",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -21454,6 +21505,7 @@
     "republic of cuba",
     "república de cuba"
    ],
+   "capitalName": "Havana",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -21868,6 +21920,7 @@
     "republic of cabo verde",
     "republica de cabo verde"
    ],
+   "capitalName": "Praia",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -22278,6 +22331,7 @@
    "nameForms": [
     "cook islands"
    ],
+   "capitalName": "Avarua",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -22587,6 +22641,7 @@
     "kypros (greek)/ kibris (turkish)",
     "republic of cyprus"
    ],
+   "capitalName": "Nicosia (Lefkosia/Lefkosa)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -23016,6 +23071,7 @@
     "kingdom of denmark",
     "kongeriget danmark"
    ],
+   "capitalName": "Copenhagen",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -23432,6 +23488,7 @@
     "republic of djibouti",
     "république de djibouti (french)/ jumhuriyat jibuti (arabic)"
    ],
+   "capitalName": "Djibouti",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -23835,6 +23892,7 @@
     "commonwealth of dominica",
     "dominica"
    ],
+   "capitalName": "Roseau",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -24196,6 +24254,7 @@
     "república dominicana",
     "the dominican"
    ],
+   "capitalName": "Santo Domingo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -24604,6 +24663,7 @@
    "nameForms": [
     "dhekelia"
    ],
+   "capitalName": "Episkopi Cantonment (base administrative center for Akrotiri and Dhekelia); located in Akrotiri",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -24680,6 +24740,7 @@
     "republic of ecuador",
     "república del ecuador"
    ],
+   "capitalName": "Quito",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -25128,6 +25189,7 @@
     "jumhuriyat misr al-arabiyah",
     "misr"
    ],
+   "capitalName": "Cairo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -25540,6 +25602,7 @@
     "eire",
     "ireland"
    ],
+   "capitalName": "Dublin",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -25979,6 +26042,7 @@
     "republic of equatorial guinea",
     "republica de guinea ecuatorial (spanish)/ république de guinée équatoriale (french)"
    ],
+   "capitalName": "Malabo; note - Malabo is on the island of Bioko; some months of the year, the government operates out of Bata on the mainland region.",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -26383,6 +26447,7 @@
     "estonia",
     "republic of estonia"
    ],
+   "capitalName": "Tallinn",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -26811,6 +26876,7 @@
     "hagere ertra",
     "state of eritrea"
    ],
+   "capitalName": "Asmara",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -27235,6 +27301,7 @@
     "republic of el salvador",
     "república de el salvador"
    ],
+   "capitalName": "San Salvador",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -27660,6 +27727,7 @@
     "ityop'iya",
     "yeityop'iya federalawi demokrasiyawi ripeblik"
    ],
+   "capitalName": "Addis Ababa",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -28180,6 +28248,7 @@
     "czech republic",
     "czechia"
    ],
+   "capitalName": "Prague",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -28614,6 +28683,7 @@
     "suomen tasavalta (finnish)/ republiken finland (swedish)",
     "suomi (finnish)/ finland (swedish)"
    ],
+   "capitalName": "Helsinki",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -29039,6 +29109,7 @@
     "republic of fiji",
     "republic of fiji (english)/ matanitu ko viti (fijian)"
    ],
+   "capitalName": "Suva (on Viti Levu)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -29449,6 +29520,7 @@
    "nameForms": [
     "falkland islands (islas malvinas)"
    ],
+   "capitalName": "Stanley",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -29656,6 +29728,7 @@
     "federated states of micronesia",
     "fsm"
    ],
+   "capitalName": "Palikir",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -30051,6 +30124,7 @@
     "faroe islands",
     "foroyar"
    ],
+   "capitalName": "Torshavn",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -30388,6 +30462,7 @@
     "pays d'outre-mer de la polynésie française",
     "polynésie française"
    ],
+   "capitalName": "Papeete (located on Tahiti)",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -30748,6 +30823,7 @@
     "french republic",
     "république française"
    ],
+   "capitalName": "Paris",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -31204,6 +31280,7 @@
     "republic of the gambia",
     "the gambia"
    ],
+   "capitalName": "Banjul",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -31618,6 +31695,7 @@
     "gabonese republic",
     "république gabonaise"
    ],
+   "capitalName": "Libreville",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -32082,6 +32160,7 @@
     "republic of georgia",
     "sak'art'velo"
    ],
+   "capitalName": "Tbilisi",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -32530,6 +32609,7 @@
     "ghana",
     "republic of ghana"
    ],
+   "capitalName": "Accra",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -33012,6 +33092,7 @@
    "nameForms": [
     "gibraltar"
    ],
+   "capitalName": "Gibraltar",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -33300,6 +33381,7 @@
    "nameForms": [
     "grenada"
    ],
+   "capitalName": "Saint George's",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -33667,6 +33749,7 @@
     "bailiwick of guernsey",
     "guernsey"
    ],
+   "capitalName": "Saint Peter Port",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -33958,6 +34041,7 @@
     "greenland",
     "kalaallit nunaat"
    ],
+   "capitalName": "Nuuk",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -34287,6 +34371,7 @@
     "federal republic of germany",
     "germany"
    ],
+   "capitalName": "Berlin",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -34789,6 +34874,7 @@
     "guahan",
     "guam"
    ],
+   "capitalName": "Hagatna (Agana)",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -35130,6 +35216,7 @@
     "greece",
     "hellenic republic"
    ],
+   "capitalName": "Athens",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -35543,6 +35630,7 @@
     "republic of guatemala",
     "república de guatemala"
    ],
+   "capitalName": "Guatemala City",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -35985,6 +36073,7 @@
     "republic of guinea",
     "république de guinée"
    ],
+   "capitalName": "Conakry",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -36447,6 +36536,7 @@
     "cooperative republic of guyana",
     "guyana"
    ],
+   "capitalName": "Georgetown",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -36882,6 +36972,7 @@
     "gaza, gaza strip",
     "qita' ghazzah"
    ],
+   "capitalName": null,
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -37258,6 +37349,7 @@
     "republic of haiti",
     "république d'ha&iuml;ti (french)/repiblik d ayiti (haitian creole)"
    ],
+   "capitalName": "Port-au-Prince",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -37638,6 +37730,7 @@
     "hong kong",
     "hong kong special administrative region"
    ],
+   "capitalName": null,
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -38026,6 +38119,7 @@
     "republic of honduras",
     "república de honduras"
    ],
+   "capitalName": "Tegucigalpa",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -38451,6 +38545,7 @@
     "republic of croatia",
     "republika hrvatska"
    ],
+   "capitalName": "Zagreb",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -38900,6 +38995,7 @@
     "hungary",
     "magyarorszag"
    ],
+   "capitalName": "Budapest",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -39363,6 +39459,7 @@
     "iceland",
     "island"
    ],
+   "capitalName": "Reykjavik",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -39751,6 +39848,7 @@
     "republic of indonesia",
     "republik indonesia"
    ],
+   "capitalName": "Jakarta",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -40239,6 +40337,7 @@
     "i.o.m.",
     "isle of man"
    ],
+   "capitalName": "Douglas",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -40540,6 +40639,7 @@
     "republic of india",
     "republic of india (english)/ bharatiya ganarajya (hindi)"
    ],
+   "capitalName": "New Delhi",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -41039,6 +41139,7 @@
     "islamic republic of iran",
     "jomhuri-ye eslami-ye iran"
    ],
+   "capitalName": "Tehran",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -41516,6 +41617,7 @@
     "state of israel",
     "yisra'el"
    ],
+   "capitalName": "Jerusalem",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -41952,6 +42054,7 @@
     "italy",
     "repubblica italiana"
    ],
+   "capitalName": "Rome",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -42384,6 +42487,7 @@
     "republic of côte d'ivoire",
     "république de côte d'ivoire"
    ],
+   "capitalName": "Yamoussoukro (legislative capital), Abidjan (administrative and economic capital); note - the US Embassy is in Abidjan",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -42843,6 +42947,7 @@
     "jumhuriyat al-iraq/komar-i eraq",
     "republic of iraq"
    ],
+   "capitalName": "Baghdad",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -43254,6 +43359,7 @@
     "nihon-koku/nippon-koku",
     "nihon/nippon"
    ],
+   "capitalName": "Tokyo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -43653,6 +43759,7 @@
     "bailiwick of jersey",
     "jersey"
    ],
+   "capitalName": "Saint Helier",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -43971,6 +44078,7 @@
    "nameForms": [
     "jamaica"
    ],
+   "capitalName": "Kingston",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -44372,6 +44480,7 @@
     "hashemite kingdom of jordan",
     "jordan"
    ],
+   "capitalName": "Amman",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -44830,6 +44939,7 @@
     "republic of kenya",
     "republic of kenya (english)/ jamhuri ya kenya (swahili)"
    ],
+   "capitalName": "Nairobi",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -45292,6 +45402,7 @@
     "kyrgyz respublikasy",
     "kyrgyzstan"
    ],
+   "capitalName": "Bishkek",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -45723,6 +45834,7 @@
     "dprk",
     "north korea"
    ],
+   "capitalName": "Pyongyang",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -46014,6 +46126,7 @@
     "kiribati",
     "republic of kiribati"
    ],
+   "capitalName": "Tarawa",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -46380,6 +46493,7 @@
     "south korea",
     "taehan-min'guk"
    ],
+   "capitalName": "Seoul",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -46765,6 +46879,7 @@
     "christmas island",
     "territory of christmas island"
    ],
+   "capitalName": "The Settlement (Flying Fish Cove)",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -46986,6 +47101,7 @@
     "kuwait",
     "state of kuwait"
    ],
+   "capitalName": "Kuwait City",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -47390,6 +47506,7 @@
     "republic of kosovo",
     "republika e kosoves (albanian)/ republika kosovo (serbian)"
    ],
+   "capitalName": "Pristina (Prishtine, Prishtina)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -47816,6 +47933,7 @@
     "qazaqstan respublikasy",
     "republic of kazakhstan"
    ],
+   "capitalName": "Astana",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -48276,6 +48394,7 @@
     "mueang lao (unofficial)",
     "sathalanalat paxathipatai paxaxon lao"
    ],
+   "capitalName": "Vientiane (Viangchan)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -48743,6 +48862,7 @@
     "lebanon",
     "lubnan"
    ],
+   "capitalName": "Beirut",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -49171,6 +49291,7 @@
     "latvijas republika",
     "republic of latvia"
    ],
+   "capitalName": "Riga",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -49625,6 +49746,7 @@
     "lithuania",
     "republic of lithuania"
    ],
+   "capitalName": "Vilnius",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -50081,6 +50203,7 @@
     "liberia",
     "republic of liberia"
    ],
+   "capitalName": "Monrovia",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -50562,6 +50685,7 @@
     "slovenska republika",
     "slovensko"
    ],
+   "capitalName": "Bratislava",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -51016,6 +51140,7 @@
     "liechtenstein",
     "principality of liechtenstein"
    ],
+   "capitalName": "Vaduz",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -51406,6 +51531,7 @@
     "kingdom of lesotho",
     "lesotho"
    ],
+   "capitalName": "Maseru",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -51812,6 +51938,7 @@
     "grand duché de luxembourg",
     "luxembourg"
    ],
+   "capitalName": "Luxembourg",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -52269,6 +52396,7 @@
     "libya",
     "state of libya"
    ],
+   "capitalName": "Tripoli (Tarabulus)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -52661,6 +52789,7 @@
     "republic of madagascar",
     "république de madagascar/repoblikan'i madagasikara"
    ],
+   "capitalName": "Antananarivo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -53088,6 +53217,7 @@
     "macau",
     "macau special administrative region"
    ],
+   "capitalName": null,
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -53472,6 +53602,7 @@
     "republic of moldova",
     "republica moldova"
    ],
+   "capitalName": "Chisinau in Romanian (Kishinev in Russian)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -53922,6 +54053,7 @@
     "mongol uls",
     "mongolia"
    ],
+   "capitalName": "Ulaanbaatar",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -54367,6 +54499,7 @@
    "nameForms": [
     "montserrat"
    ],
+   "capitalName": "Plymouth",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -54675,6 +54808,7 @@
     "malawi",
     "republic of malawi"
    ],
+   "capitalName": "Lilongwe",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -55182,6 +55316,7 @@
     "crna gora",
     "montenegro"
    ],
+   "capitalName": "Podgorica",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -55665,6 +55800,7 @@
     "republika severna makedonija",
     "severna makedonija"
    ],
+   "capitalName": "Skopje",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -56139,6 +56275,7 @@
     "republic of mali",
     "république de mali"
    ],
+   "capitalName": "Bamako",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -56654,6 +56791,7 @@
     "principality of monaco",
     "principauté de monaco"
    ],
+   "capitalName": "Monaco",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -56997,6 +57135,7 @@
     "kingdom of morocco",
     "morocco"
    ],
+   "capitalName": "Rabat",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -57412,6 +57551,7 @@
     "mauritius",
     "republic of mauritius"
    ],
+   "capitalName": "Port Louis",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -57801,6 +57941,7 @@
     "mauritania",
     "muritaniyah"
    ],
+   "capitalName": "Nouakchott",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -58226,6 +58367,7 @@
     "repubblika ta' malta",
     "republic of malta"
    ],
+   "capitalName": "Valletta",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -58587,6 +58729,7 @@
     "sultanate of oman",
     "uman"
    ],
+   "capitalName": "Muscat",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -59004,6 +59147,7 @@
     "maldives",
     "republic of maldives"
    ],
+   "capitalName": "Malé",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -59364,6 +59508,7 @@
     "mexico",
     "united mexican states"
    ],
+   "capitalName": "Mexico City (Ciudad de Mexico)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -59818,6 +59963,7 @@
    "nameForms": [
     "malaysia"
    ],
+   "capitalName": "Kuala Lumpur",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -60279,6 +60425,7 @@
     "republic of mozambique",
     "republica de mocambique"
    ],
+   "capitalName": "Maputo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -60771,6 +60918,7 @@
     "territoire des nouvelle-calédonie et dépendances",
     "territory of new caledonia and dependencies"
    ],
+   "capitalName": "Noumea",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -61145,6 +61293,7 @@
    "nameForms": [
     "niue"
    ],
+   "capitalName": "Alofi",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -61344,6 +61493,7 @@
     "norfolk island",
     "territory of norfolk island"
    ],
+   "capitalName": "Kingston",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -61496,6 +61646,7 @@
     "republic of niger",
     "république du niger"
    ],
+   "capitalName": "Niamey",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -61968,6 +62119,7 @@
     "ripablik blong vanuatu",
     "vanuatu"
    ],
+   "capitalName": "Port-Vila (on Efate)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -62335,6 +62487,7 @@
     "federal republic of nigeria",
     "nigeria"
    ],
+   "capitalName": "Abuja",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -62794,6 +62947,7 @@
     "netherlands",
     "nl"
    ],
+   "capitalName": "Amsterdam",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -63222,6 +63376,7 @@
     "sint maarten",
     "sint maarten (dutch and english)"
    ],
+   "capitalName": "Philipsburg",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -63657,6 +63812,7 @@
     "norge",
     "norway"
    ],
+   "capitalName": "Oslo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -64079,6 +64235,7 @@
    "nameForms": [
     "nepal"
    ],
+   "capitalName": "Kathmandu",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -64625,6 +64782,7 @@
     "nauru",
     "republic of nauru"
    ],
+   "capitalName": "no official capital; government offices in the Yaren District",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -64961,6 +65119,7 @@
     "republiek suriname",
     "suriname"
    ],
+   "capitalName": "Paramaribo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -65409,6 +65568,7 @@
     "republic of nicaragua",
     "república de nicaragua"
    ],
+   "capitalName": "Managua",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -65823,6 +65983,7 @@
     "new zealand",
     "nz"
    ],
+   "capitalName": "Wellington",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -66290,6 +66451,7 @@
     "republic of south sudan",
     "south sudan"
    ],
+   "capitalName": "Juba",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -66793,6 +66955,7 @@
     "republic of paraguay",
     "república del paraguay"
    ],
+   "capitalName": "Asunción",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -67224,6 +67387,7 @@
     "pitcairn islands",
     "pitcairn, henderson, ducie, and oeno islands"
    ],
+   "capitalName": "Adamstown",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -67329,6 +67493,7 @@
     "republic of peru",
     "república del perú"
    ],
+   "capitalName": "Lima",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -67795,6 +67960,7 @@
     "jamhuryat islami pakistan",
     "pakistan"
    ],
+   "capitalName": "Islamabad",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -68277,6 +68443,7 @@
     "republic of poland",
     "rzeczpospolita polska"
    ],
+   "capitalName": "Warsaw",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -68788,6 +68955,7 @@
     "republic of panama",
     "república de panama"
    ],
+   "capitalName": "Panama City",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -69235,6 +69403,7 @@
     "portuguese republic",
     "republica portuguesa"
    ],
+   "capitalName": "Lisbon",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -69666,6 +69835,7 @@
     "papuaniugini",
     "png"
    ],
+   "capitalName": "Port Moresby",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -70065,6 +70235,7 @@
     "palau",
     "republic of palau"
    ],
+   "capitalName": "Ngerulmud",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -70446,6 +70617,7 @@
     "republic of guinea-bissau",
     "republica da guine-bissau"
    ],
+   "capitalName": "Bissau",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -70857,6 +71029,7 @@
     "qatar",
     "state of qatar"
    ],
+   "capitalName": "Doha",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -71256,6 +71429,7 @@
     "serbia",
     "srbija"
    ],
+   "capitalName": "Belgrade (Beograd)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -71749,6 +71923,7 @@
     "republic of the marshall islands",
     "rmi"
    ],
+   "capitalName": "Majuro",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -72114,6 +72289,7 @@
     "saint martin",
     "saint-martin"
    ],
+   "capitalName": "Marigot",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -72378,6 +72554,7 @@
    "nameForms": [
     "romania"
    ],
+   "capitalName": "Bucharest",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -72833,6 +73010,7 @@
     "republic of the philippines",
     "republika ng pilipinas"
    ],
+   "capitalName": "Manila",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -73321,6 +73499,7 @@
     "pr",
     "puerto rico"
    ],
+   "capitalName": "San Juan",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -73694,6 +73873,7 @@
     "russia",
     "russian federation"
    ],
+   "capitalName": "Moscow",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -74185,6 +74365,7 @@
     "republika y'u rwanda",
     "rwanda"
    ],
+   "capitalName": "Kigali",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -74635,6 +74816,7 @@
     "kingdom of saudi arabia",
     "saudi arabia"
    ],
+   "capitalName": "Riyadh",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -75052,6 +75234,7 @@
     "saint-pierre et miquelon",
     "territorial collectivity of saint pierre and miquelon"
    ],
+   "capitalName": "Saint-Pierre",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -75267,6 +75450,7 @@
     "federation of saint kitts and nevis",
     "saint kitts and nevis"
    ],
+   "capitalName": "Basseterre",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -75629,6 +75813,7 @@
     "republic of seychelles",
     "seychelles"
    ],
+   "capitalName": "Victoria",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -76029,6 +76214,7 @@
     "rsa",
     "south africa"
    ],
+   "capitalName": "Pretoria (administrative capital); Cape Town (legislative capital); Bloemfontein (judicial capital)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -76525,6 +76711,7 @@
     "senegal",
     "sénégal"
    ],
+   "capitalName": "Dakar",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -76981,6 +77168,7 @@
    "nameForms": [
     "saint helena, ascension, and tristan da cunha"
    ],
+   "capitalName": "Jamestown",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -77250,6 +77438,7 @@
     "slovenia",
     "slovenija"
    ],
+   "capitalName": "Ljubljana",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -77714,6 +77903,7 @@
     "republic of sierra leone",
     "sierra leone"
    ],
+   "capitalName": "Freetown",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -78137,6 +78327,7 @@
     "republic of san marino",
     "san marino"
    ],
+   "capitalName": "San Marino (city)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -78462,6 +78653,7 @@
     "republic of singapore",
     "singapore"
    ],
+   "capitalName": "Singapore",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -78883,6 +79075,7 @@
     "somalia",
     "soomaaliya (somali)/ as sumal (arabic)"
    ],
+   "capitalName": "Mogadishu",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -79248,6 +79441,7 @@
     "reino de españa",
     "spain"
    ],
+   "capitalName": "Madrid",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -79704,6 +79898,7 @@
    "nameForms": [
     "saint lucia"
    ],
+   "capitalName": "Castries",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -80081,6 +80276,7 @@
     "republic of the sudan",
     "sudan"
    ],
+   "capitalName": "Khartoum",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -80539,6 +80735,7 @@
    "nameForms": [
     "svalbard (sometimes referred to as spitsbergen, the largest island in the archipelago)"
    ],
+   "capitalName": "Longyearbyen",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -80643,6 +80840,7 @@
     "sverige",
     "sweden"
    ],
+   "capitalName": "Stockholm",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -81051,6 +81249,7 @@
     "syria",
     "syrian arab republic"
    ],
+   "capitalName": "Damascus",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -81483,6 +81682,7 @@
     "swiss confederation",
     "switzerland"
    ],
+   "capitalName": "Bern",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -81971,6 +82171,7 @@
     "saint-barth (french)/ st. barts or st. barths (english)",
     "saint-barthélemy"
    ],
+   "capitalName": "Gustavia",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -82153,6 +82354,7 @@
     "republic of trinidad and tobago",
     "trinidad and tobago"
    ],
+   "capitalName": "Port of Spain",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -82574,6 +82776,7 @@
     "ratcha anachak thai",
     "thailand"
    ],
+   "capitalName": "Bangkok",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -83012,6 +83215,7 @@
     "tajikistan",
     "tojikiston"
    ],
+   "capitalName": "Dushanbe",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -83428,6 +83632,7 @@
     "tca",
     "turks and caicos islands"
    ],
+   "capitalName": "Grand Turk (Cockburn Town)",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -83770,6 +83975,7 @@
    "nameForms": [
     "tokelau"
    ],
+   "capitalName": null,
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -84014,6 +84220,7 @@
     "pule'anga fakatu'i 'o tonga",
     "tonga"
    ],
+   "capitalName": "Nuku'alofa",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -84410,6 +84617,7 @@
     "togo",
     "togolese republic"
    ],
+   "capitalName": "Lome",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -84871,6 +85079,7 @@
     "sao tome and principe",
     "sao tome e principe"
    ],
+   "capitalName": "Sao Tome",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -85312,6 +85521,7 @@
     "tunis",
     "tunisia"
    ],
+   "capitalName": "Tunis",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -85724,6 +85934,7 @@
     "timor lorosa'e (tetum)/ timor-leste (portuguese)",
     "timor-leste"
    ],
+   "capitalName": "Dili",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -86162,6 +86373,7 @@
     "turkey",
     "turkey cumhuriyeti"
    ],
+   "capitalName": "Ankara",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -86593,6 +86805,7 @@
    "nameForms": [
     "tuvalu"
    ],
+   "capitalName": "Funafuti",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -86955,6 +87168,7 @@
    "nameForms": [
     "taiwan"
    ],
+   "capitalName": "Taipei",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -87317,6 +87531,7 @@
    "nameForms": [
     "turkmenistan"
    ],
+   "capitalName": "Ashgabat (Ashkhabad)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -87766,6 +87981,7 @@
     "tanzania",
     "united republic of tanzania"
    ],
+   "capitalName": "Dodoma",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -88248,6 +88464,7 @@
     "curacao (dutch)/ korsou (papiamento)",
     "land curacao (dutch)/ pais korsou (papiamento)"
    ],
+   "capitalName": "Willemstad",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -88655,6 +88872,7 @@
     "republic of uganda",
     "uganda"
    ],
+   "capitalName": "Kampala",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -89133,6 +89351,7 @@
     "united kingdom",
     "united kingdom of great britain and northern ireland; note - the island of great britain includes england, scotland, and wales"
    ],
+   "capitalName": "London",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -89550,6 +89769,7 @@
     "ukraina",
     "ukraine"
    ],
+   "capitalName": "Kyiv (Kiev is the transliteration from Russian)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -90021,6 +90241,7 @@
     "united states of america",
     "us or usa"
    ],
+   "capitalName": "Washington, D.C.",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -90482,6 +90703,7 @@
    "nameForms": [
     "burkina faso"
    ],
+   "capitalName": "Ouagadougou",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -91013,6 +91235,7 @@
     "república oriental del uruguay",
     "uruguay"
    ],
+   "capitalName": "Montevideo",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -91473,6 +91696,7 @@
     "republic of uzbekistan",
     "uzbekistan"
    ],
+   "capitalName": "Tashkent (Toshkent)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -91921,6 +92145,7 @@
    "nameForms": [
     "saint vincent and the grenadines"
    ],
+   "capitalName": "Kingstown",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -92305,6 +92530,7 @@
     "república bolivariana de venezuela",
     "venezuela"
    ],
+   "capitalName": "Caracas",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -92736,6 +92962,7 @@
     "british virgin islands",
     "bvi"
    ],
+   "capitalName": "Road Town",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -93046,6 +93273,7 @@
     "viet nam",
     "vietnam"
    ],
+   "capitalName": "Hanoi (Ha Noi)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -93505,6 +93733,7 @@
     "vi",
     "virgin islands"
    ],
+   "capitalName": "Charlotte Amalie",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -93846,6 +94075,7 @@
     "santa sede (citta del vaticano)",
     "the holy see (vatican city state)"
    ],
+   "capitalName": "Vatican City",
    "kind": "state",
    "fields": {
     "geography.coastline_km": {
@@ -93983,6 +94213,7 @@
     "namibia",
     "republic of namibia"
    ],
+   "capitalName": "Windhoek",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -94458,6 +94689,7 @@
    "nameForms": [
     "west bank"
    ],
+   "capitalName": null,
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -94854,6 +95086,7 @@
     "wallis and futuna",
     "wallis et futuna"
    ],
+   "capitalName": "Mata-Utu (on Ile Uvea)",
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -95072,6 +95305,7 @@
    "nameForms": [
     "western sahara"
    ],
+   "capitalName": null,
    "kind": "territory",
    "fields": {
     "geography.area_km2": {
@@ -95282,6 +95516,7 @@
     "malo sa'oloto tuto'atasi o samoa",
     "samoa"
    ],
+   "capitalName": "Apia",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -95662,6 +95897,7 @@
     "kingdom of eswatini",
     "umbuso weswatini"
    ],
+   "capitalName": "Mbabane (administrative capital); Lobamba (royal and legislative capital)",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -96062,6 +96298,7 @@
     "republic of yemen",
     "yemen"
    ],
+   "capitalName": "Sanaa",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -96404,6 +96641,7 @@
     "republic of zambia",
     "zambia"
    ],
+   "capitalName": "Lusaka",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
@@ -96976,6 +97214,7 @@
     "republic of zimbabwe",
     "zimbabwe"
    ],
+   "capitalName": "Harare",
    "kind": "state",
    "fields": {
     "geography.area_km2": {
