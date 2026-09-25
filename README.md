@@ -20,6 +20,8 @@ yearbook.
   tournaments
 - **Foreign relations & war:** a world of fictional countries with their own
   governments, pairwise diplomacy, and operational-level conventional warfare
+- **Intelligence & fog of war:** other countries are seen through your intelligence
+  service's estimates; covert operations can be exposed
 - **Historical events:** data-driven random, triggered, and scheduled events, recorded
   in a chronicle
 

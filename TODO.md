@@ -4,18 +4,6 @@ Working task list, organized by the milestones in [DESIGN.md §11](DESIGN.md#11-
 Each milestone ends with a playable build and updated golden-master tests. Check items
 off as they land; add new ones as work reveals them.
 
-## Design backlog
-Topics DESIGN.md doesn't cover yet. Each needs user decisions (new `D<n>` rows) before
-it lands in a milestone.
-
-- [ ] Fog of war and intelligence: what the player can see about foreign countries and
-      how accurate it is, and intelligence gathering. Must respect D15 and D16.
-- [ ] Optional "war criminal mode" (opt-in checkbox at world creation) that allows
-      actions targeting civilians. This would amend D16 ("no option targets
-      civilians"), so it needs a new `D<n>` row, plus updates to DESIGN.md §4.11.3,
-      the CLAUDE.md hard constraints, and the AI's rules. D16 applies as written until
-      then.
-
 ## M0 — Skeleton
 
 ### Repository & tooling
@@ -157,15 +145,19 @@ it lands in a milestone.
 - [ ] Electoral systems: FPTP, list PR (D'Hondt, Sainte-Laguë); coalition formation
 - [ ] Foreign governments, elections, coups/revolutions
 - [ ] Pairwise relations matrix, blocs/alliances, salience tiers
-- [ ] Foreign-policy AI (utility scoring); overseer autopilot hook
-- [ ] Election and foreign relations reports
+- [ ] Foreign-policy AI (utility scoring), deciding on its own estimates; overseer autopilot hook
+- [ ] Intelligence services, per-category coverage, seeded estimates (DESIGN.md §4.13);
+      intelligence-sharing treaties; renderer gets only the player's view
+- [ ] Election, foreign relations, and intelligence assessment reports; intelligence map layer
 
 ## M5 — Military & War
 - [ ] Armed forces, defense budget, conscription (conventional only; no nuclear weapons)
 - [ ] Path to war, war powers, alliance calls
 - [ ] Theater graph from the map; monthly front resolution; naval/air
 - [ ] Casualties, displacement, damage feeding other systems
-- [ ] Civilian harm as an outcome, with its consequences
+- [ ] War policies (strike targeting, blockade scope, occupation policy); incidental and
+      deliberate civilian harm with its consequences (D21)
+- [ ] Covert operations and exposure; battlefield intelligence and surprise; attribution
 - [ ] Peace terms, territory transfer, insurgency, civil war
 - [ ] Burn-in backstory (~30 years)
 - [ ] War report, defense review, war map layer; war sanity tests

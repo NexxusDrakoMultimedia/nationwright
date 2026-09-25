@@ -49,7 +49,6 @@ began, and reading it all back in census tables, yearbooks, and maps.
 - Historical start dates or era systems. Every game starts in the current year.
 - Agent-based simulation of individual citizens.
 - **Nuclear weapons.** They do not exist in the game's world.
-- Any action that targets civilians. Civilian harm is only ever an outcome.
 
 ## Success criteria for v1
 
@@ -64,4 +63,4 @@ began, and reading it all back in census tables, yearbooks, and maps.
   this change?" breakdown.
 - **Coverage:** all ten domains (population, cities, institutions, economy,
   demographics, sports, education, infrastructure, elections, events) plus foreign
-  relations and war are playable, and each produces at least one report.
+  relations, intelligence, and war are playable, and each produces at least one report.
