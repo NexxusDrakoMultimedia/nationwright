@@ -21,6 +21,7 @@ import {
   URBAN,
 } from './grid.ts';
 import { bandRates, infantMortality, lifeExpectancy } from './life-table.ts';
+import { NO_RELIGION, type Combination, type RegionGrid } from './culture.ts';
 import { fertilityMultiplier, mortalityMultiplier, type NationPopulation } from './population.ts';
 import { DEMOGRAPHY_TUNING as T } from './tuning.ts';
 
@@ -87,7 +88,7 @@ export function periodFertility(pop: NationPopulation, multiplier: number): numb
   for (let a = FIRST_FERTILE_BAND; a <= LAST_FERTILE_BAND; a++) {
     let women = 0;
     let weighted = 0;
-    for (const c of pop.regions) {
+    for (const { cohorts: c } of pop.regions) {
       forEachCell((s, age, x, e, i) => {
         if (age !== a || x !== FEMALE) return;
         women += c[i] as number;
@@ -108,7 +109,7 @@ export function periodFertility(pop: NationPopulation, multiplier: number): numb
 function effectiveRates(pop: NationPopulation, multiplier: number): number[][] {
   const people = Array.from({ length: AGE_BANDS * 2 }, () => 0);
   const weighted = Array.from({ length: AGE_BANDS * 2 }, () => 0);
-  for (const c of pop.regions) {
+  for (const { cohorts: c } of pop.regions) {
     forEachCell((s, a, x, e, i) => {
       const k = a * 2 + x;
       people[k] = (people[k] as number) + (c[i] as number);
@@ -160,4 +161,54 @@ export function schoolingShare(summary: PopulationSummary): number {
 export function tertiaryShare(summary: PopulationSummary): number {
   const all = summary.education25Plus.reduce((s, n) => s + n, 0);
   return all > 0 ? (100 * (summary.education25Plus[TERTIARY] as number)) / all : 0;
+}
+
+/** Cohort arrays of a nation's regions, for `summarize`. */
+export function cohortsOf(regions: readonly RegionGrid[]): number[][] {
+  return regions.map((g) => g.cohorts);
+}
+
+export interface Composition {
+  /** People by ethnic group, faith (NO_RELIGION for none), and language id. */
+  readonly ethnic: ReadonlyMap<number, number>;
+  readonly religion: ReadonlyMap<number, number>;
+  readonly language: ReadonlyMap<number, number>;
+  readonly total: number;
+}
+
+export function composition(
+  combos: readonly Combination[],
+  regions: readonly RegionGrid[],
+): Composition {
+  const ethnic = new Map<number, number>();
+  const religion = new Map<number, number>();
+  const language = new Map<number, number>();
+  let total = 0;
+  combos.forEach((c, k) => {
+    let n = 0;
+    for (const g of regions) for (const v of g.culture[k] ?? []) n += v;
+    ethnic.set(c.ethnic, (ethnic.get(c.ethnic) ?? 0) + n);
+    religion.set(c.religion, (religion.get(c.religion) ?? 0) + n);
+    language.set(c.language, (language.get(c.language) ?? 0) + n);
+    total += n;
+  });
+  return { ethnic, religion, language, total };
+}
+
+/** Chance that two random people fall in different groups. */
+export function fractionalization(groups: ReadonlyMap<number, number>, total: number): number {
+  if (total <= 0) return 0;
+  let sum = 0;
+  for (const n of [...groups.values()].sort((a, b) => a - b)) sum += (n / total) * (n / total);
+  return 1 - sum;
+}
+
+/** Largest group's share (0–1). */
+export function largestShare(groups: ReadonlyMap<number, number>, total: number): number {
+  return total > 0 ? Math.max(0, ...groups.values()) / total : 0;
+}
+
+/** Share of people with no religion (0–1). */
+export function noReligionShare(c: Composition): number {
+  return c.total > 0 ? (c.religion.get(NO_RELIGION) ?? 0) / c.total : 0;
 }

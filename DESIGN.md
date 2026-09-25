@@ -331,7 +331,19 @@ statistics. Cohort counts are real numbers. Until the creation wizard (M9), the 
 country is drawn at random, and net international migration runs at the country's
 sampled rate until the bilateral model (M3). Other systems adjust demography through the
 modifier targets `demography.fertility_multiplier`, `mortality_multiplier`,
-`schooling_years`, `urbanization_rate`, and `net_migration_rate`.
+`schooling_years`, `urbanization_rate`, `net_migration_rate`,
+`secularization_multiplier`, and `language_shift_multiplier`.
+
+The joint culture distribution is stored as people per combination per cohort cell
+(`culture[k][cell]`, summing to the cohort count), so every flow moves culture with the
+people; religion −1 means none. At the start, each combination is concentrated in some
+regions (random log-normal weights, balanced by iterative proportional fitting against
+regional populations and national shares). Monthly: a share of births (8% urban, 4%
+rural) take their ethnicity from local men aged 20–44; people 15+ secularize at a
+rate that rises with education and in cities; speakers of other languages shift to the
+most spoken one, fastest among the young and schooled, slowed by their language's
+regional share. Combinations below 0.01% of the population are folded into their nearest
+neighbour each December. Conversion between faiths is not modelled yet.
 
 **Outputs / indicators:** total population, growth rate, crude birth/death rates, TFR,
 life expectancy (by sex), infant mortality, median age, dependency ratio, population

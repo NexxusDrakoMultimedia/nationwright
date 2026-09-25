@@ -12,12 +12,19 @@
  * `demography.fertility_multiplier` (1), `demography.mortality_multiplier` (1),
  * `demography.schooling_years` (the country's expected years of schooling),
  * `demography.urbanization_rate` (tuning), `demography.net_migration_rate` (the
- * country's sampled rate, per 1,000 people per year).
+ * country's sampled rate, per 1,000 people per year), `demography.secularization_multiplier`
+ * (1), `demography.language_shift_multiplier` (1).
  */
 
 import {
   ageShare,
   buildPopulation,
+  cohortsOf,
+  composition,
+  fractionalization,
+  largestShare,
+  noReligionShare,
+  pruneCombinations,
   defineSystem,
   DEMOGRAPHY_TUNING,
   dependencyRatio,
@@ -29,6 +36,7 @@ import {
   stepMonth,
   summarize,
   tertiaryShare,
+  type Combination,
   type DemographyModel,
   type GeneratedWorld,
   type IndicatorDefinition,
@@ -44,6 +52,8 @@ export interface DemographyRegion {
   readonly name: string;
   /** Cohort grid (see the engine's demography/grid.ts). */
   cohorts: number[];
+  /** People per combination per cohort cell: `culture[k][cell]` (demography/culture.ts). */
+  culture: number[][];
 }
 
 export interface YearCounters {
@@ -51,6 +61,8 @@ export interface YearCounters {
   deaths: number;
   netMigration: number;
   toUrban: number;
+  secularized: number;
+  languageShifted: number;
   /** Population when the year's counters started. */
   startPopulation: number;
 }
@@ -59,6 +71,8 @@ export interface DemographySlice {
   /** The country this grid belongs to (the player's). */
   readonly country: number;
   readonly model: DemographyModel;
+  /** Ethnicity × religion × language combinations in use (religion −1 = none). */
+  combos: Combination[];
   regions: DemographyRegion[];
   year: YearCounters;
 }
@@ -101,6 +115,31 @@ export const DEMOGRAPHY_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('population.dependency_ratio', 'per 100 aged 15–64', 'Dependents (0–14 and 65+)'),
   indicator('education.any_schooling_share', '%', 'Share of people 15+ with any schooling'),
   indicator('education.tertiary_share', '%', 'Share of people 25+ with tertiary education'),
+  indicator(
+    'society.ethnic_fractionalization',
+    'index 0–1',
+    'Chance two random people are from different ethnic groups',
+  ),
+  indicator(
+    'society.religious_fractionalization',
+    'index 0–1',
+    'Chance two random people have different religions (none counts as one)',
+  ),
+  indicator(
+    'society.linguistic_fractionalization',
+    'index 0–1',
+    'Chance two random people speak different languages',
+  ),
+  indicator('society.largest_ethnic_share', '%', 'Share of the largest ethnic group'),
+  indicator('society.no_religion_share', '%', 'Share of people with no religion'),
+  indicator('society.largest_language_share', '%', 'Share speaking the most spoken language'),
+  indicator('society.secularized', 'people', 'People who left their religion', 'sum'),
+  indicator('society.language_shifted', 'people', 'People who switched language', 'sum'),
+  indicator(
+    'society.culture_combinations',
+    'combinations',
+    'Ethnicity × religion × language combinations tracked',
+  ),
 ];
 
 /** Population and urban population of each of the country's provinces. */
@@ -149,16 +188,25 @@ export function regionSetup(
   };
 }
 
+/** The engine's view of the slice: the same arrays, so the step updates the slice. */
 function populationOf(slice: DemographySlice): NationPopulation {
-  return { model: slice.model, regions: slice.regions.map((r) => r.cohorts) };
+  return { model: slice.model, combos: slice.combos, regions: slice.regions };
 }
 
 function totalOf(slice: DemographySlice): number {
-  return summarize(slice.regions.map((r) => r.cohorts)).total;
+  return summarize(cohortsOf(slice.regions)).total;
 }
 
 function freshYear(population: number): YearCounters {
-  return { births: 0, deaths: 0, netMigration: 0, toUrban: 0, startPopulation: population };
+  return {
+    births: 0,
+    deaths: 0,
+    netMigration: 0,
+    toUrban: 0,
+    secularized: 0,
+    languageShifted: 0,
+    startPopulation: population,
+  };
 }
 
 /** Structure indicators: recorded after the first month and every December. */
@@ -168,7 +216,7 @@ function recordStructure(
   multipliers: { fertility: number; mortality: number },
 ): void {
   const pop = populationOf(slice);
-  const nation = summarize(pop.regions);
+  const nation = summarize(cohortsOf(pop.regions));
   const life = periodLifeExpectancy(pop, multipliers.mortality);
   const record = (id: string, value: number, scope: Scope = 'nation') =>
     ctx.record(id, scope, value);
@@ -184,6 +232,14 @@ function recordStructure(
   record('population.dependency_ratio', dependencyRatio(nation));
   record('education.any_schooling_share', schoolingShare(nation));
   record('education.tertiary_share', tertiaryShare(nation));
+  const mix = composition(slice.combos, slice.regions);
+  record('society.ethnic_fractionalization', fractionalization(mix.ethnic, mix.total));
+  record('society.religious_fractionalization', fractionalization(mix.religion, mix.total));
+  record('society.linguistic_fractionalization', fractionalization(mix.language, mix.total));
+  record('society.largest_ethnic_share', 100 * largestShare(mix.ethnic, mix.total));
+  record('society.no_religion_share', 100 * noReligionShare(mix));
+  record('society.largest_language_share', 100 * largestShare(mix.language, mix.total));
+  record('society.culture_combinations', slice.combos.length);
   slice.regions.forEach((region, r) => {
     const s = summarize([region.cohorts]);
     const scope: Scope = `region:${r}`;
@@ -218,15 +274,26 @@ export const demographySystem = defineSystem({
       country,
       (stats['population.urban_share'] ?? 50) / 100,
     );
-    const pop = buildPopulation(stats, regions);
+    const culture = world.countries[country]?.culture;
+    const pop = buildPopulation(
+      stats,
+      regions,
+      culture === undefined ? undefined : { joint: culture.joint, stream: ctx.stream('culture') },
+    );
     const slice: DemographySlice = {
       country,
       model: pop.model,
-      regions: provinces.map((p, k) => ({
-        province: p,
-        name: generated.provinceNames[p] ?? `Region ${k + 1}`,
-        cohorts: pop.regions[k] as number[],
-      })),
+      combos: pop.combos,
+      regions: provinces.map((p, k) => {
+        const grid = pop.regions[k];
+        if (grid === undefined) throw new Error(`Missing region ${k}.`);
+        return {
+          province: p,
+          name: generated.provinceNames[p] ?? `Region ${k + 1}`,
+          cohorts: grid.cohorts,
+          culture: grid.culture,
+        };
+      }),
       year: freshYear(0),
     };
     slice.year.startPopulation = totalOf(slice);
@@ -243,6 +310,8 @@ export const demographySystem = defineSystem({
       schoolingYears: value('demography.schooling_years', slice.model.schoolingYears),
       urbanization: value('demography.urbanization_rate', DEMOGRAPHY_TUNING.urbanizationRate),
       netMigrationRate: value('demography.net_migration_rate', slice.model.netMigrationRate),
+      secularization: value('demography.secularization_multiplier', 1),
+      languageShift: value('demography.language_shift_multiplier', 1),
     });
     const sum = (xs: readonly number[]) => xs.reduce((s, n) => s + n, 0);
     const births = sum(flows.births);
@@ -252,6 +321,10 @@ export const demographySystem = defineSystem({
     slice.year.deaths += deaths;
     slice.year.netMigration += netMigration;
     slice.year.toUrban += sum(flows.toUrban);
+    slice.year.secularized += sum(flows.secularized);
+    slice.year.languageShifted += sum(flows.languageShifted);
+    ctx.record('society.secularized', 'nation', sum(flows.secularized));
+    ctx.record('society.language_shifted', 'nation', sum(flows.languageShifted));
 
     recordTotals(ctx, slice);
     ctx.record('population.births', 'nation', births);
@@ -261,6 +334,10 @@ export const demographySystem = defineSystem({
     // Structure after the first month (the starting census) and every December.
     if (ctx.tick === 0) recordStructure(ctx, slice, multipliers);
     if (ctx.cadences.annual) {
+      pruneCombinations(
+        { combos: slice.combos, regions: slice.regions },
+        DEMOGRAPHY_TUNING.pruneShare,
+      );
       const y = slice.year;
       const now = totalOf(slice);
       const mid = (y.startPopulation + now) / 2;

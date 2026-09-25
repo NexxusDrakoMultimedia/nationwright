@@ -10,7 +10,9 @@
  */
 
 import { detExp } from '../random/detmath.ts';
+import type { RandomStream } from '../random/stream.ts';
 import type { NationStats } from '../worldgen/nation-stats.ts';
+import { regionalMix, type Combination, type RegionGrid } from './culture.ts';
 import { educationTarget } from './education.ts';
 import { fertilitySchedule } from './fertility.ts';
 import {
@@ -49,8 +51,17 @@ export interface DemographyModel {
 
 export interface NationPopulation {
   readonly model: DemographyModel;
-  /** One cohort array per region (see grid.ts). */
-  readonly regions: number[][];
+  /** The nation's ethnicity × religion × language combinations (grows and shrinks). */
+  readonly combos: Combination[];
+  /** One grid per region: cohort totals and people per combination (see culture.ts). */
+  readonly regions: RegionGrid[];
+}
+
+export interface CultureSetup {
+  /** National shares of each combination (normalized here). */
+  readonly joint: readonly (Combination & { readonly share: number })[];
+  /** Stream for how concentrated each combination is across regions. */
+  readonly stream: RandomStream;
 }
 
 export interface RegionSetup {
@@ -165,6 +176,7 @@ export function educationByAge(
 export function buildPopulation(
   stats: NationStats,
   regions: readonly RegionSetup[],
+  culture?: CultureSetup,
 ): NationPopulation {
   const e0 = stat(stats, 'population.life_expectancy', 70);
   const imr = stat(stats, 'population.infant_mortality', 20);
@@ -218,7 +230,36 @@ export function buildPopulation(
       mortalityWeighted[k] = (mortalityWeighted[k] as number) + n * mortalityMultiplier(s, a, e);
     });
   }
+  // Culture: national combination shares, spread unevenly over regions; within a
+  // region every cohort cell has the region's mix.
+  const joint =
+    culture === undefined || culture.joint.length === 0
+      ? [{ ethnic: 0, religion: 0, language: 0, share: 1 }]
+      : culture.joint;
+  const jointTotal = joint.reduce((s, j) => s + j.share, 0);
+  const shares = joint.map((j) => j.share / jointTotal);
+  const mix =
+    culture === undefined || joint.length === 1
+      ? regions.map((r) => shares.map((s) => s * r.population))
+      : regionalMix(
+          regions.map((r) => r.population),
+          shares,
+          culture.stream,
+        );
+  const grids: RegionGrid[] = cohorts.map((c, r) => {
+    const population = (regions[r] as RegionSetup).population;
+    const row = mix[r] as number[];
+    return {
+      cohorts: c,
+      culture: joint.map((_, k) =>
+        c.map((n) => (population > 0 ? (n * (row[k] as number)) / population : 0)),
+      ),
+    };
+  });
+
   return {
+    combos: joint.map((j) => ({ ethnic: j.ethnic, religion: j.religion, language: j.language })),
+    regions: grids,
     model: {
       mortality,
       fertility,
@@ -233,6 +274,5 @@ export function buildPopulation(
       schoolingYears,
       netMigrationRate,
     },
-    regions: cohorts,
   };
 }

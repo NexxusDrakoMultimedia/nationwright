@@ -10,6 +10,7 @@ import {
   buildPopulation,
   calibrateMortality,
   chooseArchetype,
+  cohortsOf,
   createStream,
   educationTarget,
   fertilitySchedule,
@@ -65,7 +66,7 @@ const baseline = (pop: NationPopulation): MonthInputs => ({
   netMigrationRate: pop.model.netMigrationRate,
 });
 
-const total = (pop: NationPopulation) => summarize(pop.regions).total;
+const total = (pop: NationPopulation) => summarize(cohortsOf(pop.regions)).total;
 
 describe('life tables', () => {
   it('hit any life expectancy from 45 to 88 years', () => {
@@ -124,7 +125,7 @@ describe('starting population', () => {
   it('matches each nation’s sampled statistics', () => {
     for (const stats of nations) {
       const pop = populationFor(stats);
-      const s = summarize(pop.regions);
+      const s = summarize(cohortsOf(pop.regions));
       expect(s.total / stats['population.total']!).toBeCloseTo(1, 9);
       expect(100 * ageShare(s, 0, 2)).toBeCloseTo(stats['population.age_0_14_share']!, 6);
       expect(100 * ageShare(s, 13, 20)).toBeCloseTo(stats['population.age_65_plus_share']!, 6);
@@ -141,7 +142,7 @@ describe('starting population', () => {
   it('matches literacy wherever the schooling model can reach it', () => {
     let matched = 0;
     for (const stats of nations) {
-      const got = schoolingShare(summarize(populationFor(stats).regions));
+      const got = schoolingShare(summarize(cohortsOf(populationFor(stats).regions)));
       if (Math.abs(got - stats['education.literacy']!) < 0.5) matched++;
     }
     expect(matched / nations.length).toBeGreaterThan(0.9);
@@ -152,9 +153,9 @@ describe('starting population', () => {
       { population: 1000, urbanPopulation: 400 },
       { population: 250, urbanPopulation: 0 },
     ]);
-    expect(summarize([pop.regions[0]!]).total).toBeCloseTo(1000, 9);
-    expect(summarize([pop.regions[0]!]).urban).toBeCloseTo(400, 9);
-    expect(summarize([pop.regions[1]!]).urban).toBe(0);
+    expect(summarize([pop.regions[0]!.cohorts]).total).toBeCloseTo(1000, 9);
+    expect(summarize([pop.regions[0]!.cohorts]).urban).toBeCloseTo(400, 9);
+    expect(summarize([pop.regions[1]!.cohorts]).urban).toBe(0);
   });
 });
 
@@ -169,7 +170,9 @@ describe('monthly projection', () => {
         const expected = before + sum(f.births) - sum(f.deaths) + sum(f.netMigration);
         expect(total(pop) / expected).toBeCloseTo(1, 10);
       }
-      expect(pop.regions.every((c) => c.every((n) => n >= 0 && Number.isFinite(n)))).toBe(true);
+      expect(pop.regions.every((g) => g.cohorts.every((n) => n >= 0 && Number.isFinite(n)))).toBe(
+        true,
+      );
     }
   });
 
@@ -198,7 +201,7 @@ describe('monthly projection', () => {
         births += f.births.reduce((a, b) => a + b, 0);
         deaths += f.deaths.reduce((a, b) => a + b, 0);
       }
-      return { births, deaths, urban: summarize(pop.regions).urban };
+      return { births, deaths, urban: summarize(cohortsOf(pop.regions)).urban };
     };
     const base = run({});
     expect(run({ fertility: 1.2 }).births).toBeGreaterThan(base.births);

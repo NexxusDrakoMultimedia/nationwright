@@ -52,10 +52,40 @@ export const DEMOGRAPHY_TUNING = {
   vocationalShare: 0.3,
   /** Fraction of the gap to the education target closed per month (young bands). */
   educationCatchUp: 1 / 12,
+  /**
+   * Share of births whose father's ethnicity differs from the mother's pool: the child's
+   * ethnicity is drawn from local men aged 20–44 (urban, rural). Religion and language
+   * follow the mother.
+   */
+  intermarriage: [0.08, 0.04],
+  /** Yearly rate at which people 15+ leave their religion for none, before factors. */
+  secularizationRate: 0.0015,
+  secularizationByEducation: [0.3, 0.7, 1.5, 1.5, 3],
+  secularizationBySettlement: [1.3, 0.7],
+  /**
+   * Yearly rate at which speakers of other languages switch to the nation's most spoken
+   * language, before factors; scaled by (1 − their language's share in the region), so
+   * concentrated communities hold on longer.
+   */
+  languageShiftRate: 0.006,
+  languageShiftByEducation: [0.5, 1, 1.5, 1.5, 1.5],
+  languageShiftBySettlement: [1.5, 0.7],
+  /** Age factor for language shift: children in school shift most (bands 0–4, 5–9, …). */
+  languageShiftByAge: [
+    0, 1.5, 1.5, 1.5, 1.2, 1, 0.5, 0.4, 0.3, 0.3, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+    0.1,
+  ],
+  /** Combinations below this share of the population are folded into a neighbour yearly. */
+  pruneShare: 1e-4,
+  /** A birth flow creates a new combination only above this share of the population. */
+  newCombinationShare: 1e-6,
 } as const;
 
 if (DEMOGRAPHY_TUNING.urbanMigrationByAge.length !== AGE_BANDS) {
   throw new Error('urbanMigrationByAge needs one value per age band.');
+}
+if (DEMOGRAPHY_TUNING.languageShiftByAge.length !== AGE_BANDS) {
+  throw new Error('languageShiftByAge needs one value per age band.');
 }
 if (DEMOGRAPHY_TUNING.migrantAgeProfile.length !== AGE_BANDS) {
   throw new Error('migrantAgeProfile needs one value per age band.');

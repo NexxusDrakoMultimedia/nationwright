@@ -3,6 +3,7 @@
 
 export * from './grid.ts';
 export * from './tuning.ts';
+export * from './culture.ts';
 export * from './life-table.ts';
 export * from './fertility.ts';
 export * from './education.ts';

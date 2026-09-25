@@ -131,11 +131,13 @@ off as they land; add new ones as work reveals them.
 - [x] Cohort grid (region × urban/rural × age × sex × education), regions = the player's
       provinces; starting population calibrated to the sampled statistics
 - [x] Tests for the demography model and system (calibration, conservation, save/resume)
-- [ ] Sparse joint culture distribution (combination table, pruning)
+- [x] Sparse joint culture distribution (combination table per nation, counts per cohort
+      cell, regional concentration of minorities, yearly pruning)
 - [x] Fertility, mortality, aging (Siler life tables, blended fertility schedules);
       rural-to-urban migration; interim net international migration at the sampled rate
 - [ ] Internal migration between regions
-- [ ] Language shift, conversion/secularization, intermarriage
+- [x] Language shift, secularization, intermarriage
+- [ ] Conversion between faiths (only secularization to "no religion" so far)
 - [ ] Regions from the map; cities and growth
 - [ ] Census report, population pyramid; validation against bands
 - [ ] Performance measurements by world size (reported, not gated)
