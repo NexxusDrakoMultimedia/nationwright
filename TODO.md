@@ -28,11 +28,17 @@ off as they land; add new ones as work reveals them.
       `Math.log`/`Math.cos` being identical across JS engines)
 
 ### Engine core
-- [ ] World/Nation state types (DESIGN.md §6.1)
-- [ ] Tick loop with fixed system order and cadences (§3.1–3.2)
-- [ ] Command queue (validated, logged) and query API (§3.4)
-- [ ] Modifier registry (source, target, value, expiry)
-- [ ] Indicator registry + store
+- [x] World state container: meta, modifiers, chronicle, and per-system slices
+      (`SystemSlices`, extended by module augmentation)
+- [ ] Full World/Nation state types (DESIGN.md §6.1), added as each system lands
+- [x] Calendar (monthly ticks; quarterly/annual cadences fire at period end)
+- [x] Tick loop with the fixed 19-step system order (§3.1–3.2)
+- [x] Command queue: validated on submit, re-validated and applied at the `policy` step,
+      logged with its tick; exact `replay()` from seed + log
+- [x] Read-only query API (`world`, `indicators`, `commandLog`, `snapshot()`)
+- [x] Modifier registry: (base + Σadd) × Πmultiply, lifetimes, scopes, contributions
+- [x] Indicator registry + in-memory store (ownership, finiteness, one value per tick)
+- [x] Chronicle entries from systems
 
 ### Persistence
 - [ ] Storage interface; `better-sqlite3` implementation
