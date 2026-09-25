@@ -30,8 +30,10 @@ export function attainment(meanYears: number): number[] {
 
 /**
  * Target attainment for an age band, given today's expected years of schooling. With a
- * positive `gradient`, cohorts older than 20 have `gradient` fewer years per decade of
- * age (older generations had less schooling); the simulation's targets use 0.
+ * positive `gradient`, cohorts older than 30 have `gradient` fewer years per decade of
+ * age (older generations had less schooling). Bands up to 25–29 still follow today's
+ * schooling, which is what the monthly progression targets (gradient 0), so the starting
+ * population has no catch-up jump.
  */
 export function educationTarget(age: number, schoolingYears: number, gradient = 0): number[] {
   const v = T.vocationalShare;
@@ -47,7 +49,7 @@ export function educationTarget(age: number, schoolingYears: number, gradient = 
     return [1 - primary, primary - secondary, secondary * (1 - v), secondary * v, 0];
   }
   const mid = bandStart(age) + BAND_YEARS / 2;
-  const d = attainment(s * T.schoolingCompletion - (gradient * Math.max(0, mid - 20)) / 10);
+  const d = attainment(s * T.schoolingCompletion - (gradient * Math.max(0, mid - 30)) / 10);
   const [none, primary, secondary, vocational, tertiary] = d as [
     number,
     number,

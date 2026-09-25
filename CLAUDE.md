@@ -8,7 +8,8 @@ Implementation is under way. **M0** (skeleton: engine core, saves, CLI, Electron
 reference-data pipeline) is done apart from items that depend on later milestones.
 **M1** (world generation and the map) and **M2** (demography, culture, internal migration,
 cities, census) are done apart from items that wait on later milestones; see TODO.md.
-The economy and everything after it (M3 onward) aren't started yet. Keep the **Commands** section below
+M3 (economy and world) is under way: the player's economy runs; foreign countries,
+trade, and the economic reports come next. Keep the **Commands** section below
 current as scripts are added.
 
 ## Source of truth
@@ -128,7 +129,7 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run data:fetch` | Clone factbook.json at the pinned commit into `packages/reference-data/.cache/` |
 | `npm run data:build -- --target-year 2026` | Rebuild `packages/reference-data/data/` (review `report-<year>.md` in the diff) |
 | `npm run worldgen:validate` | Generate 200 worlds and write `docs/validation/worldgen.md` (about a minute; rerun after generator or guiding-model changes) |
-| `npm run demography:validate` | Simulate 50 nations for 30 years against the real-world bands and write `docs/validation/demography.md` (about two minutes; rerun after demography changes) |
+| `npm run sim:validate` | Simulate 50 nations for 30 years against the real-world bands (census and economy) and write `docs/validation/simulation.md` (a few minutes; rerun after simulation changes) |
 | `npm run perf:measure` | Time world creation, simulation, and saves by world size into `docs/validation/performance.md` |
 | `npm run nw -- <command>` | Headless CLI: `new <file>`, `run <file> --years N`, `info`, `census`, `indicators`, `branch` |
 | `npm run ui:build` | Build the desktop app into `packages/ui/out/` |

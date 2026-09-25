@@ -145,8 +145,8 @@ off as they land; add new ones as work reveals them.
 - [x] Census report (desktop Census tab and `nw census`): headline figures placed against
       real-world bands, population pyramid (tooltip, table view), education, culture,
       regions, cities
-- [x] Validation of simulated nations against bands over time (`npm run demography:validate`,
-      50 nations × 30 years; report in `docs/validation/demography.md`, PASS)
+- [x] Validation of simulated nations against bands over time (`npm run sim:validate`,
+      50 nations × 30 years; report in `docs/validation/simulation.md`, PASS)
 - [x] Generator v3: nations sampled with one ethnic group or religion but a positive
       fractionalization get a small second group (real minimum is about 0.006)
 - [x] Performance measurements by world size (`npm run perf:measure`; report in
@@ -156,7 +156,11 @@ off as they land; add new ones as work reveals them.
 - [x] Reference data for the economy: budget revenues and expenditures, tax revenue, GDP by
       end use, Gini, labour force, remittances, current account (16 new bands); guiding
       model v3 with 7 more variables (40); generator v4
-- [ ] Sectors, production, labor market, prices, public finance, exchange rate
+- [x] Sectors, production, labor market, prices, public finance, exchange rate (the
+      player's economy, calibrated to its statistics; fiscal rule and sovereign default;
+      income feeds demography); validated with `npm run sim:validate`
+- [ ] Exports and imports respond to the exchange rate and partners (with trade, below)
+- [ ] Gini dynamics (constant so far)
 - [ ] Foreign country mid-depth model
 - [ ] Trade (gravity), commodities, capital, international migration channels
 - [ ] Economic survey, budget, world comparison reports; flows map layer

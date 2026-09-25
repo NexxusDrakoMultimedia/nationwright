@@ -31,3 +31,9 @@ export {
   type CensusGroup,
   type CensusStat,
 } from './census.ts';
+export {
+  economySystem,
+  ECONOMY_INDICATORS,
+  type EconomySlice,
+  type EconomyYear,
+} from './systems/economy.ts';

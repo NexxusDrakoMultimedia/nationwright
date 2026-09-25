@@ -424,6 +424,32 @@ budget and debt, trade balance, unemployment.
 inflation, Gini coefficient (from an income distribution approximation), budget balance,
 debt-to-GDP, trade balance.
 
+**Implementation (M3, first part):** the engine's `economy/` module and the `economy`
+system. Four sectors (agriculture, industry, market services, public) produce with
+α = 0.35; human capital is e^(0.08 × mean years of schooling of people 25+) from the
+demography grid, and labour is people 15+ × participation × (1 − unemployment). At the
+start, capital (K/Y = investment / (depreciation + growth), 1.5–4) and each sector's
+productivity are solved so GDP per person, sector shares, unemployment, debt, revenue, and
+the budget balance equal the nation's statistics. Growth of income per person from
+productivity is 0.9% at the frontier plus 0.4% per unit of log(60,000 / income), applied
+in labour-augmenting terms; a country-specific residual (fading with a 5-year half-life)
+makes the first years match the sampled growth, allowing for adults growing faster than
+the population. Employment drifts toward income-typical sector shares (agriculture ≈
+70,000 / income %, capped at 45%). The output gap is AR(1) (0.97 monthly); Okun (0.5) sets
+unemployment around a natural rate that drifts toward 6% (25-year half-life); inflation =
+expected + 0.3 × gap, with expectations anchoring toward 2.5% (15% of the gap a year); a
+Taylor rule sets the policy rate. The price level follows income (elasticity 0.3); the
+exchange index moves with relative inflation and real appreciation. Public debt is in the
+reference currency, paying a real rate plus world inflation plus a risk premium (0.03
+points per point above 60% of GDP, capped at 15); a fiscal rule moves primary spending
+toward revenue − 0.06 × (debt − 60), and above 250% of GDP the government defaults,
+writing off half (a chronicle entry). Each December, income since the start sets next
+year's demography multipliers (fertility elasticity −0.15, mortality −0.25). Modifier
+targets: `economy.productivity_multiplier` and additions `economy.revenue_share`,
+`spending_share`, `investment_share`, `participation`, `natural_unemployment`,
+`demand_shock`. Exports, imports, and the Gini index stay at their starting values until
+trade (below) and distribution are modelled.
+
 ### 4.4 Political Institutions
 
 **State:**
@@ -1158,11 +1184,11 @@ histogram (total variation distance ≤ 0.12); every variable's pooled KS distan
 scored); and the largest correlation error (≤ 0.12). It runs outside CI; rerun it and
 commit the report whenever the generator or the guiding model changes.
 
-`npm run demography:validate` does the same for the simulation: 50 worlds, each player
+`npm run sim:validate` does the same for the simulation: 50 worlds, each player
 nation simulated for 30 years, with every headline census figure checked against the
-real range of states (at least 90% within min–max at the start and 75% after 30
+real range of states, census and economic figures alike (at least 90% within min–max at the start and 75% after 30
 years), plus sanity checks (finite values, yearly growth within ±8%). Report:
-`docs/validation/demography.md`. `npm run perf:measure` records creation, simulation,
+`docs/validation/simulation.md`; it covers census and economic figures. `npm run perf:measure` records creation, simulation,
 and save times by world size in `docs/validation/performance.md` (D19: reported, not
 gated). Known deviations:
 too many one-neighbour countries (about 14% vs. 8%) and a thin tail of countries with

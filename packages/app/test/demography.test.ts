@@ -89,6 +89,31 @@ describe('demography system', () => {
   });
 });
 
+describe('economy system', () => {
+  it('records the economy and feeds income back to demography each December', () => {
+    const session = create('economy.nwsave');
+    session.advance(12);
+    const indicators = session.engine.indicators;
+    const stats =
+      session.engine.world.slices.world!.countries[session.engine.world.slices.demography!.country]!
+        .stats;
+    const first = indicators.series('economy.gdp_per_capita_ppp', 'nation').values[0]!;
+    expect(first / stats['economy.gdp_per_capita_ppp']!).toBeGreaterThan(0.9);
+    expect(first / stats['economy.gdp_per_capita_ppp']!).toBeLessThan(1.1);
+    expect(indicators.series('economy.unemployment', 'nation').ticks).toHaveLength(12);
+    expect(indicators.series('economy.public_debt', 'nation').ticks).toEqual([0, 11]);
+    const feedback = session.engine.world.modifiers.entries.filter(
+      (m) => m.source.kind === 'economy',
+    );
+    expect(feedback.map((m) => m.target).sort()).toEqual([
+      'demography.fertility_multiplier',
+      'demography.mortality_multiplier',
+    ]);
+    expect(feedback.every((m) => m.startTick === 12 && m.endTick === 24)).toBe(true);
+    session.close();
+  });
+});
+
 describe('census', () => {
   it('reports the nation consistently with its state', () => {
     const session = create('census.nwsave');
