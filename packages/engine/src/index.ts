@@ -40,3 +40,5 @@ export * from './cities/cities.ts';
 export * from './economy/model.ts';
 export * from './economy/labor.ts';
 export * from './world/foreign.ts';
+export * from './world/distances.ts';
+export * from './world/trade.ts';

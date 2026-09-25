@@ -103,7 +103,7 @@ off as they land; add new ones as work reveals them.
 - [ ] Resource deposits (with the economy, M3)
 - [x] Countries: island capitals, archetype priors, room matching, cost-weighted growth
 - [x] Continents, subregions, provinces (farthest-point seeds), cities (Zipf)
-- [ ] Sea lanes and distance graph (M3)
+- [x] Sea lanes and distance graph (done in M3)
 - [x] Nation statistics placed on the map; population spread by habitability²
 - [x] Generator tests: determinism, golden master (v2), invariants on 5 seeds, real
       island/landlocked/one-neighbour shares; `scripts/render-map.ts` for eyeballing
@@ -159,12 +159,17 @@ off as they land; add new ones as work reveals them.
 - [x] Sectors, production, labor market, prices, public finance, exchange rate (the
       player's economy, calibrated to its statistics; fiscal rule and sovereign default;
       income feeds demography); validated with `npm run sim:validate`
-- [ ] Exports and imports respond to the exchange rate and partners (with trade, below)
+- [x] Exports and imports respond to partners and price competitiveness
 - [ ] Gini dynamics (constant so far)
 - [x] Foreign country model, demography and economy parts (reduced form, yearly;
       validated across 9,750 countries in `npm run sim:validate`); government, elections,
       and foreign policy come with M4
-- [ ] Trade (gravity), commodities, capital, international migration channels
+- [x] Sea lanes and transport distances between countries (ports, shortest ocean routes)
+- [x] Trade: gravity model over every pair, fitted to each country's exports and imports;
+      the player's trade shares and net exports feed its economy
+- [ ] Resource deposits and commodities (world prices, commodity exports)
+- [ ] Capital flows (FDI) and international migration channels (bilateral, diaspora,
+      remittances), replacing the interim net migration rate
 - [ ] Economic survey, budget, world comparison reports; flows map layer
 
 ## M4 — Politics, Elections & Diplomacy

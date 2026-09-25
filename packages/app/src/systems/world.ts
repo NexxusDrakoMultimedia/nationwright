@@ -13,7 +13,12 @@
 import {
   cohortsOf,
   defineSystem,
+  exportsOf,
+  fitTrade,
+  importsOf,
   initForeign,
+  tradeFlows,
+  tradeGeography,
   realGdp,
   sectorShares,
   stepForeign,
@@ -23,6 +28,8 @@ import {
   type IndicatorDefinition,
   type NationStats,
   type Scope,
+  type TradeInputs,
+  type TradeModel,
 } from '@nationwright/engine';
 import type { DemographySlice } from './demography.ts';
 import type { EconomySlice } from './economy.ts';
@@ -39,8 +46,21 @@ export interface CountryState {
   model: ForeignState | null;
 }
 
+export interface WorldTrade {
+  /** Effective transport distance between countries, km. */
+  readonly distances: number[][];
+  /** Port cell of each country, and whether it is on the country's own coast. */
+  readonly ports: number[];
+  readonly ownCoast: boolean[];
+  readonly model: TradeModel;
+  /** The player's exports and imports as shares of its GDP (%), as of last December. */
+  playerExportsShare: number;
+  playerImportsShare: number;
+}
+
 export interface WorldSlice {
   countries: CountryState[];
+  trade: WorldTrade;
   /**
    * The player's country. Until the creation wizard (M9) lets the player choose, it is
    * drawn at random from the world's countries (stream `init/world/player`).
@@ -82,6 +102,9 @@ const COUNTRY_SERIES: readonly (readonly [string, string, string, string])[] = [
 export const WORLD_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('world.population', 'people', 'Population of the whole world'),
   indicator('world.gdp_ppp', 'USD (2021, PPP)', 'Real GDP of the whole world'),
+  indicator('world.trade', 'USD', 'World exports (reference currency)'),
+  indicator('trade.exports_to', 'USD', 'Your exports to a country (country scopes)'),
+  indicator('trade.imports_from', 'USD', 'Your imports from a country (country scopes)'),
   ...COUNTRY_SERIES.map(([id, , unit, description]) =>
     indicator(id, unit, `${description} (country scopes)`),
   ),
@@ -121,6 +144,23 @@ function playerStats(
   return out;
 }
 
+/** Trade inputs from the countries' current statistics. */
+export function tradeInputs(
+  countries: readonly { readonly stats: NationStats }[],
+  distances: readonly (readonly number[])[],
+): TradeInputs {
+  return {
+    gdp: countries.map((c) => Math.max(1, c.stats['economy.gdp_nominal'] ?? 1)),
+    priceLevel: countries.map((c) => c.stats['economy.price_level'] ?? 0.5),
+    distances,
+  };
+}
+
+/** Current bilateral flows (flows[i][j] = exports from i to j), recomputed on demand. */
+export function currentTrade(slice: WorldSlice): number[][] {
+  return tradeFlows(slice.trade.model, tradeInputs(slice.countries, slice.trade.distances));
+}
+
 export const worldSystem = defineSystem({
   id: 'world',
   slice: 'world',
@@ -129,7 +169,29 @@ export const worldSystem = defineSystem({
     const generated = ctx.generated;
     if (generated === undefined) throw new Error('The world system needs a generated world.');
     const playerCountry = ctx.stream('player').nextIntBelow(generated.countries.length);
+    const geography = tradeGeography(generated);
+    const inputs = tradeInputs(
+      generated.countries.map((c) => ({ stats: c.nation.stats })),
+      geography.distances,
+    );
+    const share = (c: (typeof generated.countries)[number], id: string) =>
+      ((c.nation.stats[id] ?? 30) / 100) * Math.max(1, c.nation.stats['economy.gdp_nominal'] ?? 1);
+    const model = fitTrade(
+      inputs,
+      generated.countries.map((c) => share(c, 'economy.exports_share_gdp')),
+      generated.countries.map((c) => share(c, 'economy.imports_share_gdp')),
+    );
+    const flows = tradeFlows(model, inputs);
+    const playerGdp = inputs.gdp[playerCountry] as number;
     return {
+      trade: {
+        distances: geography.distances,
+        ports: geography.ports,
+        ownCoast: geography.ownCoast,
+        model,
+        playerExportsShare: (100 * exportsOf(flows, playerCountry)) / playerGdp,
+        playerImportsShare: (100 * importsOf(flows, playerCountry)) / playerGdp,
+      },
       countries: generated.countries.map((c) => ({
         id: c.id,
         name: c.name,
@@ -158,6 +220,38 @@ export const worldSystem = defineSystem({
         );
       }
     }
+    // Trade follows this year's GDP and prices.
+    const flows = currentTrade(slice);
+    const player = slice.playerCountry;
+    slice.countries.forEach((country, k) => {
+      const gdpNominal = Math.max(1, country.stats['economy.gdp_nominal'] ?? 1);
+      country.stats = {
+        ...country.stats,
+        'economy.exports_share_gdp': (100 * exportsOf(flows, k)) / gdpNominal,
+        'economy.imports_share_gdp': (100 * importsOf(flows, k)) / gdpNominal,
+      };
+      if (k !== player) {
+        ctx.record(
+          'trade.exports_to',
+          `country:${country.id}`,
+          (flows[player] as number[])[k] as number,
+        );
+        ctx.record(
+          'trade.imports_from',
+          `country:${country.id}`,
+          (flows[k] as number[])[player] as number,
+        );
+      }
+    });
+    const playerStatsNow = slice.countries[player]?.stats;
+    slice.trade.playerExportsShare = playerStatsNow?.['economy.exports_share_gdp'] ?? 0;
+    slice.trade.playerImportsShare = playerStatsNow?.['economy.imports_share_gdp'] ?? 0;
+    ctx.record(
+      'world.trade',
+      'nation',
+      flows.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0),
+    );
+
     let population = 0;
     let gdp = 0;
     for (const country of slice.countries) {

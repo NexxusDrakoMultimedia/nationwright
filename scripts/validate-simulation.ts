@@ -38,6 +38,8 @@ const ECONOMY = [
   'economy.sector_services',
   'economy.investment_share',
   'economy.labor_participation',
+  'economy.exports_share_gdp',
+  'economy.imports_share_gdp',
 ] as const;
 const started = performance.now();
 const elapsed = () => `${((performance.now() - started) / 1000).toFixed(1)}s`;
@@ -67,6 +69,8 @@ const FOREIGN = [
   'economy.inflation',
   'economy.unemployment',
   'economy.public_debt',
+  'economy.exports_share_gdp',
+  'economy.imports_share_gdp',
 ] as const;
 
 const samples: Sample[] = [];

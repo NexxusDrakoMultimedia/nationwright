@@ -411,7 +411,13 @@ budget and debt, trade balance, unemployment.
 - **Trade & external sector:** exports and imports are tracked **per partner country**
   (§4.10), using a gravity-style model: partner GDP, proximity, tariffs/trade agreements,
   relations, and the exchange rate. Global commodity prices from the World system
-  feed export revenue and import costs. Foreign direct investment adds to capital stock;
+  feed export revenue and import costs. *(M3 so far: a gravity model over every pair,
+  flow(i→j) = e_i · m_j · Y_i · Y_j / (Y_world · distance) · (price level_i / start)^−0.5,
+  with propensities e and m fitted at the start by iterative proportional fitting so
+  every country's exports and imports match its statistics. Flows are recomputed each
+  December from nominal GDP and price levels, not stored; each country's export and
+  import shares follow them, and half of the change in the player's net exports moves
+  its output gap. Tariffs and relations join in M4, commodities below.)* Foreign direct investment adds to capital stock;
   remittances flow in or out with the diaspora.
 - **Exchange rate:** a managed float against a world reference currency, driven by the
   trade balance, inflation gap, and interest-rate gap.
@@ -1002,7 +1008,13 @@ A 2D world on a plane that wraps east–west:
    rank-size rule, scaled to the country's urban population.
 10. **Sea lanes & distances:** a navigation graph over ocean cells gives shipping
     distances. Land and sea distance feed proximity for trade and migration (§4.10).
-    (Deferred to M3, where trade first needs it.)
+    *(M3: computed when a world is created, in the engine's `world/distances.ts`, and
+    stored in the world slice, not the generated map. Each country's port is the
+    coastal cell nearest its capital over land, through neighbours if landlocked;
+    shipping distances are shortest paths over ocean cells between ports; the effective
+    distance is the cheaper of shipping plus the overland legs and, on the same
+    landmass, overland transport (1.3× the straight line), with overland km counting
+    double.)*
 
 The finished map is **stored in the save** (cells, geometry, terrain, ownership), not
 regenerated on load. Engine updates therefore never alter an existing world. During

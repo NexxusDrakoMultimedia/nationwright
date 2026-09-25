@@ -80,6 +80,7 @@ export const ECONOMY_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('economy.household_consumption_share', '% of GDP', 'Household consumption'),
   indicator('economy.exports_share_gdp', '% of GDP', 'Exports'),
   indicator('economy.imports_share_gdp', '% of GDP', 'Imports'),
+  indicator('economy.trade_balance_share', '% of GDP', 'Exports minus imports'),
   indicator('economy.labor_force', 'people', 'Labour force'),
   indicator('economy.labor_participation', '% of people 15+', 'Labour force participation'),
   indicator('economy.employment', 'people', 'People in work'),
@@ -141,6 +142,7 @@ function recordAnnual(
   );
   record('economy.exports_share_gdp', s.exportsShare);
   record('economy.imports_share_gdp', s.importsShare);
+  record('economy.trade_balance_share', s.exportsShare - s.importsShare);
   record('economy.labor_force', laborForce);
   record('economy.labor_participation', labor.adults > 0 ? (100 * laborForce) / labor.adults : 0);
   record('economy.employment', employed);
@@ -160,6 +162,9 @@ export const economySystem = defineSystem({
     const stats = world.countries[demography.country]?.stats;
     if (stats === undefined) throw new RangeError(`No country ${demography.country}.`);
     const state = calibrateEconomy(stats, laborOf(demography as DemographySlice));
+    // Trade shares come from the world's gravity model (fitted to these statistics).
+    state.exportsShare = world.trade.playerExportsShare;
+    state.importsShare = world.trade.playerImportsShare;
     return { state, year: freshYear(state) };
   },
   step(ctx, slice) {
@@ -167,6 +172,16 @@ export const economySystem = defineSystem({
     if (demography === undefined) return;
     const labor = laborOf(demography as DemographySlice);
     const add = (target: string) => ctx.resolve(target, 'nation', 0).value;
+    // New trade shares from the world (updated each December) move demand: half of the
+    // change in net exports (points of GDP) shows up in the output gap.
+    const trade = ctx.world.slices.world?.trade;
+    let tradeImpulse = 0;
+    if (trade !== undefined) {
+      const before = slice.state.exportsShare - slice.state.importsShare;
+      slice.state.exportsShare = trade.playerExportsShare;
+      slice.state.importsShare = trade.playerImportsShare;
+      tradeImpulse = (0.5 * (slice.state.exportsShare - slice.state.importsShare - before)) / 100;
+    }
     const result = stepEconomy(
       slice.state,
       labor,
@@ -177,7 +192,7 @@ export const economySystem = defineSystem({
         investmentShare: add('economy.investment_share'),
         participation: add('economy.participation'),
         naturalUnemployment: add('economy.natural_unemployment'),
-        demandShock: add('economy.demand_shock'),
+        demandShock: add('economy.demand_shock') + tradeImpulse,
       },
       normal(ctx.stream('cycle')),
     );
