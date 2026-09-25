@@ -35,5 +35,5 @@ jobs:
       - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
       - run: npm run ui:build
       - run: npm run ui:smoke
-      - run: npm run nw -- new "$RUNNER_TEMP/world.nwsave" --seed q3Zk1d0XbAc
+      - run: npm run nw -- new "$RUNNER_TEMP/world.nwsave"
       - run: npm run ui:smoke -- --ui "$RUNNER_TEMP/world.nwsave" --out "$RUNNER_TEMP"
