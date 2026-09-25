@@ -80,8 +80,12 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 
 ## Conventions
 
-- Planned layout: `packages/{engine,app,ui,cli,reference-data}` plus `content/` (YAML
-  validated with zod/JSON Schema).
+- Layout: npm workspaces. `packages/engine` exists; `app`, `ui`, `cli`, and
+  `reference-data` come next, plus `content/` (YAML validated with zod/JSON Schema).
+  Packages export TypeScript source directly (`"exports": "./src/index.ts"`) and import
+  with explicit `.ts` extensions.
+- TypeScript is pinned to **6.0.x**: typescript-eslint doesn't support TypeScript 7 yet.
+  Upgrade both together.
 - Tests: Vitest; golden-master and property-based (`fast-check`) tests for
   determinism, the seed codec, world generation, and balance.
 - Changing generator output requires bumping `generator_version` and updating golden
@@ -91,5 +95,17 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 
 ## Commands
 
-_None yet. Fill in once M0 scaffolding lands (install, build, test, lint, run the
-Electron app, run the CLI, run the reference-data pipeline)._
+Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
+
+| Command | What it does |
+|---|---|
+| `npm install` | Install all workspace dependencies |
+| `npm run check` | Everything CI runs: typecheck, lint, format check, tests |
+| `npm run typecheck` | `tsc` over all packages (no emit) |
+| `npm run lint` | ESLint, including the engine determinism rules |
+| `npm run format` / `format:check` | Prettier (Markdown is excluded on purpose) |
+| `npm test` / `npm run test:watch` | Vitest |
+| `npx vitest run -u` | Update snapshots. Only do this deliberately: the stream golden master pins every world |
+
+Run `npm run check` before every commit. Electron, CLI, and reference-data commands will
+be added as those packages land.

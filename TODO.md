@@ -8,20 +8,24 @@ off as they land; add new ones as work reveals them.
 
 ### Repository & tooling
 - [x] Choose a project license: GPLv3 or later (`GPL-3.0-or-later`), © Nexxus Drako Multimedia, full text in `LICENSE`
-- [ ] Set `"license": "GPL-3.0-or-later"` in every `package.json`; add a dependency-license check to CI
+- [x] Set `"license": "GPL-3.0-or-later"` in every `package.json` (root, engine; keep doing it for new packages)
+- [ ] Add a dependency-license check to CI
 - [ ] Show the license and source-code link in the app's About/credits screen
-- [ ] Monorepo with workspaces: `packages/{engine,app,ui,cli,reference-data}`, `content/`
-- [ ] TypeScript config: `strict`, `noUncheckedIndexedAccess`; shared base tsconfig
-- [ ] Lint + format; lint rule banning `Math.random`, `Date.now`, `new Date` in `engine`
-- [ ] Vitest setup; CI workflow (typecheck, lint, test)
-- [ ] Fill in the **Commands** section of CLAUDE.md
+- [x] npm workspaces monorepo (`packages/*`); `packages/engine` created
+- [ ] Remaining packages as they're built: `app`, `ui`, `cli`, `reference-data`; `content/`
+- [x] TypeScript config: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`; shared `tsconfig.base.json`
+- [x] ESLint (typescript-eslint strict) + Prettier; engine rule banning `Math.random`, `Date`, `performance`, `crypto`
+- [x] Vitest setup; CI workflow (typecheck, lint, format check, test)
+- [x] Fill in the **Commands** section of CLAUDE.md
 
 ### Seed & randomness
-- [ ] Seed codec: 8 bytes ⇄ 11-char base64url; canonical last-char check; accept
+- [x] Seed codec: 8 bytes ⇄ 11-char base64url; canonical last-char check; accept
       standard base64 / padding
-- [ ] Seed codec tests: round-trip, `0`, `2^64−1`, rejection cases
-- [ ] SplitMix64 + xoshiro256\*\* (32-bit ops), with reference test vectors
-- [ ] Domain-separated streams (`FNV-1a 64` domain hash, pinned)
+- [x] Seed codec tests: round-trip, `0`, `2^64−1`, rejection cases (property-based)
+- [x] SplitMix64 + xoshiro256\*\* (32-bit ops), with reference test vectors and a bigint oracle
+- [x] Domain-separated streams (`FNV-1a 64` domain hash, pinned) with a golden master
+- [ ] Deterministic normal/exponential/Poisson samplers (portable math: don't rely on
+      `Math.log`/`Math.cos` being identical across JS engines)
 
 ### Engine core
 - [ ] World/Nation state types (DESIGN.md §6.1)

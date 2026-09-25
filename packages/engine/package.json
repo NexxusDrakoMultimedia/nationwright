@@ -1,0 +1,12 @@
+{
+  "name": "@nationwright/engine",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Nationwright simulation engine: pure, deterministic, no UI or I/O.",
+  "license": "GPL-3.0-or-later",
+  "author": "Nexxus Drako Multimedia",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

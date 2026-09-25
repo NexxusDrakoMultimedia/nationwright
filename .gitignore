@@ -1,0 +1,10 @@
+node_modules/
+dist/
+out/
+coverage/
+*.tsbuildinfo
+.DS_Store
+*.log
+# Local saves and scratch output
+*.nwsave
+/tmp/
