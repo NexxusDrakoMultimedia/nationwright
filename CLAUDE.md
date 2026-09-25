@@ -122,6 +122,7 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run ui:build` | Build the desktop app into `packages/ui/out/` |
 | `npm run ui:start` | Build and launch the desktop app |
 | `npm run ui:smoke` | End-to-end Electron test under Xvfb (add `-- --app <binary>` for a packaged build) |
+| `npm run ui:smoke -- --ui <world.nwsave> --out <dir>` | Open a world in the app and screenshot each map layer and a profile |
 | `npm run ui:package -- --linux AppImage` | Build an installer into `packages/ui/dist/` |
 
 Run `npm run check` before every commit. After adding or changing any `package.json`

@@ -24,11 +24,18 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 const electronPath = createRequire(import.meta.url)('electron') as unknown as string;
 const dir = mkdtempSync(join(tmpdir(), 'nationwright-smoke-'));
 
+// --ui <world.nwsave> --out <dir>: open that world and screenshot the map screen instead.
+const uiIndex = process.argv.indexOf('--ui');
+const uiWorld = uiIndex >= 0 ? process.argv[uiIndex + 1] : undefined;
+const outIndex = process.argv.indexOf('--out');
+const outDir = outIndex >= 0 ? process.argv[outIndex + 1] : undefined;
+
 // --app <executable> tests a packaged build instead of the development one.
 const appIndex = process.argv.indexOf('--app');
 const packaged = appIndex >= 0 ? process.argv[appIndex + 1] : undefined;
 const executable = packaged ?? electronPath;
 const electronArgs = packaged === undefined ? [here] : [];
+if (uiWorld !== undefined) electronArgs.push(uiWorld);
 if (process.getuid?.() === 0) electronArgs.push('--no-sandbox');
 const needsXvfb = process.platform === 'linux' && process.env['DISPLAY'] === undefined;
 const [command, args] = needsXvfb
@@ -36,7 +43,12 @@ const [command, args] = needsXvfb
   : [executable, electronArgs];
 
 const run = spawnSync(command, args, {
-  env: { ...process.env, NATIONWRIGHT_SMOKE_DIR: dir, ELECTRON_ENABLE_LOGGING: '0' },
+  env: {
+    ...process.env,
+    NATIONWRIGHT_SMOKE_DIR: uiWorld === undefined ? dir : (outDir ?? dir),
+    ...(uiWorld === undefined ? {} : { NATIONWRIGHT_SMOKE_MODE: 'ui' }),
+    ELECTRON_ENABLE_LOGGING: '0',
+  },
   encoding: 'utf8',
   timeout: 120_000,
 });
@@ -46,6 +58,20 @@ const line = run.stdout.split('\n').find((l) => l.startsWith('SMOKE '));
 if (line === undefined) {
   console.error('No smoke result. stdout:\n', run.stdout, '\nstderr:\n', run.stderr);
   process.exit(1);
+}
+
+if (uiWorld !== undefined) {
+  const ui = JSON.parse(line.slice('SMOKE '.length)) as {
+    ok: boolean;
+    error?: string;
+    result?: unknown;
+  };
+  if (!ui.ok) {
+    console.error('UI smoke test FAILED:', ui.error);
+    process.exit(1);
+  }
+  console.log(`UI smoke test passed: ${JSON.stringify(ui.result)}`);
+  process.exit(0);
 }
 
 const report = JSON.parse(line.slice('SMOKE '.length)) as {

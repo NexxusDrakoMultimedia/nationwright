@@ -20,6 +20,56 @@ export interface WorldSummary {
   readonly indicatorSeries: number;
 }
 
+/** Per-country data the map screen shows. */
+export interface MapCountry {
+  readonly id: number;
+  readonly name: string;
+  readonly demonym: string;
+  readonly capital: string;
+  readonly capitalCell: number;
+  readonly archetype: string;
+  readonly government: string;
+  readonly continent: number;
+  readonly neighbors: readonly number[];
+  readonly island: boolean;
+  readonly landlocked: boolean;
+  readonly areaKm2: number;
+  /** Selected statistics by indicator id (real-world units). */
+  readonly stats: Readonly<Record<string, number>>;
+  /** Largest groups first: [name, share 0–1]. */
+  readonly ethnicGroups: readonly (readonly [string, number])[];
+  readonly religions: readonly (readonly [string, number])[];
+  readonly languages: readonly (readonly [string, number])[];
+}
+
+export interface MapCity {
+  readonly name: string;
+  readonly cell: number;
+  readonly country: number;
+  readonly population: number;
+  readonly capital: boolean;
+}
+
+/** Everything needed to draw the world map (typed arrays are copied over the port). */
+export interface MapData {
+  readonly width: number;
+  readonly height: number;
+  readonly count: number;
+  readonly x: Float64Array;
+  readonly y: Float64Array;
+  readonly land: Uint8Array;
+  readonly biome: Uint8Array;
+  readonly river: Uint8Array;
+  readonly lake: Uint8Array;
+  readonly elevation: Float32Array;
+  readonly owner: Int32Array;
+  readonly population: Float64Array;
+  /** km² per cell. */
+  readonly cellArea: number;
+  readonly countries: readonly MapCountry[];
+  readonly cities: readonly MapCity[];
+}
+
 export type SeedCheck =
   | { readonly ok: true; readonly canonical: string }
   | { readonly ok: false; readonly message: string };
@@ -32,6 +82,7 @@ export interface EngineRequests {
   'world.open': { params: { path: string }; result: WorldSummary };
   'world.advance': { params: { months: number }; result: WorldSummary };
   'world.summary': { params: null; result: WorldSummary | null };
+  'world.map': { params: null; result: MapData };
   'world.close': { params: null; result: null };
 }
 
@@ -68,6 +119,8 @@ export interface NationwrightApi {
   chooseNewWorldPath(suggestedName: string): Promise<string | null>;
   chooseWorldToOpen(): Promise<string | null>;
   openExternal(url: string): Promise<void>;
+  /** A world file the app was launched with (e.g. by double-clicking it), once. */
+  initialWorldPath(): Promise<string | null>;
   readonly versions: { readonly electron: string; readonly chrome: string; readonly node: string };
 }
 
@@ -90,4 +143,5 @@ export const CHANNELS = {
   chooseNewWorldPath: 'nationwright:choose-new-world-path',
   chooseWorldToOpen: 'nationwright:choose-world-to-open',
   openExternal: 'nationwright:open-external',
+  initialWorldPath: 'nationwright:initial-world-path',
 } as const;

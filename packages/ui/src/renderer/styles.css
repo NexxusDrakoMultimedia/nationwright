@@ -171,3 +171,237 @@ a:focus-visible {
 a {
   color: var(--accent);
 }
+
+/* World and map screens */
+.content:has(.world) {
+  max-width: none;
+  margin: 0;
+  padding: 1rem 1.5rem;
+}
+
+.world-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.world-bar h2 {
+  margin: 0;
+}
+
+.world-bar .actions {
+  margin: 0;
+}
+
+.map-screen {
+  --map-ocean: #3f6f9a;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  border-radius: 0;
+}
+
+.segmented button.on {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.indicator select {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.map-body {
+  display: flex;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+.map-stage {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.map-canvas {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 16rem);
+  min-height: 360px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: grab;
+  touch-action: none;
+}
+
+.map-canvas:active {
+  cursor: grabbing;
+}
+
+.map-tooltip {
+  position: absolute;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.85rem;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
+}
+
+.map-legend {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  max-width: 60%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.legend-title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.legend-unit,
+.legend-note {
+  color: var(--muted);
+  font-weight: 400;
+  margin: 0;
+}
+
+.legend-ramp,
+.legend-swatches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+}
+
+.legend-ramp li,
+.legend-swatches li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 3px;
+  border: 1px solid rgb(0 0 0 / 0.15);
+}
+
+.country-panel {
+  width: 20rem;
+  flex-shrink: 0;
+  max-height: calc(100vh - 16rem);
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.country-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.country-panel h3 {
+  margin: 0;
+}
+
+.country-panel .facts {
+  font-size: 0.9rem;
+}
+
+button.link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+.country-table {
+  max-height: 24rem;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.country-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.country-table caption {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: var(--muted);
+}
+
+.country-table th,
+.country-table td {
+  padding: 0.3rem 0.75rem;
+  border-top: 1px solid var(--border);
+  text-align: left;
+}
+
+.country-table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.country-table tr.selected {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

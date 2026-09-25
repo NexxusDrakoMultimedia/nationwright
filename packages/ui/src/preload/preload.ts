@@ -61,6 +61,7 @@ const api: NationwrightApi = {
     ipcRenderer.invoke(CHANNELS.chooseNewWorldPath, suggestedName) as Promise<string | null>,
   chooseWorldToOpen: () => ipcRenderer.invoke(CHANNELS.chooseWorldToOpen) as Promise<string | null>,
   openExternal: (url) => ipcRenderer.invoke(CHANNELS.openExternal, url) as Promise<void>,
+  initialWorldPath: () => ipcRenderer.invoke(CHANNELS.initialWorldPath) as Promise<string | null>,
   versions: {
     electron: process.versions.electron ?? '',
     chrome: process.versions.chrome ?? '',

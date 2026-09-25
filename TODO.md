@@ -117,7 +117,13 @@ off as they land; add new ones as work reveals them.
       never regenerated; carried into branches
 - [x] World system (`packages/app/src/systems/world.ts`) owning per-country state
 - [ ] Generator statistical validation across ≥ 200 seeds (script, outside CI)
-- [ ] Map screen: political, physical, choropleth layers; pan/zoom; profiles
+- [x] Map screen: political (graph-coloured), physical (biomes, rivers), statistics
+      (quantile choropleth on the validated blue ramp, neutral water, legend, tooltip,
+      table view); pan/zoom with east–west wrap; keyboard controls; country profiles
+- [x] Open a world passed on the command line (`.nwsave` file association)
+- [x] UI smoke test with screenshots (`npm run ui:smoke -- --ui <world> --out <dir>`)
+- [ ] Run the UI smoke test in CI
+- [ ] Map: vector borders/labels at high zoom, province and city layers, dark-mode map palette review
 
 ## M2 — People & Places
 - [ ] Cohort grid (region × urban/rural × age × sex × education)

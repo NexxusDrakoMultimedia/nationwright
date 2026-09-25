@@ -19,7 +19,7 @@ import {
   type UtilityProcess,
 } from 'electron';
 import { CHANNELS, isAllowedExternalLink } from '../shared/protocol.ts';
-import { runSmokeTest } from './smoke.ts';
+import { runSmokeTest, runUiSmokeTest } from './smoke.ts';
 
 // Headless smoke tests run without a GPU (e.g. under Xvfb).
 if (process.env['NATIONWRIGHT_SMOKE_DIR'] !== undefined) app.disableHardwareAcceleration();
@@ -77,7 +77,17 @@ function createWindow(): BrowserWindow {
   return window;
 }
 
+/** A .nwsave passed on the command line (file association or `electron . world.nwsave`). */
+let initialWorldPath: string | null =
+  process.argv.slice(1).find((arg) => arg.endsWith('.nwsave')) ?? null;
+
 function registerIpc(): void {
+  ipcMain.handle(CHANNELS.initialWorldPath, () => {
+    const path = initialWorldPath;
+    initialWorldPath = null;
+    return path;
+  });
+
   ipcMain.handle(CHANNELS.chooseNewWorldPath, async (event, suggestedName: unknown) => {
     const owner = BrowserWindow.fromWebContents(event.sender);
     const options = {
@@ -163,5 +173,8 @@ void app.whenReady().then(() => {
   registerIpc();
   const window = createWindow();
   const smokeDir = process.env['NATIONWRIGHT_SMOKE_DIR'];
-  if (smokeDir !== undefined) runSmokeTest(window, smokeDir);
+  if (smokeDir !== undefined) {
+    if (process.env['NATIONWRIGHT_SMOKE_MODE'] === 'ui') runUiSmokeTest(window, smokeDir);
+    else runSmokeTest(window, smokeDir);
+  }
 });

@@ -2,7 +2,8 @@
 // Copyright (C) 2026 Nexxus Drako Multimedia
 
 import { useCallback, useEffect, useState } from 'react';
-import type { EngineEvent, WorldSummary } from '../shared/protocol.ts';
+import type { EngineEvent, MapData, WorldSummary } from '../shared/protocol.ts';
+import { MapScreen } from './map/MapScreen.tsx';
 import { About } from './About.tsx';
 import { api } from './api.ts';
 
@@ -36,6 +37,13 @@ export function App() {
       setBusy(null);
     }
   }, []);
+
+  // Open a world the app was launched with (double-clicked .nwsave).
+  useEffect(() => {
+    void api.initialWorldPath().then((path) => {
+      if (path !== null) void run('Opening world', () => api.request('world.open', { path }));
+    });
+  }, [run]);
 
   return (
     <div className="app">
@@ -163,45 +171,55 @@ function StartScreen({ run, disabled }: ScreenProps) {
 }
 
 function WorldScreen({ world, run, disabled }: ScreenProps & { readonly world: WorldSummary }) {
+  const [map, setMap] = useState<MapData | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .request('world.map', null)
+      .then((data) => {
+        if (!cancelled) setMap(data);
+      })
+      .catch((e: unknown) => {
+        if (!cancelled) setMapError(e instanceof Error ? e.message : String(e));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [world.path]);
+
   const advance = (months: number, label: string) =>
     void run(label, () => api.request('world.advance', { months }));
 
   return (
-    <section className="panel world">
-      <h2>{world.date}</h2>
-      <dl className="facts">
-        <dt>World seed</dt>
-        <dd>
-          <code>{world.seed}</code>
-        </dd>
-        <dt>Started</dt>
-        <dd>January {world.startYear}</dd>
-        <dt>Months simulated</dt>
-        <dd>{world.month}</dd>
-        <dt>Systems</dt>
-        <dd>
-          {world.systems.length === 0
-            ? 'none yet (world generation arrives in M1)'
-            : world.systems.join(', ')}
-        </dd>
-        <dt>Save file</dt>
-        <dd className="path">{world.path}</dd>
-      </dl>
-      <div className="actions">
-        <button type="button" onClick={() => advance(1, 'Advancing 1 month')} disabled={disabled}>
-          +1 month
-        </button>
-        <button type="button" onClick={() => advance(12, 'Advancing 1 year')} disabled={disabled}>
-          +1 year
-        </button>
-        <button
-          type="button"
-          onClick={() => advance(120, 'Advancing 10 years')}
-          disabled={disabled}
-        >
-          +10 years
-        </button>
+    <section className="world">
+      <div className="world-bar">
+        <div>
+          <h2>{world.date}</h2>
+          <p className="hint">
+            Seed <code>{world.seed}</code> · started January {world.startYear} · {world.month}{' '}
+            months simulated
+          </p>
+        </div>
+        <div className="actions">
+          <button type="button" onClick={() => advance(1, 'Advancing 1 month')} disabled={disabled}>
+            +1 month
+          </button>
+          <button type="button" onClick={() => advance(12, 'Advancing 1 year')} disabled={disabled}>
+            +1 year
+          </button>
+          <button
+            type="button"
+            onClick={() => advance(120, 'Advancing 10 years')}
+            disabled={disabled}
+          >
+            +10 years
+          </button>
+        </div>
       </div>
+      {mapError !== null && <p className="error">{mapError}</p>}
+      {map === null && mapError === null && <p className="busy">Loading the map…</p>}
+      {map !== null && <MapScreen map={map} />}
     </section>
   );
 }

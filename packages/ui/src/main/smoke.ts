@@ -54,3 +54,66 @@ export function runSmokeTest(window: BrowserWindow, dir: string): void {
       .catch(fail);
   });
 }
+
+/**
+ * UI smoke test: the app was launched with a world file; wait for the map, then step
+ * through each layer and a country profile, saving a screenshot of each into `dir`.
+ */
+export function runUiSmokeTest(window: BrowserWindow, dir: string): void {
+  const fail = (reason: unknown) => {
+    process.stdout.write(`SMOKE ${JSON.stringify({ ok: false, error: String(reason) })}\n`);
+    app.exit(1);
+  };
+  const timeout = setTimeout(() => fail('timed out after 90 s'), 90_000);
+  const js = <T>(code: string) => window.webContents.executeJavaScript(code) as Promise<T>;
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  const shot = async (name: string) => {
+    const image = await window.webContents.capturePage();
+    writeFileSync(join(dir, `${name}.png`), image.toPNG());
+    return name;
+  };
+  const clickButton = (text: string) =>
+    js<boolean>(`(() => {
+      const b = [...document.querySelectorAll('button')].find((x) => x.textContent.trim() === ${JSON.stringify(text)});
+      if (!b) return false;
+      b.click();
+      return true;
+    })()`);
+
+  window.webContents.once('did-finish-load', () => {
+    void (async () => {
+      for (let i = 0; i < 120; i++) {
+        if (await js<boolean>(`!!document.querySelector('.map-legend')`)) break;
+        await wait(500);
+      }
+      if (!(await js<boolean>(`!!document.querySelector('.map-canvas')`)))
+        throw new Error('map never appeared');
+      await wait(800);
+      const shots: string[] = [await shot('map-political')];
+      for (const [button, name] of [
+        ['Physical', 'map-physical'],
+        ['Statistics', 'map-statistics'],
+      ] as const) {
+        if (!(await clickButton(button))) throw new Error(`no ${button} button`);
+        await wait(800);
+        shots.push(await shot(name));
+      }
+      await clickButton('Table');
+      await wait(300);
+      await js(`document.querySelector('.country-table tbody button')?.click()`);
+      await wait(800);
+      shots.push(await shot('map-profile'));
+      const countries = await js<number>(
+        `document.querySelectorAll('.country-table tbody tr').length`,
+      );
+      const profile = await js<string | null>(
+        `document.querySelector('.country-panel h3')?.textContent ?? null`,
+      );
+      clearTimeout(timeout);
+      process.stdout.write(
+        `SMOKE ${JSON.stringify({ ok: true, result: { shots, countries, profile } })}\n`,
+      );
+      app.quit();
+    })().catch(fail);
+  });
+}

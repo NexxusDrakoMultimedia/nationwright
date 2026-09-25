@@ -6,7 +6,7 @@
  * free of Electron imports so it can be tested in plain Node.
  */
 
-import { WorldSession, type Ruleset } from '@nationwright/app';
+import { guidingFor, WorldSession, type Ruleset } from '@nationwright/app';
 import {
   dateOfTick,
   describeSeedError,
@@ -23,6 +23,20 @@ import type {
   ToEngine,
   WorldSummary,
 } from '../shared/protocol.ts';
+
+/** Statistics sent with the map (profile panel and choropleth layers). */
+export const MAP_STATS = [
+  'population.total',
+  'economy.gdp_per_capita_ppp',
+  'economy.gdp_nominal',
+  'population.life_expectancy',
+  'population.tfr',
+  'population.median_age',
+  'population.urban_share',
+  'communications.internet_users',
+  'education.literacy',
+  'military.expenditure_share',
+] as const;
 
 export interface HostOptions {
   readonly ruleset?: Ruleset;
@@ -119,6 +133,68 @@ export class EngineHost {
     },
 
     'world.summary': () => (this.#session === null ? null : this.#summary()),
+
+    'world.map': () => {
+      const engine = this.#requireSession().engine;
+      const generated = engine.generated;
+      if (generated === undefined) throw new Error('This world has no map.');
+      const slice = engine.world.slices.world;
+      const guiding = guidingFor(engine.world.meta.startYear);
+      const { grid, terrain, hydrology, owner, population } = generated.map;
+      const { ethnicGroups, faiths, languages } = generated.cultures;
+      const top = (groups: readonly { id: number; share: number }[], names: readonly string[]) =>
+        [...groups]
+          .sort((a, b) => b.share - a.share)
+          .slice(0, 4)
+          .map((g) => [names[g.id] ?? '?', g.share] as const);
+      const capitalName = new Map(
+        generated.cities.filter((c) => c.capital).map((c) => [c.country, c.name]),
+      );
+      return {
+        width: grid.width,
+        height: grid.height,
+        count: grid.count,
+        x: grid.x,
+        y: grid.y,
+        land: terrain.land,
+        biome: terrain.biome,
+        river: hydrology.river,
+        lake: hydrology.lake,
+        elevation: terrain.elevation,
+        owner,
+        population,
+        cellArea: (grid.width * grid.height) / grid.count,
+        countries: generated.countries.map((c) => {
+          const state = slice?.countries[c.id];
+          const stats = state?.stats ?? c.nation.stats;
+          return {
+            id: c.id,
+            name: state?.name ?? c.name,
+            demonym: state?.demonym ?? c.demonym,
+            capital: capitalName.get(c.id) ?? '?',
+            capitalCell: c.capitalCell,
+            archetype: guiding.archetypes[c.nation.archetype]?.label ?? '?',
+            government: state?.governmentCategory ?? c.nation.governmentCategory,
+            continent: c.continent,
+            neighbors: c.neighbors,
+            island: c.island,
+            landlocked: c.landlocked,
+            areaKm2: c.mapAreaKm2,
+            stats: Object.fromEntries(MAP_STATS.map((id) => [id, stats[id] ?? Number.NaN])),
+            ethnicGroups: top(c.culture.ethnic, ethnicGroups),
+            religions: top(c.culture.religions, faiths),
+            languages: top(c.culture.languages, languages),
+          };
+        }),
+        cities: generated.cities.map((c) => ({
+          name: c.name,
+          cell: c.cell,
+          country: c.country,
+          population: c.population,
+          capital: c.capital,
+        })),
+      };
+    },
 
     'world.close': () => {
       this.shutdown();
