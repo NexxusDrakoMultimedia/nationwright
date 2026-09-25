@@ -100,13 +100,14 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | Command | What it does |
 |---|---|
 | `npm install` | Install all workspace dependencies |
-| `npm run check` | Everything CI runs: typecheck, lint, format check, tests |
+| `npm run check` | Everything CI runs: typecheck, lint, format check, tests, license check |
 | `npm run typecheck` | `tsc` over all packages (no emit) |
 | `npm run lint` | ESLint, including the engine determinism rules |
 | `npm run format` / `format:check` | Prettier (Markdown is excluded on purpose) |
 | `npm test` / `npm run test:watch` | Vitest |
 | `npx vitest run -u` | Update snapshots. Only do this deliberately: the stream golden master pins every world |
 
+| `npm run licenses` | Fail on any installed package whose license isn't GPL-3.0-or-later compatible |
 | `npm run data:fetch` | Clone factbook.json at the pinned commit into `packages/reference-data/.cache/` |
 | `npm run data:build -- --target-year 2026` | Rebuild `packages/reference-data/data/` (review `report-<year>.md` in the diff) |
 

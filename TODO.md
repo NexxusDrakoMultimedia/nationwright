@@ -9,7 +9,7 @@ off as they land; add new ones as work reveals them.
 ### Repository & tooling
 - [x] Choose a project license: GPLv3 or later (`GPL-3.0-or-later`), © Nexxus Drako Multimedia, full text in `LICENSE`
 - [x] Set `"license": "GPL-3.0-or-later"` in every `package.json` (root, engine; keep doing it for new packages)
-- [ ] Add a dependency-license check to CI
+- [x] Dependency-license check (`npm run licenses`, in CI and `npm run check`)
 - [ ] Show the license and source-code link in the app's About/credits screen
 - [x] npm workspaces monorepo (`packages/*`); `packages/engine` created
 - [ ] Remaining packages as they're built: `app`, `ui`, `cli`, `reference-data`; `content/`
