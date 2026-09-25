@@ -4,6 +4,13 @@ Working task list, organized by the milestones in [DESIGN.md §11](DESIGN.md#11-
 Each milestone ends with a playable build and updated golden-master tests. Check items
 off as they land; add new ones as work reveals them.
 
+## Design backlog
+Topics DESIGN.md doesn't cover yet. Each needs user decisions (new `D<n>` rows) before
+it lands in a milestone.
+
+- [ ] Fog of war and intelligence: what the player can see about foreign countries and
+      how accurate it is, and intelligence gathering. Must respect D15 and D16.
+
 ## M0 — Skeleton
 
 ### Repository & tooling
