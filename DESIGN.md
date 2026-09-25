@@ -417,7 +417,15 @@ budget and debt, trade balance, unemployment.
   every country's exports and imports match its statistics. Flows are recomputed each
   December from nominal GDP and price levels, not stored; each country's export and
   import shares follow them, and half of the change in the player's net exports moves
-  its output gap. Tariffs and relations join in M4, commodities below.)* Foreign direct investment adds to capital stock;
+  its output gap. Tariffs and relations join in M4.)* *(Commodities, M3: world prices
+  per commodity move yearly, AR(1) in logs with occasional spikes. A country's rents are
+  its deposits × unit values × prices × remaining reserves (1% depletion a year); unit
+  values make world rents 2.5% of world GDP at the start (oil 45%, gas 20%, coal 10%,
+  ores 18%, precious metals 7%), and each country's starting rent share saturates as
+  x / (1 + x / 0.5). Price swings are terms-of-trade windfalls: for the player they add
+  to nominal GDP, 40% of them to government revenue as royalties, and half of each
+  month's change to demand; for foreign countries they add to nominal GDP and a third to
+  real income.)* Foreign direct investment adds to capital stock;
   remittances flow in or out with the diaspora.
 - **Exchange rate:** a managed float against a world reference currency, driven by the
   trade balance, inflation gap, and interest-rate gap.
@@ -988,8 +996,13 @@ A 2D world on a plane that wraps east–west:
 4. **Hydrology:** priority-flood depression filling from the sea, rainfall accumulated
    downstream → rivers (wettest 7% of land cells) and lakes (filled depressions).
 5. **Habitability:** per-cell score (biome, temperature, moisture, height, coast, river)
-   → where people live and where capitals and cities go. Resource deposits are not yet
-   placed (M3, with the economy).
+   → where people live and where capitals and cities go. **Resource deposits**
+   (generator v5, stream `worldgen/resources`): oil, gas, coal, metal ores, and precious
+   metals. Each commodity has a clustered noise field masked by where it forms
+   (hydrocarbons in lowland and coastal basins, coal in temperate interiors, ores and
+   precious metals in high ground, precious metals also in hills), with thresholds
+   giving it a fixed share of land cells (3.5%, 3%, 3.5%, 4.5%, 2.5%; tuned, not from
+   data); each cell holds at most one deposit, with richness 0.2–1.2.
 6. **Countries:** first ≈ 20% of capitals go alone on small landmasses (island nations);
    the rest spread over the remaining land, weighted to habitable and coastal cells.
    Nearest-capital regions give a provisional neighbour graph, used to pick archetypes

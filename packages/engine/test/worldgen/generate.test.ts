@@ -44,6 +44,8 @@ function fingerprint(world: GeneratedWorld): string {
     Buffer.from(map.hydrology.river.buffer).toString('base64'),
     Buffer.from(map.owner.buffer).toString('base64'),
     Buffer.from(map.province.buffer).toString('base64'),
+    Buffer.from(map.resources.kind.buffer).toString('base64'),
+    Buffer.from(map.resources.richness.buffer).toString('base64'),
     JSON.stringify(world.countries),
     JSON.stringify(world.cities),
   ];
@@ -60,10 +62,10 @@ describe('generateWorld', () => {
     expect(fingerprint(worlds[1]!)).not.toBe(fingerprint(worlds[0]!));
   });
 
-  // Golden master: pins generator v4. If this changes, bump GENERATOR_VERSION and update.
-  it('matches the golden master for generator v4', () => {
-    expect(GENERATOR_VERSION).toBe(4);
-    expect(fingerprint(worlds[0]!)).toMatchInlineSnapshot(`"854dabccd510948d"`);
+  // Golden master: pins generator v5. If this changes, bump GENERATOR_VERSION and update.
+  it('matches the golden master for generator v5', () => {
+    expect(GENERATOR_VERSION).toBe(5);
+    expect(fingerprint(worlds[0]!)).toMatchInlineSnapshot(`"20e7c5284868ef49"`);
   });
 
   it.each(SEEDS.map((s, i) => [s, i] as const))('builds a consistent world for %s', (_, i) => {

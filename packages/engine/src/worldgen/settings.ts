@@ -4,7 +4,7 @@
 /** World generator settings (DESIGN.md §4.12). Defaults describe an Earth-like world. */
 
 /** Bump whenever generator output for a given seed and settings changes. */
-export const GENERATOR_VERSION = 4;
+export const GENERATOR_VERSION = 5;
 
 /** Map size in kilometres (an equirectangular plane that wraps east–west). */
 export const MAP_WIDTH_KM = 40_000;

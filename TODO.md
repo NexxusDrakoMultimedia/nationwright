@@ -100,7 +100,7 @@ off as they land; add new ones as work reveals them.
 - [x] Map cells: jittered hex lattice + Delaunay adjacency, wrapping east–west
 - [x] Elevation (warped continent cores, archipelagos, ridges), exact land fraction
 - [x] Climate → biomes; priority-flood hydrology → rivers/lakes; habitability
-- [ ] Resource deposits (with the economy, M3)
+- [x] Resource deposits (done in M3, generator v5)
 - [x] Countries: island capitals, archetype priors, room matching, cost-weighted growth
 - [x] Continents, subregions, provinces (farthest-point seeds), cities (Zipf)
 - [x] Sea lanes and distance graph (done in M3)
@@ -167,7 +167,8 @@ off as they land; add new ones as work reveals them.
 - [x] Sea lanes and transport distances between countries (ports, shortest ocean routes)
 - [x] Trade: gravity model over every pair, fitted to each country's exports and imports;
       the player's trade shares and net exports feed its economy
-- [ ] Resource deposits and commodities (world prices, commodity exports)
+- [x] Resource deposits and commodities: world prices, rents with depletion, windfalls
+      to income, royalties, and demand
 - [ ] Capital flows (FDI) and international migration channels (bilateral, diaspora,
       remittances), replacing the interim net migration rate
 - [ ] Economic survey, budget, world comparison reports; flows map layer

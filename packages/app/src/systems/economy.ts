@@ -41,6 +41,8 @@ export interface EconomyYear {
 
 export interface EconomySlice {
   state: EconomyState;
+  /** Resource rents as a share of GDP at the start (fraction), from the world. */
+  readonly rentShare: number;
   year: EconomyYear;
 }
 
@@ -81,6 +83,7 @@ export const ECONOMY_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('economy.exports_share_gdp', '% of GDP', 'Exports'),
   indicator('economy.imports_share_gdp', '% of GDP', 'Imports'),
   indicator('economy.trade_balance_share', '% of GDP', 'Exports minus imports'),
+  indicator('economy.resource_rents_share', '% of GDP', 'Natural resource rents'),
   indicator('economy.labor_force', 'people', 'Labour force'),
   indicator('economy.labor_participation', '% of people 15+', 'Labour force participation'),
   indicator('economy.employment', 'people', 'People in work'),
@@ -143,6 +146,7 @@ function recordAnnual(
   record('economy.exports_share_gdp', s.exportsShare);
   record('economy.imports_share_gdp', s.importsShare);
   record('economy.trade_balance_share', s.exportsShare - s.importsShare);
+  record('economy.resource_rents_share', 100 * (slice.rentShare + s.resourceWindfall));
   record('economy.labor_force', laborForce);
   record('economy.labor_participation', labor.adults > 0 ? (100 * laborForce) / labor.adults : 0);
   record('economy.employment', employed);
@@ -165,7 +169,7 @@ export const economySystem = defineSystem({
     // Trade shares come from the world's gravity model (fitted to these statistics).
     state.exportsShare = world.trade.playerExportsShare;
     state.importsShare = world.trade.playerImportsShare;
-    return { state, year: freshYear(state) };
+    return { state, year: freshYear(state), rentShare: world.commodities.playerRentShare };
   },
   step(ctx, slice) {
     const demography = ctx.world.slices.demography;
@@ -174,6 +178,16 @@ export const economySystem = defineSystem({
     const add = (target: string) => ctx.resolve(target, 'nation', 0).value;
     // New trade shares from the world (updated each December) move demand: half of the
     // change in net exports (points of GDP) shows up in the output gap.
+    // Commodity prices: rents above or below their starting share are a windfall on
+    // nominal GDP and royalties, and half of each month's change moves demand.
+    const commodities = ctx.world.slices.world?.commodities;
+    let windfallImpulse = 0;
+    if (commodities !== undefined) {
+      const growth = slice.state.startGdp / Math.max(1, realGdp(slice.state));
+      const windfall = slice.rentShare * (commodities.playerRentIndex - 1) * growth;
+      windfallImpulse = 0.5 * (windfall - slice.state.resourceWindfall);
+      slice.state.resourceWindfall = windfall;
+    }
     const trade = ctx.world.slices.world?.trade;
     let tradeImpulse = 0;
     if (trade !== undefined) {
@@ -192,7 +206,7 @@ export const economySystem = defineSystem({
         investmentShare: add('economy.investment_share'),
         participation: add('economy.participation'),
         naturalUnemployment: add('economy.natural_unemployment'),
-        demandShock: add('economy.demand_shock') + tradeImpulse,
+        demandShock: add('economy.demand_shock') + tradeImpulse + windfallImpulse,
       },
       normal(ctx.stream('cycle')),
     );

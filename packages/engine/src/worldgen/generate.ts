@@ -45,6 +45,7 @@ import {
   validateSettings,
   type GeneratorSettings,
 } from './settings.ts';
+import { generateResources, type Resources } from './resources.ts';
 import { generateClimate, generateElevation, type Terrain } from './terrain.ts';
 
 export interface GeneratedCountry {
@@ -76,6 +77,7 @@ export interface WorldMapLayers {
   readonly owner: Int32Array;
   readonly province: Int32Array;
   readonly population: Float64Array;
+  readonly resources: Resources;
 }
 
 export interface GeneratedWorld {
@@ -120,6 +122,7 @@ export function generateWorld(
   );
   const terrain = generateClimate(grid, elevation, land, settings, stream('climate'));
   const hydrology = generateHydrology(grid, terrain);
+  const resources = generateResources(grid, terrain, stream('resources'));
   const habitability = computeHabitability(grid, terrain, hydrology);
   const { id: landmass, sizes: landmassSizes } = findLandmasses(grid, land);
 
@@ -277,7 +280,17 @@ export function generateWorld(
     generatorVersion: GENERATOR_VERSION,
     guidingModelVersion: guiding.modelVersion,
     settings,
-    map: { grid, terrain, hydrology, habitability, landmass, owner, province, population },
+    map: {
+      grid,
+      terrain,
+      hydrology,
+      habitability,
+      landmass,
+      owner,
+      province,
+      population,
+      resources,
+    },
     countries,
     cities: namedCities,
     provinceNames,

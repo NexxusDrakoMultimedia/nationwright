@@ -93,6 +93,8 @@ export function storeWorld(world: GeneratedWorld): StoredWorld {
     owner: layer(map.owner),
     province: layer(map.province),
     population: layer(map.population),
+    'resources.kind': layer(map.resources.kind),
+    'resources.richness': layer(map.resources.richness),
   };
   const json = JSON.stringify({
     generatorVersion: world.generatorVersion,
@@ -145,6 +147,10 @@ export function loadWorld(stored: StoredWorld): GeneratedWorld {
       owner: get<Int32Array>('owner'),
       province: get<Int32Array>('province'),
       population: get<Float64Array>('population'),
+      resources: {
+        kind: get<Uint8Array>('resources.kind'),
+        richness: get<Float32Array>('resources.richness'),
+      },
     },
   };
 }

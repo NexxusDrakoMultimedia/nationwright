@@ -12,17 +12,27 @@
 
 import {
   cohortsOf,
+  capEndowment,
+  COMMODITIES,
+  createMarket,
   defineSystem,
+  endowments,
+  ECONOMY_TUNING,
   exportsOf,
   fitTrade,
   importsOf,
   initForeign,
+  prices,
+  rentIndex,
+  rents,
+  stepMarket,
   tradeFlows,
   tradeGeography,
   realGdp,
   sectorShares,
   stepForeign,
   summarize,
+  type CommodityMarket,
   type CountryCulture,
   type ForeignState,
   type IndicatorDefinition,
@@ -58,9 +68,20 @@ export interface WorldTrade {
   playerImportsShare: number;
 }
 
+export interface WorldCommodities {
+  market: CommodityMarket;
+  /** Deposit richness per commodity for each country (scaled so rent shares saturate). */
+  readonly endowments: number[][];
+  /** The player's real rent index (1 at the start), as of last December. */
+  playerRentIndex: number;
+  /** The player's resource rents as a share of GDP at the start (fraction). */
+  readonly playerRentShare: number;
+}
+
 export interface WorldSlice {
   countries: CountryState[];
   trade: WorldTrade;
+  commodities: WorldCommodities;
   /**
    * The player's country. Until the creation wizard (M9) lets the player choose, it is
    * drawn at random from the world's countries (stream `init/world/player`).
@@ -105,6 +126,13 @@ export const WORLD_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('world.trade', 'USD', 'World exports (reference currency)'),
   indicator('trade.exports_to', 'USD', 'Your exports to a country (country scopes)'),
   indicator('trade.imports_from', 'USD', 'Your imports from a country (country scopes)'),
+  ...COMMODITIES.map((c) =>
+    indicator(
+      `commodity.${c.replace(/ /g, '_')}_price`,
+      'index',
+      `World ${c} price (1 at the start, in start-year prices)`,
+    ),
+  ),
   ...COUNTRY_SERIES.map(([id, , unit, description]) =>
     indicator(id, unit, `${description} (country scopes)`),
   ),
@@ -183,7 +211,27 @@ export const worldSystem = defineSystem({
     );
     const flows = tradeFlows(model, inputs);
     const playerGdp = inputs.gdp[playerCountry] as number;
+
+    // Resource deposits and the commodity market.
+    const raw = endowments(
+      generated.map.resources,
+      generated.map.owner,
+      generated.countries.length,
+    );
+    const market = createMarket(
+      raw,
+      inputs.gdp.reduce((a, b) => a + b, 0),
+    );
+    const capped = raw.map((e, k) => capEndowment(market, e, inputs.gdp[k] as number));
+    const rentShare = (k: number) =>
+      rents(market, capped[k] as number[]) / (inputs.gdp[k] as number);
     return {
+      commodities: {
+        market,
+        endowments: capped,
+        playerRentIndex: 1,
+        playerRentShare: rentShare(playerCountry),
+      },
       trade: {
         distances: geography.distances,
         ports: geography.ports,
@@ -198,7 +246,7 @@ export const worldSystem = defineSystem({
         demonym: c.demonym,
         archetype: c.nation.archetype,
         governmentCategory: c.nation.governmentCategory,
-        stats: { ...c.nation.stats },
+        stats: { ...c.nation.stats, 'economy.resource_rents_share': 100 * rentShare(c.id) },
         culture: c.culture,
         model: c.id === playerCountry ? null : initForeign(c.nation.stats),
       })),
@@ -209,17 +257,38 @@ export const worldSystem = defineSystem({
     if (!ctx.cadences.annual) return;
     const demography = ctx.world.slices.demography as DemographySlice | undefined;
     const economy = ctx.world.slices.economy as EconomySlice | undefined;
+    const { market, endowments: endowment } = slice.commodities;
+    const rentsBefore = slice.countries.map((c) => rents(market, endowment[c.id] as number[]));
+    stepMarket(market, ctx.stream('commodities'), ECONOMY_TUNING.worldInflation);
     for (const country of slice.countries) {
+      const k = country.id;
       if (country.model === null) {
         country.stats = playerStats(country.stats, demography, economy);
-      } else {
-        country.stats = stepForeign(
-          country.model,
-          country.stats,
-          ctx.stream(`country/${country.id}`),
-        );
+        continue;
       }
+      const before = country.stats;
+      const stepped = stepForeign(country.model, before, ctx.stream(`country/${k}`));
+      // Commodity windfall: rents beyond what growth alone would bring. It adds to
+      // nominal GDP, and a third of it to real income per person.
+      const oldGdp = Math.max(1, before['economy.gdp_nominal'] ?? 1);
+      const newGdp = Math.max(1, stepped['economy.gdp_nominal'] ?? oldGdp);
+      const now = rents(market, endowment[k] as number[]);
+      const windfall = now - (rentsBefore[k] as number) * (newGdp / oldGdp);
+      const gdpNominal = Math.max(1, newGdp + windfall);
+      const perPerson = stepped['economy.gdp_per_capita_ppp'] ?? 0;
+      country.stats = {
+        ...stepped,
+        'economy.gdp_nominal': gdpNominal,
+        'economy.gdp_per_capita_ppp': perPerson * (1 + windfall / newGdp / 3),
+        'economy.resource_rents_share': (100 * now) / gdpNominal,
+      };
     }
+    const playerEndowment = endowment[slice.playerCountry] as number[];
+    slice.commodities.playerRentIndex = rentIndex(market, playerEndowment);
+    const price = prices(market);
+    COMMODITIES.forEach((c, i) =>
+      ctx.record(`commodity.${c.replace(/ /g, '_')}_price`, 'nation', price[i] as number),
+    );
     // Trade follows this year's GDP and prices.
     const flows = currentTrade(slice);
     const player = slice.playerCountry;

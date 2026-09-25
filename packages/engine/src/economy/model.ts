@@ -14,6 +14,7 @@
  */
 
 import { detExp, detLog } from '../random/detmath.ts';
+import { COMMODITY_TUNING } from '../world/commodities.ts';
 import type { NationStats } from '../worldgen/nation-stats.ts';
 
 export const SECTORS = ['agriculture', 'industry', 'services', 'public'] as const;
@@ -144,6 +145,12 @@ export interface EconomyState {
   /** Nominal GDP, revenues, spending, and interest over the last month, annualized. */
   nominalGdp: number;
   interest: number;
+  /**
+   * Resource windfall: rents above or below their starting share, as a fraction of GDP
+   * (set by the caller from world commodity prices). It adds to nominal GDP and, through
+   * royalties, to government revenue.
+   */
+  resourceWindfall: number;
   /** Deviation of sector output shares from their income targets at the start (decays). */
   structuralOffset: number[];
 }
@@ -320,6 +327,7 @@ export function calibrateEconomy(stats: NationStats, labor: LaborInputs): Econom
     ),
     nominalGdp,
     interest: (debtShare / 100) * nominalGdp * (debtRate / 100),
+    resourceWindfall: 0,
     structuralOffset: outputShares.map((s, k) => 100 * s - (targets[k] as number)),
   };
 }
@@ -434,7 +442,7 @@ export function stepEconomy(
     (previousLevel / state.priceLevel);
 
   // Public finance (annualized flows in the reference currency).
-  state.nominalGdp = gdp * state.priceLevel * state.worldPrices;
+  state.nominalGdp = gdp * state.priceLevel * state.worldPrices * (1 + state.resourceWindfall);
   const debtShare = (100 * state.debt) / Math.max(1, state.nominalGdp);
   const marketRate =
     state.interestRate -
@@ -450,7 +458,9 @@ export function stepEconomy(
   state.primarySpendingShare +=
     (Math.max(0, target) - state.primarySpendingShare) / T.fiscalAdjustmentMonths;
   const primarySpendingShare = Math.max(0, state.primarySpendingShare + policy.spendingShare);
-  const revenue = (revenueShare / 100) * state.nominalGdp;
+  const revenue =
+    (revenueShare / 100) * state.nominalGdp +
+    COMMODITY_TUNING.royaltyShare * state.resourceWindfall * state.nominalGdp;
   state.interest = state.debt * (state.debtRate / 100);
   const spending = (primarySpendingShare / 100) * state.nominalGdp + state.interest;
   const balance = revenue - spending;
