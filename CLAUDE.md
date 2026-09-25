@@ -137,6 +137,11 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run ui:smoke -- --ui <world.nwsave> --out <dir>` | Open a world in the app and screenshot each map layer, a profile, and the census |
 | `npm run ui:package -- --linux AppImage` | Build an installer into `packages/ui/dist/` |
 
+Never combine file edits (scripts, `sed`, `python`) with long-running commands
+(`npm run check`, `ui:build`, `ui:smoke`, validation scripts) in one shell command: make
+the edits, then run each long command separately, so a cancelled command never leaves
+edits applied but unchecked.
+
 Run `npm run check` before every commit. After adding or changing any `package.json`
 (including a new workspace package), run `npm install` and commit `package-lock.json`, or
 CI's `npm ci` fails. After touching `packages/ui/src/{main,preload,worker}`, also run
