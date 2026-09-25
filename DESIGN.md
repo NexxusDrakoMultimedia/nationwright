@@ -1,6 +1,6 @@
 # Nationwright — Design Document
 
-> Status: **Draft v0.9** · Last updated: 2026-09-25
+> Status: **Draft v0.10** · Last updated: 2026-09-25
 >
 > This document describes what Nationwright is, how the simulation works, and how the
 > software is structured. Settled decisions are listed in §0. Remaining open
@@ -36,6 +36,7 @@
 | D21 | Civilian targeting | **Allowed, for the player and the AI alike, with no opt-in setting.** Wars can deliberately target civilians through aggregate war policies (strike targeting, blockade scope, occupation policy). Civilian harm is also still an incidental outcome of fighting. Both carry diplomatic, legal, political, and demographic consequences. *(Replaces D16.)* | §4.11.3 |
 | D22 | Fog of war & intelligence | **Foreign countries are seen through intelligence estimates,** not true values. Every country (the player's included) has an intelligence service; knowledge of each other country depends on collection, access, and the target's openness and counterintelligence. The foreign-policy AI decides on its own estimates too. Covert operations exist and can be exposed | §4.13 |
 | D23 | Visible seeds | **None.** Seeds stay internal (determinism, replay, branching, tests). The player never sees, copies, or enters one; every new world is random, and a world is shared by sharing its save file. Generator and guiding-model changes alter what a seed produces, so seeds were never a durable way to share worlds | §3.3, §4.12, §8 |
+| D24 | Release versioning | **Semantic Versioning 2.0.0** (`MAJOR.MINOR.PATCH`) for released builds, **not in use until the first full-featured release** (v1, after M9). Until then every package stays at `0.0.0` and CI installers are unversioned development builds. Internal counters (`generator_version`, `schema_version`, `ruleset_version`, guiding-variables version) stay separate and are unaffected | §9, §11 |
 
 ---
 
@@ -1543,6 +1544,20 @@ Determinism notes for TypeScript:
   snapshot and guiding variables ship as read-only app resources. CI builds the Linux
   AppImage and the Windows NSIS installer, smoke-tests each packaged app, and keeps the
   (unsigned) installers as workflow artifacts; macOS is not built in CI yet.
+- Versioning (D24): released builds will follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html),
+  **starting with the first full-featured release** (v1, after M9). Until then nothing
+  is versioned: every `package.json` stays at `0.0.0`, no release tags are made, and CI
+  installers are development builds. From v1, the app's version is one number shared by
+  all packages and the installers:
+  - **MAJOR:** an incompatible change for players or modders: saves that can no longer
+    be opened or migrated, or content-pack formats that break existing packs.
+  - **MINOR:** new features and content that stay compatible; older saves still open
+    (migrating on load, §6.3).
+  - **PATCH:** fixes and balance tweaks that stay compatible.
+
+  The internal counters (`generator_version`, `schema_version`, `ruleset_version`, the
+  guiding-variables version) keep their own numbering; bumping one does not by itself
+  make a release MAJOR.
 - The same engine package runs in plain Node for the CLI batch runner and tests.
 
 Performance fallback: there is no performance target yet (D19). If measurements later
@@ -1717,7 +1732,7 @@ screen still acknowledges the CIA World Factbook and the factbook.json project.
 | **M6 — Education & Infrastructure** | Education pipeline, human capital link, infrastructure assets and projects, war damage and repair; infrastructure map layer |
 | **M7 — Events & Chronicle** | Data-driven event engine, choices, modifier registry with explanations, yearbook |
 | **M8 — Sports** | Sports/leagues/teams data model, match engine, seasons, international competitions, almanac |
-| **M9 — Creation Wizard & Polish** | Nation creation flow (world reroll with live map preview, slot placement, archetype profiles, plausibility review), overseer autopilot, dashboards, world atlas, exports, comparative views, attribution screen, installers, onboarding |
+| **M9 — Creation Wizard & Polish** | Nation creation flow (world reroll with live map preview, slot placement, archetype profiles, plausibility review), overseer autopilot, dashboards, world atlas, exports, comparative views, attribution screen, installers, onboarding. First versioned release, 1.0.0 (D24) |
 | **v1.x** | More electoral systems, named athletes, branching timelines UI, modding docs |
 
 Each milestone ends with a playable build and updated golden-master tests.

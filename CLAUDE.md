@@ -15,7 +15,7 @@ current as scripts are added.
 
 ## Source of truth
 
-- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D23)**
+- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D24)**
   records settled choices.
 - **GOALS.md** says why and what. **TODO.md** is the working task list.
 - **Never reverse or reinterpret a logged decision on your own.** If a task seems to
@@ -61,6 +61,11 @@ current as scripts are added.
   intelligence estimates. The AI must decide on its estimates, not true state, and the
   renderer receives only the player's view outside sandbox mode.
 - **Current year only (D7):** no historical start dates and no era system.
+- **Versioning (D24):** released builds will use Semantic Versioning 2.0.0, but **not
+  until the first full-featured release** (v1, after M9). Until then keep every
+  `package.json` at `0.0.0`, don't tag releases, and treat CI installers as unversioned
+  development builds. `generator_version`, `schema_version`, and `ruleset_version` are
+  separate internal counters: keep bumping them as required.
 - **Culture tracking (D14):** ethnicity × religion × language is one joint
   distribution per cohort cell, stored sparsely. Associations are randomized per
   country from the seed.
