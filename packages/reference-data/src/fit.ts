@@ -7,10 +7,14 @@
  *
  * Model: a Gaussian mixture copula.
  *  - Marginals: each variable's real distribution across states, as 101 percentiles.
- *  - Normal scores: z = Φ⁻¹((rank − ½)/n) per variable; missing values are imputed by
- *    conditional-Gaussian EM.
- *  - Archetypes: k-means clusters in z-space. Each has a weight and a mean vector; all
- *    share one pooled within-cluster covariance (stable with ~200 states).
+ *  - Normal scores: z = Φ⁻¹((rank − ½)/n) per variable, over the states that report it.
+ *  - Nothing is imputed. Every statistic is available-case: a state that doesn't report a
+ *    variable is left out of every calculation involving that variable (its percentiles,
+ *    archetype means, covariances, correlations, and clustering distances).
+ *  - Archetypes: k-means clusters in z-space (partial distances over reported values).
+ *    Each has a weight and a mean vector; all share one within-cluster covariance, set so
+ *    the mixture's total correlation equals the reporters-only correlation.
+ *  - Generated nations always get every variable (the sampler fills the whole vector).
  *  - Sampling (engine): pick an archetype, draw z ~ N(mean, covariance), map each
  *    component through Φ and the variable's percentile table.
  * Only aggregate statistics are written; no per-country records.
@@ -20,8 +24,6 @@ import {
   type Archetype,
   type GuidingVariable,
   type GuidingVariables,
-  cholesky,
-  choleskySolve,
   createStream,
   nearestPositiveDefinite,
   normalQuantile,
@@ -34,9 +36,8 @@ import type { ProjectedCountry } from './project.ts';
 import { quantile } from './stats.ts';
 
 /** Bump when the model or its output format changes. */
-export const GUIDING_MODEL_VERSION = 1;
+export const GUIDING_MODEL_VERSION = 2;
 export const ARCHETYPE_COUNT = 6;
-const EM_ITERATIONS = 40;
 const KMEANS_RESTARTS = 20;
 const KMEANS_ITERATIONS = 200;
 /** Earth's land fraction (not from the Factbook; used as the map generator default). */
@@ -285,48 +286,77 @@ export function fitGuidingVariables(
   });
 
   const scores = normalScores(raw, p);
-  const { completed } = emImpute(scores, p);
   const rng = createStream(0n, 'reference/archetypes');
-  const assignment = bestKMeans(completed, ARCHETYPE_COUNT, rng);
+  const assignment = bestKMeans(scores, ARCHETYPE_COUNT, rng);
   const ordered = orderClusters(
     assignment,
-    completed,
+    scores,
     MODEL_VARIABLES.findIndex((v) => v.id === 'economy.gdp_per_capita_ppp'),
   );
 
+  // Archetype means: per variable, over the members that report it. A cluster with no
+  // reporting member sits at the variable's overall centre (0).
   const k = ARCHETYPE_COUNT;
-  const means: Vector[] = Array.from({ length: k }, () => new Array<number>(p).fill(0));
   const counts = new Array<number>(k).fill(0);
-  completed.forEach((row, i) => {
-    const c = ordered[i] as number;
-    counts[c] = (counts[c] ?? 0) + 1;
-    row.forEach((x, j) => ((means[c] as Vector)[j] = ((means[c] as Vector)[j] as number) + x));
-  });
-  means.forEach((m, c) =>
-    m.forEach((_, j) => (m[j] = (m[j] as number) / Math.max(1, counts[c] as number))),
+  ordered.forEach((c) => (counts[c] = (counts[c] as number) + 1));
+  const means: Vector[] = Array.from({ length: k }, (_, c) =>
+    partialMean(scores.filter((_, i) => ordered[i] === c)),
   );
 
+  // Pooled within-cluster covariance, pairwise: entry (a, b) uses only states reporting
+  // both a and b, with their own degrees of freedom.
   const within = zeros(p, p);
-  completed.forEach((row, i) => {
-    const mu = means[ordered[i] as number] as Vector;
-    for (let a = 0; a < p; a++) {
-      for (let b = 0; b <= a; b++) {
-        (within[a] as Vector)[b] =
-          ((within[a] as Vector)[b] as number) +
-          ((row[a] as number) - (mu[a] as number)) * ((row[b] as number) - (mu[b] as number));
-      }
-    }
-  });
-  const dof = Math.max(1, states.length - k);
   for (let a = 0; a < p; a++) {
     for (let b = 0; b <= a; b++) {
-      const value = ((within[a] as Vector)[b] as number) / dof;
+      let sum = 0;
+      let n = 0;
+      const clusters = new Set<number>();
+      scores.forEach((row, i) => {
+        const x = row[a];
+        const y = row[b];
+        if (x === null || x === undefined || y === null || y === undefined) return;
+        const c = ordered[i] as number;
+        const mu = means[c] as Vector;
+        sum += (x - (mu[a] as number)) * (y - (mu[b] as number));
+        n++;
+        clusters.add(c);
+      });
+      const value = sum / Math.max(1, n - clusters.size);
       (within[a] as Vector)[b] = value;
       (within[b] as Vector)[a] = value;
     }
   }
-  const covariance = nearestPositiveDefinite(within, 1e-4);
-  const correlation = correlationOf(completed, p);
+  const correlation = pairwiseCorrelation(scores, p);
+
+  // Nations are drawn with archetype weights from all states, but a sparsely reported
+  // variable's reporters aren't spread across archetypes like all states are. Recentre and
+  // rescale each variable's archetype means so the weighted mixture has the reporters'
+  // mean (0) and variance (1): non-reporters can't pull the generated distribution.
+  const weights = counts.map((c) => c / states.length);
+  for (let j = 0; j < p; j++) {
+    const centre = means.reduce((s, m, c) => s + (weights[c] as number) * (m[j] as number), 0);
+    const between = means.reduce(
+      (s, m, c) => s + (weights[c] as number) * ((m[j] as number) - centre) ** 2,
+      0,
+    );
+    const target = Math.max(0, 1 - ((within[j] as Vector)[j] as number));
+    const scale = between > 0 ? Math.sqrt(target / between) : 1;
+    for (const m of means) m[j] = ((m[j] as number) - centre) * scale;
+  }
+
+  // The within-archetype covariance is whatever the reporters-only correlation leaves
+  // after the between-archetype part, so the mixture's total correlation matches it.
+  const total = zeros(p, p);
+  for (let a = 0; a < p; a++) {
+    for (let b = 0; b < p; b++) {
+      const between = means.reduce(
+        (s, m, c) => s + (weights[c] as number) * (m[a] as number) * (m[b] as number),
+        0,
+      );
+      (total[a] as Vector)[b] = ((correlation[a] as Vector)[b] as number) - between;
+    }
+  }
+  const covariance = nearestPositiveDefinite(total, 1e-4);
 
   const archetypes: Archetype[] = means.map((mean, c) => {
     const members = states.filter((_, i) => ordered[i] === c);
@@ -359,15 +389,20 @@ export function fitGuidingVariables(
     }
   });
   const neighborCorrelation = Object.fromEntries(
-    MODEL_VARIABLES.map((v, j) => [
-      v.id,
-      tidy(
-        pearson(
-          pairs.map(([a]) => (completed[a] as Vector)[j] as number),
-          pairs.map(([, b]) => (completed[b] as Vector)[j] as number),
+    MODEL_VARIABLES.map((v, j) => {
+      const both = pairs.filter(
+        ([a, b]) => (scores[a] as Score[])[j] != null && (scores[b] as Score[])[j] != null,
+      );
+      return [
+        v.id,
+        tidy(
+          pearson(
+            both.map(([a]) => (scores[a] as Score[])[j] as number),
+            both.map(([, b]) => (scores[b] as Score[])[j] as number),
+          ),
         ),
-      ),
-    ]),
+      ];
+    }),
   );
   const agreement =
     pairs.filter(([a, b]) => ordered[a] === ordered[b]).length / Math.max(1, pairs.length);
@@ -423,96 +458,66 @@ function normalScores(raw: readonly (number | null)[][], p: number): (number | n
   return out;
 }
 
-/** Conditional-Gaussian EM: fills missing normal scores with their conditional means. */
-function emImpute(scores: readonly (number | null)[][], p: number): { completed: Matrix } {
-  const n = scores.length;
-  const completed: Matrix = scores.map((row) => row.map((x) => x ?? 0));
-  let mean: Vector = new Array<number>(p).fill(0);
-  let cov: Matrix = correlationOf(completed, p);
-  for (let iter = 0; iter < EM_ITERATIONS; iter++) {
-    cov = nearestPositiveDefinite(cov, 1e-4);
-    const extra = zeros(p, p);
-    scores.forEach((row, i) => {
-      const missing = row.flatMap((x, j) => (x === null ? [j] : []));
-      if (missing.length === 0) return;
-      const obs = row.flatMap((x, j) => (x === null ? [] : [j]));
-      const soo = obs.map((a) => obs.map((b) => (cov[a] as Vector)[b] as number));
-      const l = cholesky(soo);
-      const resid = obs.map((j) => ((completed[i] as Vector)[j] as number) - (mean[j] as number));
-      const w = choleskySolve(l, resid);
-      for (const m of missing) {
-        let v = mean[m] as number;
-        obs.forEach((o, t) => (v += ((cov[m] as Vector)[o] as number) * (w[t] as number)));
-        (completed[i] as Vector)[m] = v;
-      }
-      // Conditional covariance of the missing block, added to the covariance estimate.
-      for (const a of missing) {
-        const sa = choleskySolve(
-          l,
-          obs.map((o) => (cov[a] as Vector)[o] as number),
-        );
-        for (const b of missing) {
-          let c = (cov[a] as Vector)[b] as number;
-          obs.forEach((o, t) => (c -= ((cov[b] as Vector)[o] as number) * (sa[t] as number)));
-          (extra[a] as Vector)[b] = ((extra[a] as Vector)[b] as number) + c;
-        }
-      }
-    });
-    mean = new Array<number>(p)
-      .fill(0)
-      .map((_, j) => completed.reduce((s, row) => s + (row[j] as number), 0) / n);
-    const next = zeros(p, p);
-    for (const row of completed) {
-      for (let a = 0; a < p; a++) {
-        for (let b = 0; b < p; b++) {
-          (next[a] as Vector)[b] =
-            ((next[a] as Vector)[b] as number) +
-            ((row[a] as number) - (mean[a] as number)) * ((row[b] as number) - (mean[b] as number));
-        }
-      }
+type Score = number | null;
+
+/** Per-column mean over the rows that report it (0 when none do). */
+function partialMean(rows: readonly (readonly Score[])[]): Vector {
+  const p = rows[0]?.length ?? 0;
+  return Array.from({ length: p }, (_, j) => {
+    let sum = 0;
+    let n = 0;
+    for (const row of rows) {
+      const x = row[j];
+      if (x === null || x === undefined) continue;
+      sum += x;
+      n++;
     }
-    cov = next.map((row, a) => row.map((x, b) => (x + ((extra[a] as Vector)[b] as number)) / n));
-  }
-  return { completed };
+    return n === 0 ? 0 : sum / n;
+  });
 }
 
-function correlationOf(data: Matrix, p: number): Matrix {
-  const n = data.length;
-  const mean = new Array<number>(p)
-    .fill(0)
-    .map((_, j) => data.reduce((s, r) => s + (r[j] as number), 0) / n);
-  const cov = zeros(p, p);
-  for (const row of data) {
-    for (let a = 0; a < p; a++) {
-      for (let b = 0; b < p; b++) {
-        (cov[a] as Vector)[b] =
-          ((cov[a] as Vector)[b] as number) +
-          ((row[a] as number) - (mean[a] as number)) * ((row[b] as number) - (mean[b] as number));
-      }
+/** Pearson correlation of every pair of columns over the rows reporting both. */
+function pairwiseCorrelation(scores: readonly (readonly Score[])[], p: number): Matrix {
+  const out = zeros(p, p);
+  for (let a = 0; a < p; a++) {
+    (out[a] as Vector)[a] = 1;
+    for (let b = 0; b < a; b++) {
+      const both = scores.filter((r) => r[a] != null && r[b] != null);
+      const r = pearson(
+        both.map((row) => row[a] as number),
+        both.map((row) => row[b] as number),
+      );
+      (out[a] as Vector)[b] = r;
+      (out[b] as Vector)[a] = r;
     }
   }
-  return cov.map((row, a) =>
-    row.map(
-      (x, b) =>
-        x / Math.sqrt(((cov[a] as Vector)[a] as number) * ((cov[b] as Vector)[b] as number)),
-    ),
-  );
+  return out;
 }
 
-function squaredDistance(a: Vector, b: Vector): number {
+/**
+ * Squared distance over the columns the state reports, rescaled to all p columns so
+ * states with gaps are comparable (partial distance strategy).
+ */
+function squaredDistance(x: readonly Score[], center: Vector): number {
   let s = 0;
-  for (let j = 0; j < a.length; j++) {
-    const d = (a[j] as number) - (b[j] as number);
+  let n = 0;
+  for (let j = 0; j < x.length; j++) {
+    const v = x[j];
+    if (v === null || v === undefined) continue;
+    const d = v - (center[j] as number);
     s += d * d;
+    n++;
   }
-  return s;
+  return n === 0 ? 0 : (s * x.length) / n;
 }
 
 /** k-means++ with restarts; returns the lowest-inertia assignment. */
-function bestKMeans(data: Matrix, k: number, rng: RandomStream): number[] {
+function bestKMeans(data: readonly (readonly Score[])[], k: number, rng: RandomStream): number[] {
+  // A seed centre takes the state's reported values and 0 (the centre) for its gaps.
+  const seed = (i: number): Vector => (data[i] as Score[]).map((x) => x ?? 0);
   let best: { inertia: number; assignment: number[] } | null = null;
   for (let r = 0; r < KMEANS_RESTARTS; r++) {
-    const centers: Matrix = [[...(data[rng.nextIntBelow(data.length)] as Vector)]];
+    const centers: Matrix = [seed(rng.nextIntBelow(data.length))];
     while (centers.length < k) {
       const d2 = data.map((x) => Math.min(...centers.map((c) => squaredDistance(x, c))));
       const total = d2.reduce((a, b) => a + b, 0);
@@ -522,7 +527,7 @@ function bestKMeans(data: Matrix, k: number, rng: RandomStream): number[] {
         target -= d2[pick] as number;
         if (target < 0) break;
       }
-      centers.push([...(data[pick] as Vector)]);
+      centers.push(seed(pick));
     }
     let assignment = new Array<number>(data.length).fill(0);
     for (let iter = 0; iter < KMEANS_ITERATIONS; iter++) {
@@ -543,8 +548,8 @@ function bestKMeans(data: Matrix, k: number, rng: RandomStream): number[] {
       centers.forEach((c, ci) => {
         const members = data.filter((_, i) => assignment[i] === ci);
         if (members.length === 0) return;
-        for (let j = 0; j < c.length; j++)
-          c[j] = members.reduce((s, m) => s + (m[j] as number), 0) / members.length;
+        const m = partialMean(members);
+        for (let j = 0; j < c.length; j++) c[j] = m[j] as number;
       });
       if (!changed && iter > 0) break;
     }
@@ -558,15 +563,16 @@ function bestKMeans(data: Matrix, k: number, rng: RandomStream): number[] {
 }
 
 /** Renumbers clusters by descending mean of one variable (GDP per capita), for stable ids. */
-function orderClusters(assignment: readonly number[], data: Matrix, byColumn: number): number[] {
+function orderClusters(
+  assignment: readonly number[],
+  data: readonly (readonly Score[])[],
+  byColumn: number,
+): number[] {
   const k = Math.max(...assignment) + 1;
-  const means = Array.from({ length: k }, (_, c) => {
-    const members = data.filter((_, i) => assignment[i] === c);
-    return {
-      c,
-      m: members.reduce((s, r) => s + (r[byColumn] as number), 0) / Math.max(1, members.length),
-    };
-  }).sort((a, b) => b.m - a.m);
+  const means = Array.from({ length: k }, (_, c) => ({
+    c,
+    m: partialMean(data.filter((_, i) => assignment[i] === c))[byColumn] as number,
+  })).sort((a, b) => b.m - a.m || a.c - b.c);
   const rename = new Map(means.map((e, rank) => [e.c, rank]));
   return assignment.map((c) => rename.get(c) as number);
 }

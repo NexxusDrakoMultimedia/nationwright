@@ -859,20 +859,23 @@ Built offline by the reference-data pipeline (§10.1) and shipped as a versioned
 | Component | What it captures | Method |
 |---|---|---|
 | Marginals | Distribution of each numeric variable (population, area, GDP per capita, TFR, life expectancy, urbanization, literacy, sector shares, debt, defense % GDP, …) | Empirical quantile functions; log transform for skewed variables |
-| Dependence | How variables move together (rich ⇒ lower TFR, higher life expectancy, more urban, more services) | Gaussian **mixture** copula on normal scores `z = Φ⁻¹((rank − ½)/n)`; gaps filled by conditional-Gaussian EM |
-| Archetypes | Clusters of similar countries (e.g. "low-income, young and fast-growing", "high-income, industrial") | k-means++ (k = 6, fixed seed) in z-space. Each archetype has a weight and a mean vector; all share one **pooled** within-cluster covariance, because ~30 states per cluster can't support a separate 33 × 33 covariance each |
+| Dependence | How variables move together (rich ⇒ lower TFR, higher life expectancy, more urban, more services) | Gaussian **mixture** copula on normal scores `z = Φ⁻¹((rank − ½)/n)`. Nothing is imputed: every statistic uses only the states that report the variables involved (available-case) |
+| Archetypes | Clusters of similar countries (e.g. "low-income, young and fast-growing", "high-income, industrial") | k-means++ (k = 6, fixed seed) in z-space. Each archetype has a weight and a mean vector; all share one within-cluster covariance, because ~30 states per cluster can't support a separate 33 × 33 covariance each. Clustering uses partial distances over reported values; each variable's archetype means are recentred and rescaled so the mixture reproduces the reporters' distribution, and the covariance is set so the mixture's total correlation equals the reporters-only (pairwise) correlation |
 | Categorical tables | Government type, number of major languages/religions, ethnic fractionalization, landlocked share, island-nation share, dependency ratio to sovereign states | Frequencies conditioned on archetype |
 | Structure | Distribution of country areas and populations (heavy-tailed), neighbor counts, coastline share | Fitted distributions used by the map generator |
-| Spatial similarity | How similar neighbors are to each other | Share of bordering states in the same archetype (66% vs. 22% by chance) and per-variable correlation across borders. The generator copies a neighbour's archetype with probability (agreement − chance) / (1 − chance) |
+| Spatial similarity | How similar neighbors are to each other | Share of bordering states in the same archetype (64% vs. 21% by chance) and per-variable correlation across borders. The generator copies the most common archetype among already-placed neighbours with probability 1.36 × (agreement − chance) / (1 − chance); the factor is calibrated by the validation script (§4.12.6) |
 
 Only aggregated statistics are stored. No per-country records ship in
 `guiding-variables.json`. The raw snapshot stays a development and validation asset.
 
 The copula covers 33 variables. Geography that the map itself produces (coastline, land
 neighbours, landlocked or island status) is not sampled; its real-world distributions
-are kept as targets for the map generator. Variables that fewer than 70% of states
-report (literacy) have non-random gaps, so generated values rightly shift away from the
-observed-only distribution (upward for literacy).
+are kept as targets for the map generator. A real state that doesn't report a variable
+is left out of every calculation involving it, so gaps never pull the model (literacy is
+reported mostly by poorer states, school life expectancy mostly by richer ones; each
+generated distribution matches its reporters). Every generated nation has every variable.
+The one deliberate exception is railway density, where a missing value means no railway
+and is read as 0.
 
 #### 4.12.2 Map generation
 
@@ -1103,6 +1106,15 @@ years later still counts.
   other sandbox edits.
 - The engine process sends the renderer only the player's view of foreign countries.
   True foreign values do not cross the IPC boundary outside sandbox mode.
+`npm run worldgen:validate` generates 200 worlds at the default settings (about a minute)
+and writes `docs/validation/worldgen.md`. It checks island, landlocked, and
+neighbour-archetype agreement shares against sampling ranges; the neighbour-count
+histogram (total variation distance ≤ 0.12); every variable's pooled KS distance
+(≤ 0.06; population growth and sector shares are rewritten by consistency rules and not
+scored); and the largest correlation error (≤ 0.12). It runs outside CI; rerun it and
+commit the report whenever the generator or the guiding model changes. Known deviations:
+too many one-neighbour countries (about 14% vs. 8%) and a thin tail of countries with
+more than 14 neighbours.
 
 ---
 

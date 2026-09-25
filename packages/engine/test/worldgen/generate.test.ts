@@ -60,10 +60,10 @@ describe('generateWorld', () => {
     expect(fingerprint(worlds[1]!)).not.toBe(fingerprint(worlds[0]!));
   });
 
-  // Golden master: pins generator v1. If this changes, bump GENERATOR_VERSION and update.
-  it('matches the golden master for generator v1', () => {
-    expect(GENERATOR_VERSION).toBe(1);
-    expect(fingerprint(worlds[0]!)).toMatchInlineSnapshot(`"e15cea6e5f61c184"`);
+  // Golden master: pins generator v2. If this changes, bump GENERATOR_VERSION and update.
+  it('matches the golden master for generator v2', () => {
+    expect(GENERATOR_VERSION).toBe(2);
+    expect(fingerprint(worlds[0]!)).toMatchInlineSnapshot(`"bd42794bb2bc1ae3"`);
   });
 
   it.each(SEEDS.map((s, i) => [s, i] as const))('builds a consistent world for %s', (_, i) => {

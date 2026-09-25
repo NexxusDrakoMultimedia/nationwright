@@ -32,12 +32,21 @@ export interface PreparedModel {
   readonly copyNeighborArchetype: number;
 }
 
+/**
+ * Copying a neighbour's archetype with probability (agreement − chance)/(1 − chance) would
+ * reproduce the real agreement if every country had one border. Real countries have
+ * several, and later growth reshuffles borders, so the rate is scaled up by this factor,
+ * calibrated with scripts/validate-worldgen.ts (docs/validation/worldgen.md).
+ */
+export const BORDER_AGREEMENT_CALIBRATION = 1.36;
+
 export function prepareModel(model: GuidingVariables): PreparedModel {
   const { archetypeAgreement: a, archetypeAgreementChance: c } = model.spatial;
   return {
     model,
     choleskyFactor: cholesky(model.covariance.map((row) => [...row])),
-    copyNeighborArchetype: c < 1 ? Math.max(0, Math.min(1, (a - c) / (1 - c))) : 0,
+    copyNeighborArchetype:
+      c < 1 ? Math.max(0, Math.min(1, BORDER_AGREEMENT_CALIBRATION * ((a - c) / (1 - c)))) : 0,
   };
 }
 
@@ -54,7 +63,16 @@ export function chooseArchetype(
 ): number {
   const copy = stream.nextFloat64() < prepared.copyNeighborArchetype;
   if (copy && neighborArchetypes.length > 0) {
-    return neighborArchetypes[stream.nextIntBelow(neighborArchetypes.length)] as number;
+    // The most common archetype among placed neighbours (ties broken at random): it
+    // agrees with more borders at once than copying a single neighbour would.
+    const counts = new Map<number, number>();
+    for (const a of neighborArchetypes) counts.set(a, (counts.get(a) ?? 0) + 1);
+    const top = Math.max(...counts.values());
+    const modes = [...counts.entries()]
+      .filter(([, c]) => c === top)
+      .map(([a]) => a)
+      .sort((x, y) => x - y);
+    return modes[stream.nextIntBelow(modes.length)] as number;
   }
   // Knowing whether the country is an island shifts the odds (Bayes: weight × P(island | k)).
   return weightedIndex(

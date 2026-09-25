@@ -27,7 +27,8 @@
     "ui:build": "node packages/ui/build.ts",
     "ui:start": "npm run ui:build && electron packages/ui",
     "ui:smoke": "node packages/ui/smoke.ts",
-    "ui:package": "npm run ui:build && cd packages/ui && electron-builder --config electron-builder.yml"
+    "ui:package": "npm run ui:build && cd packages/ui && electron-builder --config electron-builder.yml",
+    "worldgen:validate": "node scripts/validate-worldgen.ts --out docs/validation/worldgen.md"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
