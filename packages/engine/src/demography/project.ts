@@ -59,6 +59,14 @@ export interface MonthInputs {
   readonly secularization?: number;
   readonly languageShift?: number;
   readonly conversion?: number;
+  /**
+   * Bilateral migration this month (M3): arrivals by origin with their culture, and
+   * departures. When given, it replaces `netMigrationRate`.
+   */
+  readonly migration?: {
+    readonly arrivals: readonly Arrival[];
+    readonly departures: number;
+  };
 }
 
 /** Flows per region this month (people). */
@@ -181,7 +189,17 @@ export function stepMonth(pop: NationPopulation, inputs: MonthInputs): MonthFlow
     flows.deaths.push(deaths);
   }
 
-  flows.netMigration.push(...migrate(pop.regions, inputs.netMigrationRate));
+  flows.netMigration.push(
+    ...(inputs.migration === undefined
+      ? migrate(pop.regions, inputs.netMigrationRate)
+      : migrateBilateral(
+          table,
+          pop.regions,
+          inputs.migration.arrivals,
+          inputs.migration.departures,
+          nationTotal,
+        )),
+  );
   return flows;
 }
 
@@ -460,28 +478,89 @@ function migrate(regions: RegionGrid[], ratePer1000: number): number[] {
   if (total <= 0 || net === 0) return regions.map(() => 0);
   return regions.map((g, r) => {
     const regional = (net * (populations[r] as number)) / total;
-    if (regional > 0) return immigrate(g, regional, populations[r] as number);
-    let applied = 0;
-    for (let a = 0; a < AGE_BANDS; a++) {
-      let band = 0;
-      forEachCell((_s, age, _x, _e, i) => {
-        if (age === a) band += g.cohorts[i] as number;
-      });
-      if (band <= 0) continue;
-      const leaving = Math.min(
-        band * T.maxMonthlyEmigrationShare,
-        -regional * (T.migrantAgeProfile[a] as number),
-      );
-      forEachCell((_s, age, _x, _e, i) => {
-        if (age === a) scaleCell(g, i, 1 - leaving / band);
-      });
-      applied -= leaving;
-    }
-    return applied;
+    return regional > 0
+      ? immigrate(g, regional, populations[r] as number)
+      : -emigrate(g, -regional);
   });
 }
 
-function immigrate(g: RegionGrid, arrivals: number, population: number): number {
+/** People leaving a region, spread over every cell of each age band; returns the count. */
+function emigrate(g: RegionGrid, people: number): number {
+  let applied = 0;
+  for (let a = 0; a < AGE_BANDS; a++) {
+    let band = 0;
+    forEachCell((_s, age, _x, _e, i) => {
+      if (age === a) band += g.cohorts[i] as number;
+    });
+    if (band <= 0) continue;
+    const leaving = Math.min(
+      band * T.maxMonthlyEmigrationShare,
+      people * (T.migrantAgeProfile[a] as number),
+    );
+    forEachCell((_s, age, _x, _e, i) => {
+      if (age === a) scaleCell(g, i, 1 - leaving / band);
+    });
+    applied += leaving;
+  }
+  return applied;
+}
+
+/** A month's arrivals from one origin, with the origin's culture mix. */
+export interface Arrival {
+  readonly people: number;
+  readonly joint: readonly (Combination & { readonly share: number })[];
+}
+
+/**
+ * Bilateral migration: arrivals carry their origin's ethnicity × religion × language
+ * (new combinations are created when the flow is large enough, else folded into the
+ * nearest); departures leave every region in proportion to its population.
+ */
+function migrateBilateral(
+  table: CultureTable,
+  regions: RegionGrid[],
+  arrivals: readonly Arrival[],
+  departures: number,
+  nationTotal: number,
+): number[] {
+  const populations = regions.map(regionTotal);
+  const total = populations.reduce((sum, n) => sum + n, 0);
+  if (total <= 0) return regions.map(() => 0);
+  const byCombination = new Map<number, number>();
+  let arriving = 0;
+  for (const origin of arrivals) {
+    const shareTotal = origin.joint.reduce((s, j) => s + j.share, 0);
+    if (origin.people <= 0 || shareTotal <= 0) continue;
+    for (const j of origin.joint) {
+      const people = (origin.people * j.share) / shareTotal;
+      if (people <= 0) continue;
+      const k = resolveCombination(
+        table,
+        { ethnic: j.ethnic, religion: j.religion, language: j.language },
+        people >= T.newCombinationShare * nationTotal,
+      );
+      byCombination.set(k, (byCombination.get(k) ?? 0) + people);
+      arriving += people;
+    }
+  }
+  const mix = new Map(
+    [...byCombination.entries()].map(([k, n]) => [k, n / Math.max(1e-12, arriving)]),
+  );
+  return regions.map((g, r) => {
+    const share = (populations[r] as number) / total;
+    const inflow = arriving > 0 ? immigrate(g, arriving * share, populations[r] as number, mix) : 0;
+    const outflow = emigrate(g, departures * share);
+    return inflow - outflow;
+  });
+}
+
+function immigrate(
+  g: RegionGrid,
+  arrivals: number,
+  population: number,
+  /** Culture mix of the arrivals (fractions by combination); default: the cell's own. */
+  culture?: ReadonlyMap<number, number>,
+): number {
   let urban = 0;
   forEachCell((s, _a, _x, _e, i) => {
     if (s === URBAN) urban += g.cohorts[i] as number;
@@ -510,6 +589,11 @@ function immigrate(g: RegionGrid, arrivals: number, population: number): number 
           if (cellShare <= 0) continue;
           const here = g.cohorts[i] as number;
           const mix = new Map<number, number>();
+          if (culture !== undefined) {
+            for (const [k, f] of culture) mix.set(k, n * cellShare * f);
+            applied += addPeople(g, i, mix);
+            continue;
+          }
           const weights = here > 0 ? g.culture.map((layer) => layer[i] as number) : regionMix;
           const weightTotal = weights.reduce((sum, w) => sum + w, 0);
           weights.forEach((w, k) => {

@@ -22,9 +22,13 @@ import {
   fitTrade,
   importsOf,
   initForeign,
+  initMigration,
+  migrationFlows,
   prices,
+  remittances,
   rentIndex,
   rents,
+  stepDiaspora,
   stepMarket,
   tradeFlows,
   tradeGeography,
@@ -34,6 +38,8 @@ import {
   summarize,
   type CommodityMarket,
   type CountryCulture,
+  type MigrationChannels,
+  type MigrationPartner,
   type ForeignState,
   type IndicatorDefinition,
   type NationStats,
@@ -78,10 +84,25 @@ export interface WorldCommodities {
   readonly playerRentShare: number;
 }
 
+export interface WorldMigration {
+  channels: MigrationChannels;
+  /** Share (0–1) of each country's people speaking a language common in the player's nation. */
+  readonly languageAffinity: number[];
+  /** This year's flows (people per year): arrivals from and departures to each country. */
+  arrivals: number[];
+  departures: number[];
+  /** Remittances received this year, reference currency. */
+  remittances: number;
+  /** Foreign direct investment inflows, % of GDP, now and at the start. */
+  fdiShare: number;
+  readonly startFdiShare: number;
+}
+
 export interface WorldSlice {
   countries: CountryState[];
   trade: WorldTrade;
   commodities: WorldCommodities;
+  migration: WorldMigration;
   /**
    * The player's country. Until the creation wizard (M9) lets the player choose, it is
    * drawn at random from the world's countries (stream `init/world/player`).
@@ -126,6 +147,19 @@ export const WORLD_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('world.trade', 'USD', 'World exports (reference currency)'),
   indicator('trade.exports_to', 'USD', 'Your exports to a country (country scopes)'),
   indicator('trade.imports_from', 'USD', 'Your imports from a country (country scopes)'),
+  indicator(
+    'migration.immigrants_from',
+    'people',
+    'People from a country living in your nation (country scopes)',
+  ),
+  indicator(
+    'migration.emigrants_in',
+    'people',
+    'Your emigrants living in a country (country scopes)',
+  ),
+  indicator('migration.arrivals', 'people', 'Immigrants arriving over the year'),
+  indicator('migration.departures', 'people', 'Emigrants leaving over the year'),
+  indicator('migration.foreign_born_share', '%', 'Share of residents born abroad'),
   ...COMMODITIES.map((c) =>
     indicator(
       `commodity.${c.replace(/ /g, '_')}_price`,
@@ -170,6 +204,24 @@ function playerStats(
     out['economy.sector_services'] = shares.services;
   }
   return out;
+}
+
+/** FDI inflows at the start, % of GDP (typical; not in the reference data). */
+const START_FDI_SHARE = 3;
+
+/** Migration partners from the countries' current statistics (the player gets zero weight). */
+export function migrationPartners(
+  countries: readonly { readonly id: number; readonly stats: NationStats }[],
+  player: number,
+  distances: readonly (readonly number[])[],
+  languageAffinity: readonly number[],
+): MigrationPartner[] {
+  return countries.map((c, k) => ({
+    population: k === player ? 0 : (c.stats['population.total'] ?? 0),
+    income: c.stats['economy.gdp_per_capita_ppp'] ?? 1,
+    distance: (distances[player] as number[])[k] as number,
+    languageAffinity: languageAffinity[k] as number,
+  }));
 }
 
 /** Trade inputs from the countries' current statistics. */
@@ -225,7 +277,58 @@ export const worldSystem = defineSystem({
     const capped = raw.map((e, k) => capEndowment(market, e, inputs.gdp[k] as number));
     const rentShare = (k: number) =>
       rents(market, capped[k] as number[]) / (inputs.gdp[k] as number);
+    // Migration channels between the player and every other country.
+    const playerStatsStart = generated.countries[playerCountry]?.nation.stats ?? {};
+    const playerLanguages = new Set(
+      (generated.countries[playerCountry]?.culture.languages ?? [])
+        .filter((g) => g.share >= 0.05)
+        .map((g) => g.id),
+    );
+    const languageAffinity = generated.countries.map((c) =>
+      c.id === playerCountry
+        ? 0
+        : c.culture.languages
+            .filter((g) => playerLanguages.has(g.id))
+            .reduce((s, g) => s + g.share, 0),
+    );
+    const channels = initMigration(
+      migrationPartners(
+        generated.countries.map((c) => ({ id: c.id, stats: c.nation.stats })),
+        playerCountry,
+        geography.distances,
+        languageAffinity,
+      ),
+      {
+        population: playerStatsStart['population.total'] ?? 1,
+        income: playerStatsStart['economy.gdp_per_capita_ppp'] ?? 1,
+        netMigrationRate: playerStatsStart['population.net_migration_rate'] ?? 0,
+        remittancesShare: playerStatsStart['economy.remittances_share'] ?? 0,
+        gdpNominal: playerGdp,
+      },
+    );
+    const startFlows = migrationFlows(
+      channels,
+      migrationPartners(
+        generated.countries.map((c) => ({ id: c.id, stats: c.nation.stats })),
+        playerCountry,
+        geography.distances,
+        languageAffinity,
+      ),
+      {
+        population: playerStatsStart['population.total'] ?? 1,
+        income: playerStatsStart['economy.gdp_per_capita_ppp'] ?? 1,
+      },
+    );
     return {
+      migration: {
+        channels,
+        languageAffinity,
+        arrivals: startFlows.inflow,
+        departures: startFlows.outflow,
+        remittances: ((playerStatsStart['economy.remittances_share'] ?? 0) / 100) * playerGdp,
+        fdiShare: START_FDI_SHARE,
+        startFdiShare: START_FDI_SHARE,
+      },
       commodities: {
         market,
         endowments: capped,
@@ -285,13 +388,67 @@ export const worldSystem = defineSystem({
     }
     const playerEndowment = endowment[slice.playerCountry] as number[];
     slice.commodities.playerRentIndex = rentIndex(market, playerEndowment);
+
+    // Migration: this year's flows from current incomes, and the diasporas they build.
+    const player = slice.playerCountry;
+    const playerNow = slice.countries[player]?.stats ?? {};
+    const partners = migrationPartners(
+      slice.countries,
+      player,
+      slice.trade.distances,
+      slice.migration.languageAffinity,
+    );
+    const flowsNow = migrationFlows(
+      slice.migration.channels,
+      partners,
+      {
+        population: playerNow['population.total'] ?? 1,
+        income: playerNow['economy.gdp_per_capita_ppp'] ?? 1,
+      },
+      ctx.resolve('migration.openness', 'nation', 1).value,
+    );
+    stepDiaspora(slice.migration.channels, flowsNow);
+    slice.migration.arrivals = flowsNow.inflow;
+    slice.migration.departures = flowsNow.outflow;
+    slice.migration.remittances = remittances(slice.migration.channels, partners);
+    const sum = (xs: readonly number[]) => xs.reduce((a, b) => a + b, 0);
+    ctx.record('migration.arrivals', 'nation', sum(flowsNow.inflow));
+    ctx.record('migration.departures', 'nation', sum(flowsNow.outflow));
+    ctx.record(
+      'migration.foreign_born_share',
+      'nation',
+      (100 * sum(slice.migration.channels.immigrants)) /
+        Math.max(1, playerNow['population.total'] ?? 1),
+    );
+    slice.countries.forEach((c, k) => {
+      if (k === player) return;
+      ctx.record(
+        'migration.immigrants_from',
+        `country:${c.id}`,
+        slice.migration.channels.immigrants[k] as number,
+      );
+      ctx.record(
+        'migration.emigrants_in',
+        `country:${c.id}`,
+        slice.migration.channels.emigrants[k] as number,
+      );
+    });
+
+    // FDI follows the player's growth relative to the world.
+    const worldGrowth =
+      sum(
+        slice.countries.map(
+          (c) => (c.stats['economy.gdp_growth'] ?? 0) * (c.stats['economy.gdp_ppp_real'] ?? 0),
+        ),
+      ) / Math.max(1, sum(slice.countries.map((c) => c.stats['economy.gdp_ppp_real'] ?? 0)));
+    const edge = ((playerNow['economy.gdp_growth'] ?? worldGrowth) - worldGrowth) / 100;
+    slice.migration.fdiShare = START_FDI_SHARE * Math.max(0, Math.min(3, 1 + 10 * edge));
     const price = prices(market);
     COMMODITIES.forEach((c, i) =>
       ctx.record(`commodity.${c.replace(/ /g, '_')}_price`, 'nation', price[i] as number),
     );
     // Trade follows this year's GDP and prices.
     const flows = currentTrade(slice);
-    const player = slice.playerCountry;
     slice.countries.forEach((country, k) => {
       const gdpNominal = Math.max(1, country.stats['economy.gdp_nominal'] ?? 1);
       country.stats = {

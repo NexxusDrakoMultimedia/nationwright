@@ -130,7 +130,7 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run data:fetch` | Clone factbook.json at the pinned commit into `packages/reference-data/.cache/` |
 | `npm run data:build -- --target-year 2026` | Rebuild `packages/reference-data/data/` (review `report-<year>.md` in the diff) |
 | `npm run worldgen:validate` | Generate 200 worlds and write `docs/validation/worldgen.md` (about a minute; rerun after generator or guiding-model changes) |
-| `npm run sim:validate` | Simulate 50 nations for 30 years against the real-world bands (census and economy) and write `docs/validation/simulation.md` (a few minutes; rerun after simulation changes) |
+| `npm run sim:validate` | Simulate 50 nations for 30 years against the real-world bands (census and economy) and write `docs/validation/simulation.md` (about 12 minutes; rerun after simulation changes) |
 | `npm run perf:measure` | Time world creation, simulation, and saves by world size into `docs/validation/performance.md` |
 | `npm run nw -- <command>` | Headless CLI: `new <file>`, `run <file> --years N`, `info`, `census`, `indicators`, `branch` |
 | `npm run ui:build` | Build the desktop app into `packages/ui/out/` |

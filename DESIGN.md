@@ -318,6 +318,18 @@ mechanics**. Formulas are initial proposals; constants live in tuning files.
   - *International:* **bilateral** flows with each foreign country (§4.10), driven by
     wage and stability gaps, distance/proximity, shared language, existing diaspora size,
     and both sides' immigration policies. Refugee surges come from foreign crises.
+    *(M3: engine `world/migration.ts`. Flows each way per country ∝ (income ratio)^0.5 ×
+    distance decay (halving at the median partner distance) × (1 + 3 × language affinity)
+    × (1 + 20 × diaspora share), times the partner's population for arrivals. Starting
+    stocks are 2% of the population plus 20 years of the net rate in the flow's
+    direction; two scales are fitted so the starting net flow equals the sampled net
+    migration rate with 0.2% gross turnover each way. Diasporas lose 2% a year to returns
+    and deaths. Arrivals carry their origin country's ethnicity × religion × language mix
+    into the player's cohort grid. Remittances per emigrant follow host income,
+    calibrated to the sampled remittances share. `migration.openness` (modifier, 1)
+    scales arrivals until immigration policy exists (M4). FDI inflows start at 3% of GDP
+    and scale with the player's growth relative to the world; the change adds to
+    investment.)*
 - **Cultural change:** operates on the joint distribution described above (language
   shift, religious drift, and intermarriage).
 

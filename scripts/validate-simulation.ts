@@ -40,6 +40,7 @@ const ECONOMY = [
   'economy.labor_participation',
   'economy.exports_share_gdp',
   'economy.imports_share_gdp',
+  'economy.remittances_share',
 ] as const;
 const started = performance.now();
 const elapsed = () => `${((performance.now() - started) / 1000).toFixed(1)}s`;

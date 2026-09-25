@@ -139,6 +139,28 @@ describe('world system', () => {
   });
 });
 
+describe('international migration', () => {
+  it('brings immigrants with their origins’ cultures and tracks diasporas', () => {
+    const session = create('migration.nwsave');
+    const world = session.engine.world.slices.world!;
+    const player = world.playerCountry;
+    const origins = world.migration.arrivals
+      .map((n, j) => ({ n, j }))
+      .filter((o) => o.j !== player && o.n > 0)
+      .sort((a, b) => b.n - a.n);
+    expect(origins.length).toBeGreaterThan(0);
+    session.advance(24);
+    const indicators = session.engine.indicators;
+    expect(indicators.series('migration.arrivals', 'nation').ticks).toEqual([11, 23]);
+    expect(indicators.latest('migration.foreign_born_share', 'nation')).toBeGreaterThan(0);
+    // Ethnic groups from the largest origin are now present in the player's nation.
+    const top = session.engine.world.slices.world!.countries[origins[0]!.j]!;
+    const groups = new Set(session.engine.world.slices.demography!.combos.map((c) => c.ethnic));
+    expect(top.culture.ethnic.some((g) => groups.has(g.id))).toBe(true);
+    session.close();
+  });
+});
+
 describe('census', () => {
   it('reports the nation consistently with its state', () => {
     const session = create('census.nwsave');

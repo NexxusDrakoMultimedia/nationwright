@@ -84,6 +84,8 @@ export const ECONOMY_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('economy.imports_share_gdp', '% of GDP', 'Imports'),
   indicator('economy.trade_balance_share', '% of GDP', 'Exports minus imports'),
   indicator('economy.resource_rents_share', '% of GDP', 'Natural resource rents'),
+  indicator('economy.remittances_share', '% of GDP', 'Remittances received'),
+  indicator('economy.fdi_inflow_share', '% of GDP', 'Foreign direct investment inflows'),
   indicator('economy.labor_force', 'people', 'Labour force'),
   indicator('economy.labor_participation', '% of people 15+', 'Labour force participation'),
   indicator('economy.employment', 'people', 'People in work'),
@@ -203,7 +205,13 @@ export const economySystem = defineSystem({
         productivity: ctx.resolve('economy.productivity_multiplier', 'nation', 1).value,
         revenueShare: add('economy.revenue_share'),
         spendingShare: add('economy.spending_share'),
-        investmentShare: add('economy.investment_share'),
+        // FDI above its starting level adds to investment.
+        investmentShare:
+          add('economy.investment_share') +
+          (ctx.world.slices.world === undefined
+            ? 0
+            : ctx.world.slices.world.migration.fdiShare -
+              ctx.world.slices.world.migration.startFdiShare),
         participation: add('economy.participation'),
         naturalUnemployment: add('economy.natural_unemployment'),
         demandShock: add('economy.demand_shock') + tradeImpulse + windfallImpulse,
@@ -225,6 +233,12 @@ export const economySystem = defineSystem({
 
     if (ctx.tick === 0 || ctx.cadences.annual) {
       recordAnnual(ctx, slice, labor, result.employed, result.laborForce);
+      const migration = ctx.world.slices.world?.migration;
+      if (migration !== undefined) {
+        const gdp = Math.max(1, slice.state.nominalGdp);
+        ctx.record('economy.remittances_share', 'nation', (100 * migration.remittances) / gdp);
+        ctx.record('economy.fdi_inflow_share', 'nation', migration.fdiShare);
+      }
     }
     if (ctx.cadences.annual) {
       // Income since the start feeds next year's fertility and mortality.

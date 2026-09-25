@@ -219,6 +219,20 @@ export function regionSetup(
   };
 }
 
+/**
+ * The world's "Non-religious" faith id (always the last faith generated), found from the
+ * countries' religion groups since the step has no generated world at hand.
+ */
+function nonReligiousFaithOf(
+  countries: readonly {
+    readonly culture: { readonly religions: readonly { readonly id: number }[] };
+  }[],
+): number {
+  let max = -1;
+  for (const c of countries) for (const r of c.culture.religions) max = Math.max(max, r.id);
+  return max;
+}
+
 /** The engine's view of the slice: the same arrays, so the step updates the slice. */
 function populationOf(slice: DemographySlice): NationPopulation {
   return { model: slice.model, combos: slice.combos, regions: slice.regions };
@@ -345,6 +359,33 @@ export const demographySystem = defineSystem({
       fertility: value('demography.fertility_multiplier', 1),
       mortality: value('demography.mortality_multiplier', 1),
     };
+    // Bilateral migration from the world (M3): a twelfth of each origin's yearly arrivals,
+    // carrying the origin's culture, and a twelfth of departures.
+    const migration = ctx.world.slices.world?.migration;
+    const countries = ctx.world.slices.world?.countries;
+    const noFaith =
+      ctx.world.slices.world === undefined
+        ? -1
+        : nonReligiousFaithOf(ctx.world.slices.world.countries);
+    const bilateral =
+      migration === undefined || countries === undefined
+        ? undefined
+        : {
+            arrivals: migration.arrivals.flatMap((people, j) => {
+              const joint = countries[j]?.culture.joint;
+              if (j === slice.country || people <= 0 || joint === undefined) return [];
+              return [
+                {
+                  people: people / 12,
+                  joint: joint.map((c) => ({
+                    ...c,
+                    religion: c.religion === noFaith ? NO_RELIGION : c.religion,
+                  })),
+                },
+              ];
+            }),
+            departures: migration.departures.reduce((a, b) => a + b, 0) / 12,
+          };
     const flows = stepMonth(populationOf(slice), {
       ...multipliers,
       schoolingYears: value('demography.schooling_years', slice.model.schoolingYears),
@@ -353,6 +394,7 @@ export const demographySystem = defineSystem({
       secularization: value('demography.secularization_multiplier', 1),
       languageShift: value('demography.language_shift_multiplier', 1),
       conversion: value('demography.conversion_multiplier', 1),
+      ...(bilateral === undefined ? {} : { migration: bilateral }),
     });
     const sum = (xs: readonly number[]) => xs.reduce((s, n) => s + n, 0);
 

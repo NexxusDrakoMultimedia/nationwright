@@ -169,8 +169,11 @@ off as they land; add new ones as work reveals them.
       the player's trade shares and net exports feed its economy
 - [x] Resource deposits and commodities: world prices, rents with depletion, windfalls
       to income, royalties, and demand
-- [ ] Capital flows (FDI) and international migration channels (bilateral, diaspora,
-      remittances), replacing the interim net migration rate
+- [x] International migration channels: bilateral flows with every country (income gap,
+      distance, shared language, diaspora networks), diaspora stocks, remittances;
+      immigrants bring their origin's culture; replaces the interim net migration rate
+- [x] FDI inflows following relative growth (first version; stocks by partner with M4)
+- [ ] Foreign countries' populations don't yet reflect their flows with the player
 - [ ] Economic survey, budget, world comparison reports; flows map layer
 
 ## M4 — Politics, Elections & Diplomacy

@@ -44,3 +44,4 @@ export * from './world/distances.ts';
 export * from './world/trade.ts';
 export * from './worldgen/resources.ts';
 export * from './world/commodities.ts';
+export * from './world/migration.ts';
