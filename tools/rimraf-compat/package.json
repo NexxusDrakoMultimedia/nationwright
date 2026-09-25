@@ -1,0 +1,9 @@
+{
+  "name": "rimraf",
+  "version": "2.6.3-compat.0",
+  "private": true,
+  "description": "rimraf 2 API on fs.rm, for temp (via electron-builder's Squirrel.Windows target). Replaces the deprecated rimraf@2 and its glob@7/inflight dependencies through an npm override.",
+  "license": "GPL-3.0-or-later",
+  "author": "Nexxus Drako Multimedia",
+  "main": "index.cjs"
+}

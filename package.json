@@ -38,9 +38,16 @@
     "eslint": "^10.11.0",
     "fast-check": "^4.10.2",
     "prettier": "^3.9.9",
+    "rimraf": "file:tools/rimraf-compat",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
     "vitest": "^5.0.2"
+  },
+  "overrides": {
+    "@electron/asar": "^4.3.0",
+    "temp": {
+      "rimraf": "$rimraf"
+    }
   },
   "repository": {
     "type": "git",

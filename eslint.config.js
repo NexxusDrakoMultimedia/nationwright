@@ -62,6 +62,15 @@ export default tseslint.config(
     rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },
   {
+    // CommonJS drop-ins for third-party dependencies (tools/rimraf-compat).
+    files: ['**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', module: 'writable' },
+    },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     files: ['packages/engine/src/**/*.ts'],
     rules: engineDeterminismRules,
   },
