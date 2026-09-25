@@ -4,8 +4,11 @@ Guidance for Claude (and other AI assistants) working in this repository.
 
 ## Project state
 
-Nationwright is in the **design phase**: there is no code, build, or test command yet.
-When scaffolding starts (TODO.md, M0), update the **Commands** section below.
+Implementation is under way. **M0** (skeleton: engine core, saves, CLI, Electron shell,
+reference-data pipeline) is done apart from items that depend on later milestones.
+**M1** (world generation and the map) is nearly done; see TODO.md for what's left. The
+simulation systems (M2 onward) aren't started yet. Keep the **Commands** section below
+current as scripts are added.
 
 ## Source of truth
 
