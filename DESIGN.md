@@ -1,6 +1,6 @@
 # Nationwright — Design Document
 
-> Status: **Draft v0.5** · Last updated: 2026-09-25
+> Status: **Draft v0.6** · Last updated: 2026-09-25
 >
 > This document describes what Nationwright is, how the simulation works, and how the
 > software is structured. Settled decisions are listed in §0. Remaining open
@@ -32,6 +32,7 @@
 | D17 | World size | **No hard limit.** The number of countries has a default (~195) and a recommended range (20–250) | §4.12 |
 | D18 | Backstory | **Keep the burn-in:** a ~30-year diplomacy-and-war pre-run generates history before the start date | §4.12.4 |
 | D19 | Performance targets | **None for now.** No target hardware and no world-creation or simulation time budget; performance is measured and reported, not gated | §1.1, §9 |
+| D20 | License | **GPLv3** (`GPL-3.0-only`); full text in `LICENSE`. Dependencies must be GPLv3-compatible | §9 |
 
 ---
 
@@ -1186,6 +1187,7 @@ fixed. The rest are recommended and can change without affecting the architectur
 | Seed codec | Small in-house module: 8-byte ⇄ base64url with canonical check | Recommended | ~40 lines, no dependency; exhaustive round-trip tests |
 | Content | YAML data packs validated with JSON Schema (via `zod` types) | Recommended | Moddability, typed at load |
 | Tests | Vitest; golden-master and property-based tests (`fast-check`) | Recommended | Determinism and balance |
+| License | GPLv3 (`GPL-3.0-only`); SPDX headers; CI dependency-license check | Settled | D20. Planned dependencies (Electron, React, `better-sqlite3`, d3, `simplex-noise`, ECharts, zod, Vitest) are under MIT/ISC/BSD/Apache-2.0 licenses, all GPLv3-compatible. Verify each at install time |
 | Repo layout | Monorepo workspaces: `packages/engine`, `packages/app`, `packages/ui`, `packages/cli`, `packages/reference-data`, `content/` | Recommended | Enforces engine/UI separation |
 
 Determinism notes for TypeScript:
@@ -1385,7 +1387,7 @@ Each milestone ends with a playable build and updated golden-master tests.
 
 ## 12. Open Questions
 
-All questions raised so far are resolved as D1–D19 (§0). There are currently no open
+All questions raised so far are resolved as D1–D20 (§0). There are currently no open
 design questions. New ones are added here as implementation raises them.
 
 ---

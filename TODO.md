@@ -7,7 +7,9 @@ off as they land; add new ones as work reveals them.
 ## M0 — Skeleton
 
 ### Repository & tooling
-- [ ] Choose a project license
+- [x] Choose a project license: GPLv3 (`GPL-3.0-only`), full text in `LICENSE`
+- [ ] Set `"license": "GPL-3.0-only"` in every `package.json`; add a dependency-license check to CI
+- [ ] Show the license and source-code link in the app's About/credits screen
 - [ ] Monorepo with workspaces: `packages/{engine,app,ui,cli,reference-data}`, `content/`
 - [ ] TypeScript config: `strict`, `noUncheckedIndexedAccess`; shared base tsconfig
 - [ ] Lint + format; lint rule banning `Math.random`, `Date.now`, `new Date` in `engine`

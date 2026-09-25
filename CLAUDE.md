@@ -9,7 +9,7 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 
 ## Source of truth
 
-- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D19)**
+- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D20)**
   records settled choices.
 - **GOALS.md** says why and what. **TODO.md** is the working task list.
 - **Never reverse or reinterpret a logged decision on your own.** If a task seems to
@@ -49,6 +49,17 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 - **Culture tracking (D14):** ethnicity × religion × language is one joint
   distribution per cohort cell, stored sparsely. Associations are randomized per
   country from the seed.
+
+## License
+
+- The project is **GPLv3** (`GPL-3.0-only`); the full text is in `LICENSE`. Don't edit
+  `LICENSE`.
+- Set `"license": "GPL-3.0-only"` in every `package.json`. New source files start with
+  `// SPDX-License-Identifier: GPL-3.0-only`.
+- Only add dependencies whose licenses are GPLv3-compatible (e.g. MIT, BSD, ISC,
+  Apache-2.0, LGPL, CC0). Flag anything else to the user before adding it: GPL-2.0-only,
+  proprietary, or "non-commercial" licenses are *not* compatible.
+- Distributed builds (Electron installers) must offer the corresponding source.
 
 ## Reference data
 
