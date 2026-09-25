@@ -131,6 +131,16 @@ describe('joint culture distribution', () => {
     expect(run({ secularization: 3 }).none).toBeGreaterThan(base.none);
   });
 
+  it('converts minority faiths toward the largest one', () => {
+    const faithShare = (conversion: number) => {
+      const pop = build();
+      for (let m = 0; m < 120; m++) stepMonth(pop, inputs(pop, { conversion, secularization: 0 }));
+      const mix = composition(pop.combos, pop.regions);
+      return largestShare(mix.religion, mix.total);
+    };
+    expect(faithShare(1)).toBeGreaterThan(faithShare(0));
+  });
+
   it('prunes tiny combinations without losing anyone', () => {
     const pop = build();
     for (let m = 0; m < 24; m++) stepMonth(pop, inputs(pop));

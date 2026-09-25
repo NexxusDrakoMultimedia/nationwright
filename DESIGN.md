@@ -332,7 +332,7 @@ country is drawn at random, and net international migration runs at the country'
 sampled rate until the bilateral model (M3). Other systems adjust demography through the
 modifier targets `demography.fertility_multiplier`, `mortality_multiplier`,
 `schooling_years`, `urbanization_rate`, `net_migration_rate`,
-`secularization_multiplier`, and `language_shift_multiplier`.
+`secularization_multiplier`, `language_shift_multiplier`, and `conversion_multiplier`.
 
 The joint culture distribution is stored as people per combination per cohort cell
 (`culture[k][cell]`, summing to the cohort count), so every flow moves culture with the
@@ -343,7 +343,9 @@ rural) take their ethnicity from local men aged 20–44; people 15+ secularize a
 rate that rises with education and in cities; speakers of other languages shift to the
 most spoken one, fastest among the young and schooled, slowed by their language's
 regional share. Combinations below 0.01% of the population are folded into their nearest
-neighbour each December. Conversion between faiths is not modelled yet.
+neighbour each December. Followers of minority faiths aged 15+ convert to the nation's
+largest faith at 0.08% a year, scaled by (1 − their faith's regional share)
+(`demography.conversion_multiplier`).
 
 Internal migration is a symmetric gravity model: the yearly flow from region r to q is
 rate · P_r · (P_q / P) · decay(d_rq) · (A_q / A_r)^0.3, where decay halves at the

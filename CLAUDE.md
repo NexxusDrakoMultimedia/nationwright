@@ -6,8 +6,9 @@ Guidance for Claude (and other AI assistants) working in this repository.
 
 Implementation is under way. **M0** (skeleton: engine core, saves, CLI, Electron shell,
 reference-data pipeline) is done apart from items that depend on later milestones.
-**M1** (world generation and the map) is nearly done; see TODO.md for what's left. The
-simulation systems (M2 onward) aren't started yet. Keep the **Commands** section below
+**M1** (world generation and the map) and **M2** (demography, culture, internal migration,
+cities, census) are done apart from items that wait on later milestones; see TODO.md.
+The economy and everything after it (M3 onward) aren't started yet. Keep the **Commands** section below
 current as scripts are added.
 
 ## Source of truth

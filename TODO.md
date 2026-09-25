@@ -138,7 +138,7 @@ off as they land; add new ones as work reveals them.
 - [x] Internal migration between regions (symmetric gravity; interim attractiveness from
       urban share and the capital until wages and jobs exist in M3)
 - [x] Language shift, secularization, intermarriage
-- [ ] Conversion between faiths (only secularization to "no religion" so far)
+- [x] Conversion toward the largest faith (slow; slowed where a faith is regionally concentrated)
 - [x] Regions from the map (the player's provinces); cities as shares of regional urban
       population, drifting toward attractive cities (capital, coast, river, modifiers)
 - [ ] Founding new cities (needs infrastructure, M6)

@@ -46,6 +46,6 @@ nation's starting rate until the bilateral model (M3).
 
 ## Timing
 
-World creation (generation + population): median 362 ms. One
-simulated year for the player's nation: median 42 ms, max
-279 ms. Total run: 111.6s.
+World creation (generation + population): median 377 ms. One
+simulated year for the player's nation: median 48 ms, max
+303 ms. Total run: 128.0s.

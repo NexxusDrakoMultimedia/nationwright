@@ -63,6 +63,11 @@ export const DEMOGRAPHY_TUNING = {
   secularizationByEducation: [0.3, 0.7, 1.5, 1.5, 3],
   secularizationBySettlement: [1.3, 0.7],
   /**
+   * Yearly rate at which followers of minority faiths convert to the nation's largest
+   * faith (people 15+), scaled by (1 − their faith's share in the region).
+   */
+  conversionRate: 0.0008,
+  /**
    * Yearly rate at which speakers of other languages switch to the nation's most spoken
    * language, before factors; scaled by (1 − their language's share in the region), so
    * concentrated communities hold on longer.

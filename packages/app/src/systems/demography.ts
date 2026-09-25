@@ -13,7 +13,7 @@
  * `demography.schooling_years` (the country's expected years of schooling),
  * `demography.urbanization_rate` (tuning), `demography.net_migration_rate` (the
  * country's sampled rate, per 1,000 people per year), `demography.secularization_multiplier`
- * (1), `demography.language_shift_multiplier` (1), `demography.internal_migration_rate`
+ * (1), `demography.language_shift_multiplier` (1), `demography.conversion_multiplier` (1), `demography.internal_migration_rate`
  * (tuning), and per region `demography.region_attractiveness` (1, multiplied into the
  * interim attractiveness from urban share and the capital).
  */
@@ -152,6 +152,7 @@ export const DEMOGRAPHY_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('society.largest_language_share', '%', 'Share speaking the most spoken language'),
   indicator('society.secularized', 'people', 'People who left their religion', 'sum'),
   indicator('society.language_shifted', 'people', 'People who switched language', 'sum'),
+  indicator('society.converted', 'people', 'People who converted to the largest faith', 'sum'),
   indicator(
     'society.culture_combinations',
     'combinations',
@@ -351,6 +352,7 @@ export const demographySystem = defineSystem({
       netMigrationRate: value('demography.net_migration_rate', slice.model.netMigrationRate),
       secularization: value('demography.secularization_multiplier', 1),
       languageShift: value('demography.language_shift_multiplier', 1),
+      conversion: value('demography.conversion_multiplier', 1),
     });
     const sum = (xs: readonly number[]) => xs.reduce((s, n) => s + n, 0);
 
@@ -383,6 +385,7 @@ export const demographySystem = defineSystem({
     slice.year.languageShifted += sum(flows.languageShifted);
     ctx.record('society.secularized', 'nation', sum(flows.secularized));
     ctx.record('society.language_shifted', 'nation', sum(flows.languageShifted));
+    ctx.record('society.converted', 'nation', sum(flows.converted));
 
     recordTotals(ctx, slice);
     ctx.record('population.births', 'nation', births);

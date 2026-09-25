@@ -58,6 +58,7 @@ export interface MonthInputs {
   /** Multipliers on the tuning rates (default 1). */
   readonly secularization?: number;
   readonly languageShift?: number;
+  readonly conversion?: number;
 }
 
 /** Flows per region this month (people). */
@@ -68,6 +69,7 @@ export interface MonthFlows {
   readonly toUrban: number[];
   readonly secularized: number[];
   readonly languageShifted: number[];
+  readonly converted: number[];
 }
 
 const MONTHS = 12;
@@ -123,10 +125,12 @@ export function stepMonth(pop: NationPopulation, inputs: MonthInputs): MonthFlow
     toUrban: [],
     secularized: [],
     languageShifted: [],
+    converted: [],
   };
   const targets = [1, 2, 3, 4, 5].map((a) => educationTarget(a, inputs.schoolingYears));
   const nationTotal = pop.regions.reduce((s, g) => s + regionTotal(g), 0);
   const dominant = dominantLanguage(table);
+  const majorityFaith = largestFaith(table);
 
   for (const g of pop.regions) {
     // Deaths.
@@ -169,6 +173,9 @@ export function stepMonth(pop: NationPopulation, inputs: MonthInputs): MonthFlow
         (inputs.languageShift ?? 1) * T.languageShiftRate,
         nationTotal,
       ),
+    );
+    flows.converted.push(
+      convert(table, g, majorityFaith, (inputs.conversion ?? 1) * T.conversionRate, nationTotal),
     );
     flows.births.push(born);
     flows.deaths.push(deaths);
@@ -358,6 +365,53 @@ function secularize(
             (T.secularizationByEducation[e] as number) *
             (T.secularizationBySettlement[s] as number)) /
           MONTHS,
+    nationTotal,
+  );
+}
+
+/** The nation's largest faith (NO_RELIGION excluded; ties: lowest id), or null. */
+export function largestFaith(table: CultureTable): number | null {
+  const followers = new Map<number, number>();
+  table.combos.forEach((c, k) => {
+    if (c.religion === NO_RELIGION) return;
+    let n = 0;
+    for (const g of table.regions) for (const v of g.culture[k] as number[]) n += v;
+    followers.set(c.religion, (followers.get(c.religion) ?? 0) + n);
+  });
+  let best: number | null = null;
+  let bestN = -1;
+  for (const [faith, n] of [...followers.entries()].sort((a, b) => a[0] - b[0])) {
+    if (n > bestN) {
+      bestN = n;
+      best = faith;
+    }
+  }
+  return best;
+}
+
+/** Followers of minority faiths (15+) converting to the largest one. */
+function convert(
+  table: CultureTable,
+  g: RegionGrid,
+  majority: number | null,
+  yearly: number,
+  nationTotal: number,
+): number {
+  if (yearly <= 0 || majority === null) return 0;
+  const total = regionTotal(g);
+  if (total <= 0) return 0;
+  const regionalShare = new Map<number, number>();
+  table.combos.forEach((c, k) => {
+    let n = 0;
+    for (const v of g.culture[k] as number[]) n += v;
+    regionalShare.set(c.religion, (regionalShare.get(c.religion) ?? 0) + n / total);
+  });
+  return shiftWithin(
+    table,
+    g,
+    (c) =>
+      c.religion === majority || c.religion === NO_RELIGION ? null : { ...c, religion: majority },
+    (_s, a, _e, c) => (a < 3 ? 0 : (yearly * (1 - (regionalShare.get(c.religion) ?? 0))) / MONTHS),
     nationTotal,
   );
 }
