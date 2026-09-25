@@ -118,5 +118,7 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 
 | `npm run nw -- <command>` | Headless CLI: `seed`, `new <file>`, `run <file> --years N`, `info`, `indicators`, `branch` |
 
-Run `npm run check` before every commit. Electron commands will be added when that
+Run `npm run check` before every commit. After adding or changing any `package.json`
+(including a new workspace package), run `npm install` and commit `package-lock.json`, or
+CI's `npm ci` fails. Electron commands will be added when that
 package lands.
