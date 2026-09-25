@@ -7,3 +7,11 @@ export { DEFAULT_RULESET, type Ruleset } from './ruleset.ts';
 export { WorldSession, type CreateWorldOptions, type OpenWorldOptions } from './world-session.ts';
 export { guidingFor, NAME_BLOCKLIST } from './reference.ts';
 export { worldSystem, type CountryState, type WorldSlice } from './systems/world.ts';
+export {
+  demographySystem,
+  DEMOGRAPHY_INDICATORS,
+  regionSetup,
+  type DemographyRegion,
+  type DemographySlice,
+  type YearCounters,
+} from './systems/demography.ts';

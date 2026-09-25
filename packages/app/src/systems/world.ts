@@ -22,8 +22,11 @@ export interface CountryState {
 
 export interface WorldSlice {
   countries: CountryState[];
-  /** The player's country, chosen in the creation wizard (M9); null until then. */
-  playerCountry: number | null;
+  /**
+   * The player's country. Until the creation wizard (M9) lets the player choose, it is
+   * drawn at random from the world's countries (stream `init/world/player`).
+   */
+  playerCountry: number;
 }
 
 declare module '@nationwright/engine' {
@@ -57,7 +60,7 @@ export const worldSystem = defineSystem({
         stats: { ...c.nation.stats },
         culture: c.culture,
       })),
-      playerCountry: null,
+      playerCountry: ctx.stream('player').nextIntBelow(generated.countries.length),
     };
   },
   step(ctx, slice) {

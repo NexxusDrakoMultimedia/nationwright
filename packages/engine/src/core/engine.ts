@@ -42,7 +42,7 @@ export interface EngineOptions {
   readonly commands?: readonly CommandSpec<any>[];
 }
 
-export const RULESET_VERSION = 1;
+export const RULESET_VERSION = 2;
 
 export interface PendingCommand {
   readonly seq: number;
@@ -131,6 +131,7 @@ export class Engine {
       const ctx: InitContext = {
         startYear: options.startYear,
         generated: options.generated,
+        world: this.#world,
         stream: (name) => createStream(this.#seed, streamDomain(domainPath('init', id, name))),
       };
       setSlice(this.#world, system, system.init(ctx));

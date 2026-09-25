@@ -8,6 +8,7 @@
  */
 
 import { RULESET_VERSION, type AnySystem, type CommandSpec } from '@nationwright/engine';
+import { demographySystem } from './systems/demography.ts';
 import { worldSystem } from './systems/world.ts';
 
 export interface Ruleset {
@@ -19,6 +20,6 @@ export interface Ruleset {
 
 export const DEFAULT_RULESET: Ruleset = {
   version: RULESET_VERSION,
-  systems: [worldSystem],
+  systems: [worldSystem, demographySystem],
   commands: [],
 };

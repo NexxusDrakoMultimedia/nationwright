@@ -34,7 +34,13 @@ describe('worlds with a generated map', () => {
     expect(generated.countries).toHaveLength(40);
     const slice = session.engine.world.slices.world!;
     expect(slice.countries.map((c) => c.name)).toEqual(generated.countries.map((c) => c.name));
-    expect(slice.playerCountry).toBeNull();
+    expect(slice.playerCountry).toBeGreaterThanOrEqual(0);
+    expect(slice.playerCountry).toBeLessThan(40);
+    const demography = session.engine.world.slices.demography!;
+    expect(demography.country).toBe(slice.playerCountry);
+    expect(demography.regions).toHaveLength(
+      generated.countries[slice.playerCountry]!.provinceCount,
+    );
     session.advance(24);
     session.close();
 

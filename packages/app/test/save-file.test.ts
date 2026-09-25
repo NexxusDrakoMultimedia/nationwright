@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import Database from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Engine } from '@nationwright/engine';
+import { Engine, RULESET_VERSION } from '@nationwright/engine';
 import { SCHEMA_VERSION, SaveFile } from '../src/index.ts';
 import { baseOptions } from '../../engine/test/core/fixtures.ts';
 
@@ -80,7 +80,7 @@ describe('SaveFile', () => {
       generatorVersion: null,
       worldSeed: 'q3Zk1d0XbAc',
       startYear: 2026,
-      rulesetVersion: 1,
+      rulesetVersion: RULESET_VERSION,
       nextTick: 60,
       createdAt: T0.toISOString(),
       savedAt: T1.toISOString(),
@@ -143,7 +143,9 @@ describe('SaveFile', () => {
     const engine = new Engine(baseOptions);
     engine.advance(3);
     const saved = engine.save();
-    expect(() => Engine.restore({ ...baseOptions, rulesetVersion: 2 }, saved)).toThrow(/ruleset/);
+    expect(() =>
+      Engine.restore({ ...baseOptions, rulesetVersion: RULESET_VERSION + 1 }, saved),
+    ).toThrow(/ruleset/);
     expect(() => Engine.restore({ ...baseOptions, systems: [] }, saved)).toThrow(/slices/);
     expect(() => Engine.restore({ ...baseOptions, startYear: 2027 }, saved)).toThrow(/start year/);
   });

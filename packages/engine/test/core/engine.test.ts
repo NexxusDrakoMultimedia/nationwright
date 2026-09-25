@@ -2,7 +2,14 @@
 // Copyright (C) 2026 Nexxus Drako Multimedia
 
 import { describe, expect, it } from 'vitest';
-import { Engine, SYSTEM_ORDER, defineSystem, replay, type SystemId } from '../../src/index.ts';
+import {
+  Engine,
+  RULESET_VERSION,
+  SYSTEM_ORDER,
+  defineSystem,
+  replay,
+  type SystemId,
+} from '../../src/index.ts';
 import { baseOptions, setTaxRate, toyDemography, toyEconomy } from './fixtures.ts';
 
 function fingerprint(engine: Engine): string {
@@ -16,7 +23,7 @@ describe('Engine', () => {
     expect(engine.world.meta).toEqual({
       worldSeed: 'q3Zk1d0XbAc',
       startYear: 2026,
-      rulesetVersion: 1,
+      rulesetVersion: RULESET_VERSION,
       nextTick: 0,
     });
     expect(engine.world.slices.toyEconomy).toEqual({ taxRate: 0.2, revenue: 0 });

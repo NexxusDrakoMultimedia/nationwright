@@ -18,6 +18,8 @@ export interface InitContext {
   readonly startYear: number;
   /** The generated world, when the engine was created with one. */
   readonly generated: GeneratedWorld | undefined;
+  /** The world so far: slices of systems earlier in the pipeline are already initialized. */
+  readonly world: DeepReadonly<WorldState>;
   /** Stream `init/<system>[/<name>]`. */
   stream(name?: string): RandomStream;
 }

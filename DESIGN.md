@@ -321,6 +321,18 @@ mechanics**. Formulas are initial proposals; constants live in tuning files.
 - **Cultural change:** operates on the joint distribution described above (language
   shift, religious drift, and intermarriage).
 
+**Implementation (M2, in progress):** the engine's `demography/` module. Mortality is a
+Siler hazard calibrated to life expectancy (by sex) and infant mortality; fertility blends
+an early and a late age schedule, scaled to the TFR; the starting age structure is a
+stable population rescaled to the 0–14 and 65+ shares; education comes from expected
+years of schooling, with an age gradient fitted to literacy. Settlement and education
+multipliers are normalized so the starting national rates equal the country's
+statistics. Cohort counts are real numbers. Until the creation wizard (M9), the player's
+country is drawn at random, and net international migration runs at the country's
+sampled rate until the bilateral model (M3). Other systems adjust demography through the
+modifier targets `demography.fertility_multiplier`, `mortality_multiplier`,
+`schooling_years`, `urbanization_rate`, and `net_migration_rate`.
+
 **Outputs / indicators:** total population, growth rate, crude birth/death rates, TFR,
 life expectancy (by sex), infant mortality, median age, dependency ratio, population
 pyramid, urbanization rate, ethnic/linguistic/religious composition, foreign-born share
