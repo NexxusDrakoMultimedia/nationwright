@@ -12,5 +12,9 @@
   "scripts": {
     "fetch": "node src/cli.ts fetch",
     "build": "node src/cli.ts build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NexxusDrakoMultimedia/nationwright.git"
   }
 }

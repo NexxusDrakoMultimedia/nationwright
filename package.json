@@ -13,7 +13,7 @@
     "node": ">=22.12"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/ui/tsconfig.renderer.json && tsc -p packages/ui/tsconfig.preload.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -23,7 +23,11 @@
     "data:fetch": "node packages/reference-data/src/cli.ts fetch",
     "data:build": "node packages/reference-data/src/cli.ts build",
     "licenses": "node scripts/check-licenses.ts",
-    "nw": "node packages/cli/src/main.ts"
+    "nw": "node packages/cli/src/main.ts",
+    "ui:build": "node packages/ui/build.ts",
+    "ui:start": "npm run ui:build && electron packages/ui",
+    "ui:smoke": "node packages/ui/smoke.ts",
+    "ui:package": "npm run ui:build && cd packages/ui && electron-builder --config electron-builder.yml"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -34,5 +38,9 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
     "vitest": "^5.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NexxusDrakoMultimedia/nationwright.git"
   }
 }

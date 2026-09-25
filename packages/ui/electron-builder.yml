@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Nexxus Drako Multimedia
+#
+# Packaging for the desktop app (npm run ui:package). Everything except better-sqlite3 is
+# bundled into out/ by build.ts, so the packaged app ships out/ plus that one native module.
+
+appId: io.github.nexxusdrakomultimedia.nationwright
+productName: Nationwright
+executableName: nationwright
+# Nothing is published or auto-updated (yet).
+publish: null
+copyright: Copyright © 2026 Nexxus Drako Multimedia
+directories:
+  output: dist
+  buildResources: build-resources
+files:
+  - out/**
+  - '!out/**/*.map'
+  - package.json
+extraFiles:
+  - from: ../../LICENSE
+    to: LICENSE
+# better-sqlite3 13 uses Node-API prebuilds, which load in Electron without a rebuild.
+npmRebuild: false
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**'
+fileAssociations:
+  - ext: nwsave
+    name: Nationwright world
+    description: Nationwright saved world
+linux:
+  target: [AppImage]
+  category: Game
+mac:
+  target: [dmg]
+  category: public.app-category.simulation-games
+win:
+  target: [nsis]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  license: ../../LICENSE

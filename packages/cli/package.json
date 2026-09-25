@@ -15,5 +15,9 @@
   "dependencies": {
     "@nationwright/app": "0.0.0",
     "@nationwright/engine": "0.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NexxusDrakoMultimedia/nationwright.git"
   }
 }

@@ -10,10 +10,11 @@ off as they land; add new ones as work reveals them.
 - [x] Choose a project license: GPLv3 or later (`GPL-3.0-or-later`), © Nexxus Drako Multimedia, full text in `LICENSE`
 - [x] Set `"license": "GPL-3.0-or-later"` in every `package.json` (root, engine; keep doing it for new packages)
 - [x] Dependency-license check (`npm run licenses`, in CI and `npm run check`)
-- [ ] Show the license and source-code link in the app's About/credits screen
+- [x] Show the license and source-code link in the app's About/credits screen
 - [x] npm workspaces monorepo (`packages/*`); `packages/engine` created
 - [x] Packages: `engine`, `app`, `cli`, `reference-data`
-- [ ] Remaining: `ui` (Electron), `content/`
+- [x] `ui` (Electron)
+- [ ] `content/` (with the first data-driven content in M1)
 - [x] TypeScript config: `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`; shared `tsconfig.base.json`
 - [x] ESLint (typescript-eslint strict) + Prettier; engine rule banning `Math.random`, `Date`, `performance`, `crypto`
 - [x] Vitest setup; CI workflow (typecheck, lint, format check, test)
@@ -58,11 +59,18 @@ off as they land; add new ones as work reveals them.
 - [x] Determinism tests: same seed + commands ⇒ byte-identical state (engine and save round-trip)
 
 ### Electron shell
-- [ ] Main process, engine in a utility process, typed IPC over MessagePort
-- [ ] Renderer: React + Vite; `contextIsolation` on, `nodeIntegration` off, strict CSP,
-      preload API
-- [ ] Confirm `better-sqlite3` 13 (Node-API, prebuilt binaries) loads in Electron without a
-      rebuild; otherwise add `@electron/rebuild`. electron-builder config
+- [x] Main process, engine in a utility process, typed protocol over a MessagePort
+- [x] Renderer: React + Vite; `contextIsolation` on, `nodeIntegration` off, `sandbox` on,
+      strict CSP, narrow preload API; navigation, new windows, and permissions denied
+- [x] `better-sqlite3` 13 (Node-API) loads in Electron without a rebuild, also when packaged
+- [x] Minimal UI: new world (seed entry/reroll/validation), open, advance, close, About
+- [x] End-to-end smoke test (`npm run ui:smoke`), in CI with the sandbox on
+- [x] electron-builder config (`npm run ui:package`): Linux AppImage verified locally;
+      macOS dmg and Windows nsis configured but not yet built
+- [ ] App icon (installers currently use Electron's default)
+- [ ] Development mode with hot reload (Vite dev server + `NATIONWRIGHT_RENDERER_URL`)
+- [ ] Ship only the current platform's `better-sqlite3` prebuild (all 8 are packaged now)
+- [ ] Code signing / notarization for macOS and Windows installers
 
 ### CLI
 - [x] Application layer: `WorldSession` (create/open/advance/autosave/branch) and the

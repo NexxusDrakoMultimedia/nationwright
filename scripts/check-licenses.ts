@@ -29,6 +29,7 @@ const ALLOWED = new Set([
   'MPL-2.0',
   'Python-2.0',
   'Unlicense',
+  'WTFPL', // listed as GPL-compatible by the FSF
   'Zlib',
 ]);
 

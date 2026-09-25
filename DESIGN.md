@@ -1213,8 +1213,13 @@ Determinism notes for TypeScript:
 
 - Running the engine in a utility process keeps the UI responsive during multi-year
   runs, and progress streams back per tick.
-- `better-sqlite3` is a native module, so it must be rebuilt for Electron's Node ABI
-  (`@electron/rebuild` or electron-builder's built-in rebuild step).
+- `better-sqlite3` 13 ships Node-API prebuilds, which load in Electron without a rebuild
+  (verified by the end-to-end smoke test, including from a packaged build), so
+  electron-builder runs with `npmRebuild: false`. It is the app's only runtime
+  dependency; everything else is bundled into `packages/ui/out/`.
+- The renderer talks to the engine through a typed protocol
+  (`packages/ui/src/shared/protocol.ts`) over a MessagePort that the main process brokers.
+  The main process owns only native dialogs and a fixed allowlist of external links.
 - Packaging: electron-builder for Windows, macOS, and Linux installers. The reference
   snapshot and guiding variables ship as read-only app resources.
 - The same engine package runs in plain Node for the CLI batch runner and tests.

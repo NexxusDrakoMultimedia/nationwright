@@ -3,5 +3,12 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "include": ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "*.config.ts", "scripts/**/*.ts"]
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "*.config.ts",
+    "scripts/**/*.ts",
+    "packages/ui/*.ts"
+  ],
+  "exclude": ["packages/ui/src/renderer/**", "packages/ui/src/preload/**"]
 }

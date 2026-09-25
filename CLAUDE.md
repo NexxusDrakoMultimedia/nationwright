@@ -85,9 +85,13 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 ## Conventions
 
 - Layout: npm workspaces: `packages/engine` (pure simulation), `app` (saves, sessions,
-  ruleset), `cli`, `reference-data`; `ui` (Electron) and `content/` (YAML validated with
-  zod/JSON Schema) come next. New systems are registered in `packages/app/src/ruleset.ts`.
-  Packages export TypeScript source directly (`"exports": "./src/index.ts"`) and import
+  ruleset), `cli`, `reference-data`, `ui` (Electron: `main`, `preload`, `worker` = engine process,
+  `renderer` = React); `content/` (YAML validated with zod/JSON Schema) comes next.
+  New systems are registered in `packages/app/src/ruleset.ts`.
+- Electron security settings in `packages/ui/src/main/main.ts` (context isolation, sandbox,
+  CSP, denied navigation/permissions, link allowlist) are requirements, not defaults to
+  relax. `--no-sandbox` is only for the smoke test when running as root.
+- Packages export TypeScript source directly (`"exports": "./src/index.ts"`) and import
   with explicit `.ts` extensions.
 - TypeScript is pinned to **6.0.x**: typescript-eslint doesn't support TypeScript 7 yet.
   Upgrade both together.
@@ -111,14 +115,16 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run format` / `format:check` | Prettier (Markdown is excluded on purpose) |
 | `npm test` / `npm run test:watch` | Vitest |
 | `npx vitest run -u` | Update snapshots. Only do this deliberately: the stream golden master pins every world |
-
 | `npm run licenses` | Fail on any installed package whose license isn't GPL-3.0-or-later compatible |
 | `npm run data:fetch` | Clone factbook.json at the pinned commit into `packages/reference-data/.cache/` |
 | `npm run data:build -- --target-year 2026` | Rebuild `packages/reference-data/data/` (review `report-<year>.md` in the diff) |
-
 | `npm run nw -- <command>` | Headless CLI: `seed`, `new <file>`, `run <file> --years N`, `info`, `indicators`, `branch` |
+| `npm run ui:build` | Build the desktop app into `packages/ui/out/` |
+| `npm run ui:start` | Build and launch the desktop app |
+| `npm run ui:smoke` | End-to-end Electron test under Xvfb (add `-- --app <binary>` for a packaged build) |
+| `npm run ui:package -- --linux AppImage` | Build an installer into `packages/ui/dist/` |
 
 Run `npm run check` before every commit. After adding or changing any `package.json`
 (including a new workspace package), run `npm install` and commit `package-lock.json`, or
-CI's `npm ci` fails. Electron commands will be added when that
-package lands.
+CI's `npm ci` fails. After touching `packages/ui/src/{main,preload,worker}`, also run
+`npm run ui:build && npm run ui:smoke`.
