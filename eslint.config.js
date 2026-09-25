@@ -12,6 +12,25 @@ const engineDeterminismRules = {
   'no-restricted-properties': [
     'error',
     { object: 'Math', property: 'random', message: 'Use a seeded stream (random/stream.ts).' },
+    ...[
+      'log',
+      'log2',
+      'log10',
+      'log1p',
+      'exp',
+      'expm1',
+      'pow',
+      'sin',
+      'cos',
+      'tan',
+      'atan2',
+      'hypot',
+      'cbrt',
+    ].map((property) => ({
+      object: 'Math',
+      property,
+      message: 'Engine-dependent precision; use detLog/detExp from random/detmath.ts.',
+    })),
   ],
   'no-restricted-globals': [
     'error',

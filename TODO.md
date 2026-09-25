@@ -24,8 +24,9 @@ off as they land; add new ones as work reveals them.
 - [x] Seed codec tests: round-trip, `0`, `2^64−1`, rejection cases (property-based)
 - [x] SplitMix64 + xoshiro256\*\* (32-bit ops), with reference test vectors and a bigint oracle
 - [x] Domain-separated streams (`FNV-1a 64` domain hash, pinned) with a golden master
-- [ ] Deterministic normal/exponential/Poisson samplers (portable math: don't rely on
-      `Math.log`/`Math.cos` being identical across JS engines)
+- [x] Portable `detLog`/`detExp` (IEEE basic operations only; ≤ 4e-16 relative error)
+- [x] Samplers on top of them: normal (polar), log-normal, exponential, Poisson (exact
+      below λ = 30, normal approximation above), weighted index, shuffle
 
 ### Engine core
 - [x] World state container: meta, modifiers, chronicle, and per-system slices

@@ -18,3 +18,5 @@ export type * from './core/readonly.ts';
 export * from './core/scope.ts';
 export type * from './core/state.ts';
 export * from './core/system.ts';
+export { detExp, detLog, pow2 } from './random/detmath.ts';
+export * from './random/distributions.ts';

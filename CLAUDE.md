@@ -33,6 +33,10 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
   - PRNG: xoshiro256\*\* seeded via SplitMix64. Every consumer uses its own
     domain-separated stream (e.g. `worldgen/elevation`, `sim/demography@tick:N`). Never
     share or reorder streams across systems.
+  - Never call `Math.log`, `Math.exp`, `Math.pow`, or trigonometric functions in
+    simulation code: engines may approximate them differently. Use `detLog`/`detExp` and
+    the samplers in `random/distributions.ts`. Basic arithmetic, `Math.sqrt`,
+    `Math.round`, `Math.floor`, `Math.min`/`max`, and `Math.abs` are exact and fine.
   - Iterate arrays or sorted keys only. Round integer quantities with
     largest-remainder so totals are conserved.
 - **Engine purity:** `packages/engine` has no UI, no I/O, and no SQLite. Systems read
