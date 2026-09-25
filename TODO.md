@@ -135,7 +135,8 @@ off as they land; add new ones as work reveals them.
       cell, regional concentration of minorities, yearly pruning)
 - [x] Fertility, mortality, aging (Siler life tables, blended fertility schedules);
       rural-to-urban migration; interim net international migration at the sampled rate
-- [ ] Internal migration between regions
+- [x] Internal migration between regions (symmetric gravity; interim attractiveness from
+      urban share and the capital until wages and jobs exist in M3)
 - [x] Language shift, secularization, intermarriage
 - [ ] Conversion between faiths (only secularization to "no religion" so far)
 - [ ] Regions from the map; cities and growth

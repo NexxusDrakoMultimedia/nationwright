@@ -75,6 +75,14 @@ export const DEMOGRAPHY_TUNING = {
     0, 1.5, 1.5, 1.5, 1.2, 1, 0.5, 0.4, 0.3, 0.3, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
     0.1,
   ],
+  /** Ceiling on yearly internal mobility (see InternalMigration.rate). */
+  internalMigrationRate: 0.03,
+  /** Relative mobility by education (none … tertiary); age uses urbanMigrationByAge. */
+  internalMigrationByEducation: [0.7, 0.9, 1, 1, 1.4],
+  /** Exponent on the attractiveness ratio between two regions. */
+  internalMigrationPull: 0.3,
+  /** Attractiveness bonus of the capital's region. */
+  capitalAttraction: 1.5,
   /** Combinations below this share of the population are folded into a neighbour yearly. */
   pruneShare: 1e-4,
   /** A birth flow creates a new combination only above this share of the population. */

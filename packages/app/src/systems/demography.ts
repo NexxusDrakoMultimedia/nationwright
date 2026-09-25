@@ -13,16 +13,20 @@
  * `demography.schooling_years` (the country's expected years of schooling),
  * `demography.urbanization_rate` (tuning), `demography.net_migration_rate` (the
  * country's sampled rate, per 1,000 people per year), `demography.secularization_multiplier`
- * (1), `demography.language_shift_multiplier` (1).
+ * (1), `demography.language_shift_multiplier` (1), `demography.internal_migration_rate`
+ * (tuning), and per region `demography.region_attractiveness` (1, multiplied into the
+ * interim attractiveness from urban share and the capital).
  */
 
 import {
   ageShare,
   buildPopulation,
+  cellDistance,
   cohortsOf,
   composition,
   fractionalization,
   largestShare,
+  migrateInternally,
   noReligionShare,
   pruneCombinations,
   defineSystem,
@@ -74,6 +78,10 @@ export interface DemographySlice {
   /** Ethnicity × religion × language combinations in use (religion −1 = none). */
   combos: Combination[];
   regions: DemographyRegion[];
+  /** Distance between regions' seats (their most populous map cells), km. */
+  readonly distances: readonly (readonly number[])[];
+  /** The region holding the capital. */
+  readonly capitalRegion: number;
   year: YearCounters;
 }
 
@@ -96,6 +104,13 @@ export const DEMOGRAPHY_INDICATORS: readonly IndicatorDefinition[] = [
   indicator('population.deaths', 'people', 'Deaths', 'sum'),
   indicator('population.net_migration', 'people', 'Net international migrants', 'sum'),
   indicator('population.urban_share', '%', 'Share of people living in urban areas'),
+  indicator(
+    'population.net_internal_migration',
+    'people',
+    'Net arrivals from other regions (regional scopes)',
+    'sum',
+  ),
+  indicator('population.internal_migration', 'people', 'People moving between regions', 'sum'),
   indicator('population.birth_rate', 'per 1,000 people', 'Crude birth rate over the year'),
   indicator('population.death_rate', 'per 1,000 people', 'Crude death rate over the year'),
   indicator(
@@ -142,24 +157,35 @@ export const DEMOGRAPHY_INDICATORS: readonly IndicatorDefinition[] = [
   ),
 ];
 
-/** Population and urban population of each of the country's provinces. */
+/**
+ * Population and urban population of each of the country's provinces, their seats (most
+ * populous cells), the distances between seats, and the capital's region.
+ */
 export function regionSetup(
   generated: GeneratedWorld,
   country: number,
   urbanShare: number,
-): { provinces: number[]; regions: RegionSetup[] } {
+): { provinces: number[]; regions: RegionSetup[]; distances: number[][]; capitalRegion: number } {
   const c = generated.countries[country];
   if (c === undefined) throw new RangeError(`No country ${country} in the generated world.`);
   const provinces = Array.from({ length: c.provinceCount }, (_, k) => c.firstProvince + k);
   const population = provinces.map(() => 0);
   const cityPopulation = provinces.map(() => 0);
+  const seats = provinces.map(() => -1);
   const { owner, province, population: cellPopulation } = generated.map;
   for (let i = 0; i < owner.length; i++) {
     if (owner[i] !== country) continue;
     const k = (province[i] as number) - c.firstProvince;
-    if (k >= 0 && k < provinces.length)
-      population[k] = (population[k] as number) + (cellPopulation[i] as number);
+    if (k < 0 || k >= provinces.length) continue;
+    population[k] = (population[k] as number) + (cellPopulation[i] as number);
+    const seat = seats[k] as number;
+    if (seat < 0 || (cellPopulation[i] as number) > (cellPopulation[seat] as number)) seats[k] = i;
   }
+  const grid = generated.map.grid;
+  const distances = seats.map((a) =>
+    seats.map((b) => (a < 0 || b < 0 ? 0 : cellDistance(grid, a, b))),
+  );
+  const capitalRegion = Math.max(0, (province[c.capitalCell] as number) - c.firstProvince);
   for (const city of generated.cities) {
     if (city.country !== country) continue;
     const k = (province[city.cell] as number) - c.firstProvince;
@@ -175,6 +201,8 @@ export function regionSetup(
   const rest = Math.max(0, target - floor * total);
   return {
     provinces,
+    distances,
+    capitalRegion,
     regions: population.map((p, k) => ({
       population: p,
       urbanPopulation: Math.min(
@@ -269,7 +297,7 @@ export const demographySystem = defineSystem({
     const country = world.playerCountry;
     const stats = world.countries[country]?.stats;
     if (stats === undefined) throw new RangeError(`No country ${country}.`);
-    const { provinces, regions } = regionSetup(
+    const { provinces, regions, distances, capitalRegion } = regionSetup(
       generated,
       country,
       (stats['population.urban_share'] ?? 50) / 100,
@@ -284,6 +312,8 @@ export const demographySystem = defineSystem({
       country,
       model: pop.model,
       combos: pop.combos,
+      distances,
+      capitalRegion,
       regions: provinces.map((p, k) => {
         const grid = pop.regions[k];
         if (grid === undefined) throw new Error(`Missing region ${k}.`);
@@ -314,6 +344,25 @@ export const demographySystem = defineSystem({
       languageShift: value('demography.language_shift_multiplier', 1),
     });
     const sum = (xs: readonly number[]) => xs.reduce((s, n) => s + n, 0);
+
+    // Internal migration. Interim attractiveness: urban share and the capital (the
+    // economy replaces this with wages, jobs, and services in M3).
+    const internal = migrateInternally(slice.regions, {
+      rate: value('demography.internal_migration_rate', DEMOGRAPHY_TUNING.internalMigrationRate),
+      distances: slice.distances,
+      attractiveness: slice.regions.map((region, r) => {
+        const s = summarize([region.cohorts]);
+        const base =
+          (0.2 + (s.total > 0 ? s.urban / s.total : 0)) *
+          (r === slice.capitalRegion ? DEMOGRAPHY_TUNING.capitalAttraction : 1);
+        return ctx.resolve('demography.region_attractiveness', `region:${r}`, 1).value * base;
+      }),
+    });
+    internal.net.forEach((n, r) =>
+      ctx.record('population.net_internal_migration', `region:${r}`, n),
+    );
+    ctx.record('population.internal_migration', 'nation', internal.movers);
+
     const births = sum(flows.births);
     const deaths = sum(flows.deaths);
     const netMigration = sum(flows.netMigration);

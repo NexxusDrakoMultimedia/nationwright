@@ -345,6 +345,15 @@ most spoken one, fastest among the young and schooled, slowed by their language'
 regional share. Combinations below 0.01% of the population are folded into their nearest
 neighbour each December. Conversion between faiths is not modelled yet.
 
+Internal migration is a symmetric gravity model: the yearly flow from region r to q is
+rate · P_r · (P_q / P) · decay(d_rq) · (A_q / A_r)^0.3, where decay halves at the
+country's population-weighted mean distance between regions (so big and small
+countries have similar mobility) and A is attractiveness. Equal attractiveness gives
+zero net flows; no region's outflow can exceed the rate. Movers are mostly young adults
+and the educated, settle in cities at 1.5× the local urban share, and keep their culture.
+Until M3, A = (0.2 + urban share), ×1.5 for the capital's region, times the per-region
+`demography.region_attractiveness` modifier.
+
 **Outputs / indicators:** total population, growth rate, crude birth/death rates, TFR,
 life expectancy (by sex), infant mortality, median age, dependency ratio, population
 pyramid, urbanization rate, ethnic/linguistic/religious composition, foreign-born share

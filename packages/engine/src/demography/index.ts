@@ -9,4 +9,5 @@ export * from './fertility.ts';
 export * from './education.ts';
 export * from './population.ts';
 export * from './project.ts';
+export * from './internal-migration.ts';
 export * from './measures.ts';
