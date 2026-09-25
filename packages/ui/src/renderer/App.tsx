@@ -3,6 +3,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import type { EngineEvent, MapData, WorldSummary } from '../shared/protocol.ts';
+import { CensusScreen } from './census/CensusScreen.tsx';
 import { MapScreen } from './map/MapScreen.tsx';
 import { About } from './About.tsx';
 import { api } from './api.ts';
@@ -134,6 +135,7 @@ function StartScreen({ run, disabled }: ScreenProps) {
 function WorldScreen({ world, run, disabled }: ScreenProps & { readonly world: WorldSummary }) {
   const [map, setMap] = useState<MapData | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [tab, setTab] = useState<'map' | 'census'>('map');
   useEffect(() => {
     let cancelled = false;
     api
@@ -177,9 +179,26 @@ function WorldScreen({ world, run, disabled }: ScreenProps & { readonly world: W
           </button>
         </div>
       </div>
-      {mapError !== null && <p className="error">{mapError}</p>}
-      {map === null && mapError === null && <p className="busy">Loading the map…</p>}
-      {map !== null && <MapScreen map={map} />}
+      <div className="tabs" role="tablist" aria-label="World views">
+        {(['map', 'census'] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            role="tab"
+            aria-selected={tab === t}
+            className={tab === t ? 'tab selected' : 'tab'}
+            onClick={() => setTab(t)}
+          >
+            {t === 'map' ? 'Map' : 'Census'}
+          </button>
+        ))}
+      </div>
+      {tab === 'census' && <CensusScreen month={world.month} />}
+      {tab === 'map' && mapError !== null && <p className="error">{mapError}</p>}
+      {tab === 'map' && map === null && mapError === null && (
+        <p className="busy">Loading the map…</p>
+      )}
+      {tab === 'map' && map !== null && <MapScreen map={map} />}
     </section>
   );
 }

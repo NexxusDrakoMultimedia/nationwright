@@ -64,6 +64,11 @@ export interface WorldCultures {
  * Shares for k groups with a target fractionalization 1 − Σs²: geometric shares s ∝ rⁱ,
  * with r found by bisection. Deterministic and always sums to 1.
  */
+/** The world's faith id for "Non-religious" (always the last faith generated). */
+export function nonReligiousFaith(cultures: Pick<WorldCultures, 'faiths'>): number {
+  return cultures.faiths.length - 1;
+}
+
 export function sharesFor(k: number, fractionalization: number): number[] {
   if (k <= 1) return [1];
   const target = Math.max(1 / k, Math.min(1, 1 - fractionalization)); // Herfindahl index

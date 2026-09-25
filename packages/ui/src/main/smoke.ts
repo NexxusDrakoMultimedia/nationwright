@@ -132,9 +132,26 @@ export function runUiSmokeTest(window: BrowserWindow, dir: string): void {
       const profile = await js<string | null>(
         `document.querySelector('.country-panel h3')?.textContent ?? null`,
       );
+      if (!(await clickButton('Census'))) throw new Error('no Census tab');
+      for (let i = 0; i < 60; i++) {
+        if (await js<boolean>(`!!document.querySelector('.stat-grid')`)) break;
+        await wait(250);
+      }
+      await wait(500);
+      shots.push(await shot('census'));
+      progress('screenshot: census');
+      await js(`document.querySelector('.pyramid')?.scrollIntoView()`);
+      await wait(300);
+      shots.push(await shot('census-pyramid'));
+      progress('screenshot: population pyramid');
+      const census = await js<{ tiles: number; bands: number; regions: number }>(`({
+        tiles: document.querySelectorAll('.stat-tile').length,
+        bands: document.querySelectorAll('.pyramid path.female').length,
+        regions: document.querySelectorAll('.census table.wide')[0]?.querySelectorAll('tbody tr').length ?? 0,
+      })`);
       clearTimeout(timeout);
       process.stdout.write(
-        `SMOKE ${JSON.stringify({ ok: true, result: { shots, countries, profile } })}\n`,
+        `SMOKE ${JSON.stringify({ ok: true, result: { shots, countries, profile, census } })}\n`,
       );
       app.quit();
     })().catch(fail);

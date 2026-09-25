@@ -7,6 +7,10 @@
  * port and owns native dialogs.
  */
 
+import type { Census } from '@nationwright/app/census';
+
+export type { Census, CensusGroup, CensusStat } from '@nationwright/app/census';
+
 export interface WorldSummary {
   readonly path: string;
   readonly startYear: number;
@@ -77,6 +81,8 @@ export interface EngineRequests {
   'world.advance': { params: { months: number }; result: WorldSummary };
   'world.summary': { params: null; result: WorldSummary | null };
   'world.map': { params: null; result: MapData };
+  /** The player's nation now (DESIGN.md §4.1 outputs). */
+  'world.census': { params: null; result: Census };
   'world.close': { params: null; result: null };
 }
 

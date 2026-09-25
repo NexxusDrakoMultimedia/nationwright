@@ -127,11 +127,11 @@ Requires Node ≥ 22.12 (see `.nvmrc`). From the repository root:
 | `npm run data:fetch` | Clone factbook.json at the pinned commit into `packages/reference-data/.cache/` |
 | `npm run data:build -- --target-year 2026` | Rebuild `packages/reference-data/data/` (review `report-<year>.md` in the diff) |
 | `npm run worldgen:validate` | Generate 200 worlds and write `docs/validation/worldgen.md` (about a minute; rerun after generator or guiding-model changes) |
-| `npm run nw -- <command>` | Headless CLI: `new <file>`, `run <file> --years N`, `info`, `indicators`, `branch` |
+| `npm run nw -- <command>` | Headless CLI: `new <file>`, `run <file> --years N`, `info`, `census`, `indicators`, `branch` |
 | `npm run ui:build` | Build the desktop app into `packages/ui/out/` |
 | `npm run ui:start` | Build and launch the desktop app |
 | `npm run ui:smoke` | End-to-end Electron test under Xvfb (add `-- --app <binary>` for a packaged build) |
-| `npm run ui:smoke -- --ui <world.nwsave> --out <dir>` | Open a world in the app and screenshot each map layer and a profile |
+| `npm run ui:smoke -- --ui <world.nwsave> --out <dir>` | Open a world in the app and screenshot each map layer, a profile, and the census |
 | `npm run ui:package -- --linux AppImage` | Build an installer into `packages/ui/dist/` |
 
 Run `npm run check` before every commit. After adding or changing any `package.json`

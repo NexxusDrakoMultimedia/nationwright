@@ -142,7 +142,10 @@ off as they land; add new ones as work reveals them.
 - [x] Regions from the map (the player's provinces); cities as shares of regional urban
       population, drifting toward attractive cities (capital, coast, river, modifiers)
 - [ ] Founding new cities (needs infrastructure, M6)
-- [ ] Census report, population pyramid; validation against bands
+- [x] Census report (desktop Census tab and `nw census`): headline figures placed against
+      real-world bands, population pyramid (tooltip, table view), education, culture,
+      regions, cities
+- [ ] Validation of simulated nations against bands over time (script, like worldgen)
 - [ ] Performance measurements by world size (reported, not gated)
 
 ## M3 — Economy & World

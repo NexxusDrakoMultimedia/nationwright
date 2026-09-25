@@ -76,5 +76,12 @@ describe('nationwright CLI', () => {
     expect(run('run', join(dir, 'missing.nwsave'), '--years', '1')).toMatchObject({ code: 1 });
     expect(run('indicators', join(dir, 'x.nwsave'), '--scope', 'planet:3').code).toBe(2);
     expect(run('run', join(dir, 'x.nwsave')).code).toBe(1);
+    // The toy ruleset has no demography, so there is no census to print.
+    const w = join(dir, 'toy.nwsave');
+    run('new', w);
+    expect(run('census', w)).toMatchObject({
+      code: 1,
+      err: [expect.stringContaining('demography')],
+    });
   });
 });

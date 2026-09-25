@@ -27,6 +27,8 @@ import {
   fractionalization,
   largestShare,
   migrateInternally,
+  NO_RELIGION,
+  nonReligiousFaith,
   noReligionShare,
   pruneCombinations,
   defineSystem,
@@ -303,10 +305,17 @@ export const demographySystem = defineSystem({
       (stats['population.urban_share'] ?? 50) / 100,
     );
     const culture = world.countries[country]?.culture;
+    // The generator's "Non-religious" faith is demography's NO_RELIGION, so secularization
+    // adds to the same group.
+    const noFaith = nonReligiousFaith(generated.cultures);
+    const joint = culture?.joint.map((j) => ({
+      ...j,
+      religion: j.religion === noFaith ? NO_RELIGION : j.religion,
+    }));
     const pop = buildPopulation(
       stats,
       regions,
-      culture === undefined ? undefined : { joint: culture.joint, stream: ctx.stream('culture') },
+      joint === undefined ? undefined : { joint, stream: ctx.stream('culture') },
     );
     const slice: DemographySlice = {
       country,

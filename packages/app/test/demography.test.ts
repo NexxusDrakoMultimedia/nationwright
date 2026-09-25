@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { summarize } from '@nationwright/engine';
-import { WorldSession } from '../src/index.ts';
+import { bandPosition, buildCensus, formatCensus, WorldSession } from '../src/index.ts';
 
 let dir: string;
 beforeAll(() => {
@@ -86,5 +86,40 @@ describe('demography system', () => {
     resumed.advance(17);
     expect(JSON.stringify(resumed.engine.world.slices)).toBe(expected);
     resumed.close();
+  });
+});
+
+describe('census', () => {
+  it('reports the nation consistently with its state', () => {
+    const session = create('census.nwsave');
+    session.advance(12);
+    const census = buildCensus(session.engine);
+    const demography = session.engine.world.slices.demography!;
+    const total = summarize(demography.regions.map((r) => r.cohorts)).total;
+    expect(census.pyramid.reduce((s, b) => s + b.female + b.male, 0)).toBeCloseTo(total, 3);
+    expect(census.regions.reduce((s, r) => s + r.population, 0)).toBeCloseTo(total, 3);
+    for (const groups of [census.ethnicGroups, census.religions, census.languages]) {
+      expect(groups.reduce((s, g) => s + g.share, 0)).toBeCloseTo(1, 9);
+      expect(new Set(groups.map((g) => g.name)).size).toBe(groups.length);
+    }
+    expect(census.religions.filter((g) => /religio/i.test(g.name)).length).toBeLessThanOrEqual(1);
+    const population = census.stats.find((s) => s.id === 'population.total')!;
+    expect(population.value).toBeCloseTo(total, 3);
+    expect(population.band).not.toBeNull();
+    expect(census.stats.find((s) => s.id === 'population.birth_rate')!.value).not.toBeNull();
+    expect(census.date).toBe('end of December 2026');
+    const text = formatCensus(census).join('\n');
+    expect(text).toContain(`Census of ${census.country}`);
+    expect(text).toContain('Population pyramid');
+    session.close();
+  });
+
+  it('places values against the real-world band', () => {
+    const band = { min: 1, p10: 2, p90: 8, max: 10 };
+    expect(bandPosition(0.5, band)).toBe('below');
+    expect(bandPosition(1.5, band)).toBe('low');
+    expect(bandPosition(5, band)).toBe('typical');
+    expect(bandPosition(9, band)).toBe('high');
+    expect(bandPosition(11, band)).toBe('above');
   });
 });

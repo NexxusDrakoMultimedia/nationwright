@@ -7,7 +7,7 @@
  */
 
 import { parseArgs } from 'node:util';
-import { SaveFile, WorldSession, type Ruleset } from '@nationwright/app';
+import { buildCensus, formatCensus, SaveFile, WorldSession, type Ruleset } from '@nationwright/app';
 import { dateOfTick, formatDate, isScope } from '@nationwright/engine';
 
 export interface CliContext {
@@ -24,6 +24,7 @@ Commands:
                                      Create a new random world (current year by default)
   run <file> --years N | --months N  Advance a saved world
   info <file>                        Show dates and contents of a save
+  census <file>                      Print the census of your nation
   indicators <file> [--id ID] [--scope SCOPE]
                                      Print indicator series as CSV
   branch <file> <new-file> [--at-month N]
@@ -66,6 +67,8 @@ export function runCli(argv: readonly string[], ctx: CliContext): number {
         return cmdRun(requireArg(args, 0, 'file'), values, ctx);
       case 'info':
         return cmdInfo(requireArg(args, 0, 'file'), ctx);
+      case 'census':
+        return cmdCensus(requireArg(args, 0, 'file'), ctx);
       case 'indicators':
         return cmdIndicators(requireArg(args, 0, 'file'), values, ctx);
       case 'branch':
@@ -157,6 +160,16 @@ function cmdIndicators(path: string, values: Values, ctx: CliContext): number {
     }
   } finally {
     file.close();
+  }
+  return 0;
+}
+
+function cmdCensus(path: string, ctx: CliContext): number {
+  const session = WorldSession.open(path, sessionOptions(ctx));
+  try {
+    for (const line of formatCensus(buildCensus(session.engine))) ctx.out(line);
+  } finally {
+    session.close();
   }
   return 0;
 }

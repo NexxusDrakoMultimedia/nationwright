@@ -6,7 +6,7 @@
  * free of Electron imports so it can be tested in plain Node.
  */
 
-import { guidingFor, WorldSession, type Ruleset } from '@nationwright/app';
+import { buildCensus, guidingFor, WorldSession, type Ruleset } from '@nationwright/app';
 import { dateOfTick, formatDate } from '@nationwright/engine';
 import type {
   EngineEvent,
@@ -109,6 +109,8 @@ export class EngineHost {
     },
 
     'world.summary': () => (this.#session === null ? null : this.#summary()),
+
+    'world.census': () => buildCensus(this.#requireSession().engine),
 
     'world.map': () => {
       const engine = this.#requireSession().engine;

@@ -21,7 +21,7 @@ import {
   URBAN,
 } from './grid.ts';
 import { bandRates, infantMortality, lifeExpectancy } from './life-table.ts';
-import { NO_RELIGION, type Combination, type RegionGrid } from './culture.ts';
+import { NO_RELIGION, type Combination } from './culture.ts';
 import { fertilityMultiplier, mortalityMultiplier, type NationPopulation } from './population.ts';
 import { DEMOGRAPHY_TUNING as T } from './tuning.ts';
 
@@ -164,7 +164,9 @@ export function tertiaryShare(summary: PopulationSummary): number {
 }
 
 /** Cohort arrays of a nation's regions, for `summarize`. */
-export function cohortsOf(regions: readonly RegionGrid[]): number[][] {
+export function cohortsOf(
+  regions: readonly { readonly cohorts: readonly number[] }[],
+): (readonly number[])[] {
   return regions.map((g) => g.cohorts);
 }
 
@@ -178,7 +180,7 @@ export interface Composition {
 
 export function composition(
   combos: readonly Combination[],
-  regions: readonly RegionGrid[],
+  regions: readonly { readonly culture: readonly (readonly number[])[] }[],
 ): Composition {
   const ethnic = new Map<number, number>();
   const religion = new Map<number, number>();

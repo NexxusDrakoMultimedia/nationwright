@@ -1297,7 +1297,7 @@ from the engine.
 | Report | Contents | Cadence |
 |---|---|---|
 | **National Dashboard** | Headline indicators with sparklines and change vs. last year | Always available |
-| **Census** | Population pyramid, regional breakdown, urbanization, city table, ethnicity/language/religion, education attainment, foreign-born, households | Every 10 years (configurable) + on demand |
+| **Census** | Population pyramid, regional breakdown, urbanization, city table, ethnicity/language/religion, education attainment, foreign-born, households. Headline figures are placed against the real-world bands (min, 10th–90th percentile, median) | Every 10 years (configurable) + on demand. *M2: on demand (desktop Census tab, `nw census`); foreign-born and households wait for M3* |
 | **Economic Survey** | GDP, growth, sectors, labor, inflation, fiscal balance, debt | Quarterly / annual |
 | **Budget Report** | Revenue and spending breakdown, deficit, projections | Annual |
 | **Election Report** | Results by district, seats, turnout, swing, results map | Per election |

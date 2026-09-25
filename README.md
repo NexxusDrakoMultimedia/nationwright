@@ -8,8 +8,10 @@ yearbook.
 > **Status: early development.** World generation and the map work: a new world has
 > 196 generated countries (by default) with terrain, climate, rivers, borders, provinces,
 > cities, names, cultures, and statistics drawn from real-world distributions. You can
-> explore it on the map, save it, and advance time. The simulation systems below
-> (population, economy, politics, and the rest) are designed but not built yet. See
+> explore it on the map, save it, and advance time. Your nation's population is
+> simulated month by month (births, deaths, ageing, schooling, ethnicity × religion ×
+> language, migration between regions, cities), with a census report. The other systems
+> below (economy, politics, and the rest) are designed but not built yet. See
 > [TODO.md](TODO.md) for progress and [DESIGN.md](DESIGN.md) for the full design.
 
 ## What it will simulate
@@ -60,6 +62,7 @@ Other useful commands:
 | `npm run nw -- new world.nwsave` | Create a world from the command line |
 | `npm run nw -- run world.nwsave --years 5` | Advance a saved world |
 | `npm run nw -- info world.nwsave` | Show a save's dates and contents |
+| `npm run nw -- census world.nwsave` | Print your nation's census |
 | `npm run ui:package -- --linux AppImage` | Build an installer into `packages/ui/dist/` |
 | `npm run worldgen:validate` | Check 200 generated worlds against real-world statistics |
 
