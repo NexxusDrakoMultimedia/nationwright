@@ -92,14 +92,17 @@ off as they land; add new ones as work reveals them.
 - [ ] Automatic yearly rebuild reminder (the start year advances even though the data is frozen)
 
 ## M1 — World Generation & Map
-- [ ] Guiding variables: marginals, Gaussian copula, archetype clustering, categorical
-      tables, structure and spatial-similarity statistics
+- [x] Guiding variables: 101-percentile marginals, EM-imputed normal scores, 6 k-means
+      archetypes with pooled covariance, categorical tables, structure and spatial statistics
+      (`guiding-variables-2026.json`, model v1)
+- [x] Engine sampler: archetype choice with neighbour copying, correlated draw, marginals,
+      consistency identities; statistical tests against the model (KS < 0.08, |Δρ| < 0.15)
 - [ ] Map: Poisson-disk cells → Voronoi (`d3-delaunay`) → Lloyd relaxation
 - [ ] Elevation (noise + ridges), sea level to target land fraction
 - [ ] Climate → biomes; hydrology → rivers/lakes; habitability; resources
 - [ ] Countries by weighted flood fill; continents/subregions; provinces; cities
 - [ ] Sea lanes and distance graph
-- [ ] Nation statistics sampling with consistency derivation
+- [ ] Nation statistics placed on the map (population scaled to habitable land)
 - [ ] Culture packs and name generators (fictional only)
 - [ ] Randomized ethnicity × religion × language associations (alignment draws + IPF)
 - [ ] Store the generated map in the save; `generator_version`

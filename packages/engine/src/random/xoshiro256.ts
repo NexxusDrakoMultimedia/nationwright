@@ -9,7 +9,7 @@
 
 const TWO_POW_32 = 0x1_0000_0000;
 const TWO_POW_21 = 0x20_0000;
-const TWO_POW_NEG_53 = 1 / 2 ** 53;
+const TWO_POW_NEG_53 = 1 / 9007199254740992; // 2^-53, exact
 const LOW_32 = 0xffff_ffffn;
 
 export class Xoshiro256StarStar {

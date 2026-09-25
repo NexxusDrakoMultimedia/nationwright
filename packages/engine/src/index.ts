@@ -20,3 +20,7 @@ export type * from './core/state.ts';
 export * from './core/system.ts';
 export { detExp, detLog, pow2 } from './random/detmath.ts';
 export * from './random/distributions.ts';
+export * from './math/linalg.ts';
+export * from './math/normal.ts';
+export * from './worldgen/guiding.ts';
+export * from './worldgen/nation-stats.ts';

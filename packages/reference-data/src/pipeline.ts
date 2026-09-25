@@ -9,9 +9,11 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { computeBands, type Band } from './bands.ts';
+import { computeBands, MIN_BAND_SIZE, type Band } from './bands.ts';
 import { parseProfile, resolveBorders, type CountryRecord, type EntityKind } from './country.ts';
 import { FIELDS, type ExtractIssue } from './fields.ts';
+import type { GuidingVariables } from '@nationwright/engine';
+import { fitGuidingVariables } from './fit.ts';
 import { projectAll, type ProjectedCountry, type ProjectionOptions } from './project.ts';
 import { REGION_DIRECTORIES, SOURCE } from './source.ts';
 
@@ -22,6 +24,8 @@ export interface PipelineResult {
   readonly manifest: Manifest;
   readonly snapshot: Snapshot;
   readonly bands: BandsFile;
+  /** Null when there are too few states to fit a model (test fixtures). */
+  readonly guiding: GuidingVariables | null;
   readonly issues: readonly ExtractIssue[];
   readonly warnings: readonly ConsistencyWarning[];
 }
@@ -143,6 +147,10 @@ export function runPipeline(
     },
     snapshot: { ...header, countries: projected },
     bands: { ...header, population: 'states', bands: computeBands(projected) },
+    guiding:
+      projected.filter((c) => c.kind === 'state').length >= MIN_BAND_SIZE
+        ? fitGuidingVariables(projected, header)
+        : null,
     issues: issues.sort((a, b) => (a.field < b.field ? -1 : a.field > b.field ? 1 : 0)),
     warnings: consistencyWarnings(records),
   };
@@ -150,7 +158,7 @@ export function runPipeline(
 
 /** A human-readable report for reviewing a pipeline run as a code change. */
 export function renderReport(result: PipelineResult): string {
-  const { manifest, bands, issues, warnings } = result;
+  const { manifest, bands, issues, warnings, guiding } = result;
   const lines = [
     `# Reference data report — target year ${manifest.targetYear}`,
     '',
@@ -173,6 +181,7 @@ export function renderReport(result: PipelineResult): string {
         `| \`${b.id}\` | ${b.unit} | ${b.n} | ${b.lowConfidence} | ${fmt(b.min)} | ${fmt(b.p10)} | ${fmt(b.p50)} | ${fmt(b.p90)} | ${fmt(b.max)} |`,
     ),
     '',
+    ...(guiding === null ? [] : archetypeSection(guiding)),
     '## Field coverage (share of states with a value)',
     '',
     '| Field | Coverage |',
@@ -209,6 +218,22 @@ export function renderReport(result: PipelineResult): string {
     '',
   ];
   return lines.join('\n');
+}
+
+function archetypeSection(guiding: GuidingVariables): string[] {
+  return [
+    `## Archetypes (${guiding.archetypes.length}; guiding-variables model v${guiding.modelVersion})`,
+    '',
+    '| # | Label | Share of states | Top government type | Landlocked | Island |',
+    '|---|---|---|---|---|---|',
+    ...guiding.archetypes.map((a) => {
+      const top = Object.entries(a.governmentCategories).sort((x, y) => y[1] - x[1])[0];
+      return `| ${a.id} | ${a.label} | ${(a.weight * 100).toFixed(1)}% | ${top?.[0] ?? '–'} | ${(a.landlockedShare * 100).toFixed(0)}% | ${(a.islandShare * 100).toFixed(0)}% |`;
+    }),
+    '',
+    `Bordering states share an archetype ${(guiding.spatial.archetypeAgreement * 100).toFixed(1)}% of the time (chance: ${(guiding.spatial.archetypeAgreementChance * 100).toFixed(1)}%).`,
+    '',
+  ];
 }
 
 function fmt(value: number): string {

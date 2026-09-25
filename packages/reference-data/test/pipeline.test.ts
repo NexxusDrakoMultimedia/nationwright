@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   FIELDS,
+  GUIDING_MODEL_VERSION,
   PIPELINE_VERSION,
   SOURCE,
   parseProfile,
@@ -161,6 +162,15 @@ describe('committed data', () => {
   it('was built from the pinned source with the current pipeline', () => {
     expect(manifest.source.commit).toBe(SOURCE.commit);
     expect(manifest.pipelineVersion).toBe(PIPELINE_VERSION);
+  });
+
+  it('has a guiding-variables model from the current fitter', () => {
+    const guiding = JSON.parse(
+      readFileSync(join(dataDir, `guiding-variables-${manifest.targetYear}.json`), 'utf8'),
+    ) as { modelVersion: number; pipelineVersion: number; archetypes: unknown[] };
+    expect(guiding.modelVersion).toBe(GUIDING_MODEL_VERSION);
+    expect(guiding.pipelineVersion).toBe(PIPELINE_VERSION);
+    expect(guiding.archetypes.length).toBeGreaterThanOrEqual(4);
   });
 
   it('has bands for the core indicators', () => {

@@ -822,14 +822,20 @@ Built offline by the reference-data pipeline (§10.1) and shipped as a versioned
 | Component | What it captures | Method |
 |---|---|---|
 | Marginals | Distribution of each numeric variable (population, area, GDP per capita, TFR, life expectancy, urbanization, literacy, sector shares, debt, defense % GDP, …) | Empirical quantile functions; log transform for skewed variables |
-| Dependence | How variables move together (rich ⇒ lower TFR, higher life expectancy, more urban, more services) | Gaussian copula on rank-normalized variables |
-| Archetypes | Clusters of similar countries (e.g. "low-income agrarian", "resource exporter", "high-income service economy") | k-means/GMM on standardized variables; each cluster keeps its own copula and frequency weight |
+| Dependence | How variables move together (rich ⇒ lower TFR, higher life expectancy, more urban, more services) | Gaussian **mixture** copula on normal scores `z = Φ⁻¹((rank − ½)/n)`; gaps filled by conditional-Gaussian EM |
+| Archetypes | Clusters of similar countries (e.g. "low-income, young and fast-growing", "high-income, industrial") | k-means++ (k = 6, fixed seed) in z-space. Each archetype has a weight and a mean vector; all share one **pooled** within-cluster covariance, because ~30 states per cluster can't support a separate 33 × 33 covariance each |
 | Categorical tables | Government type, number of major languages/religions, ethnic fractionalization, landlocked share, island-nation share, dependency ratio to sovereign states | Frequencies conditioned on archetype |
 | Structure | Distribution of country areas and populations (heavy-tailed), neighbor counts, coastline share | Fitted distributions used by the map generator |
-| Spatial similarity | How similar neighbors are to each other | Correlation of indicators across real borders |
+| Spatial similarity | How similar neighbors are to each other | Share of bordering states in the same archetype (66% vs. 22% by chance) and per-variable correlation across borders. The generator copies a neighbour's archetype with probability (agreement − chance) / (1 − chance) |
 
 Only aggregated statistics are stored. No per-country records ship in
 `guiding-variables.json`. The raw snapshot stays a development and validation asset.
+
+The copula covers 33 variables. Geography that the map itself produces (coastline, land
+neighbours, landlocked or island status) is not sampled; its real-world distributions
+are kept as targets for the map generator. Variables that fewer than 70% of states
+report (literacy) have non-random gaps, so generated values rightly shift away from the
+observed-only distribution (upward for literacy).
 
 #### 4.12.2 Map generation
 

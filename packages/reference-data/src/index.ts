@@ -9,3 +9,4 @@ export * from './project.ts';
 export * from './source.ts';
 export * from './stats.ts';
 export * from './text.ts';
+export * from './fit.ts';

@@ -32,6 +32,13 @@ const engineDeterminismRules = {
       message: 'Engine-dependent precision; use detLog/detExp from random/detmath.ts.',
     })),
   ],
+  'no-restricted-syntax': [
+    'error',
+    {
+      selector: "BinaryExpression[operator='**'], AssignmentExpression[operator='**=']",
+      message: 'The ** operator is implementation-approximated; multiply, or use detExp/detLog.',
+    },
+  ],
   'no-restricted-globals': [
     'error',
     { name: 'Date', message: 'The engine must not read the clock; pass time in as data.' },
@@ -49,6 +56,10 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/consistent-type-imports': 'error',
     },
+  },
+  {
+    files: ['packages/*/test/**/*.ts', 'scripts/**/*.test.ts'],
+    rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },
   {
     files: ['packages/engine/src/**/*.ts'],
