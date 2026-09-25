@@ -7,8 +7,8 @@ off as they land; add new ones as work reveals them.
 ## M0 — Skeleton
 
 ### Repository & tooling
-- [x] Choose a project license: GPLv3 (`GPL-3.0-only`), full text in `LICENSE`
-- [ ] Set `"license": "GPL-3.0-only"` in every `package.json`; add a dependency-license check to CI
+- [x] Choose a project license: GPLv3 or later (`GPL-3.0-or-later`), © Nexxus Drako Multimedia, full text in `LICENSE`
+- [ ] Set `"license": "GPL-3.0-or-later"` in every `package.json`; add a dependency-license check to CI
 - [ ] Show the license and source-code link in the app's About/credits screen
 - [ ] Monorepo with workspaces: `packages/{engine,app,ui,cli,reference-data}`, `content/`
 - [ ] TypeScript config: `strict`, `noUncheckedIndexedAccess`; shared base tsconfig

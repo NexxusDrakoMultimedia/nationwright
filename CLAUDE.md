@@ -52,10 +52,14 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 
 ## License
 
-- The project is **GPLv3** (`GPL-3.0-only`); the full text is in `LICENSE`. Don't edit
-  `LICENSE`.
-- Set `"license": "GPL-3.0-only"` in every `package.json`. New source files start with
-  `// SPDX-License-Identifier: GPL-3.0-only`.
+- The project is **GPLv3 or later** (`GPL-3.0-or-later`), copyright **Nexxus Drako
+  Multimedia**. The full text is in `LICENSE`. Don't edit `LICENSE`.
+- Set `"license": "GPL-3.0-or-later"` in every `package.json`. New source files start with
+  these two lines:
+  ```ts
+  // SPDX-License-Identifier: GPL-3.0-or-later
+  // Copyright (C) <year> Nexxus Drako Multimedia
+  ```
 - Only add dependencies whose licenses are GPLv3-compatible (e.g. MIT, BSD, ISC,
   Apache-2.0, LGPL, CC0). Flag anything else to the user before adding it: GPL-2.0-only,
   proprietary, or "non-commercial" licenses are *not* compatible.
