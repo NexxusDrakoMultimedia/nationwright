@@ -52,6 +52,8 @@ ask "why did this number change?" and get an answer.
 
 ### 1.1 Goals
 
+The summary below is expanded, with success criteria, in [GOALS.md](GOALS.md).
+
 - **Coherent systems.** Population, economy, education, politics, and infrastructure feed
   into each other through explicit, documented relationships.
 - **Deterministic and reproducible.** Same seed + same player inputs = same history.
