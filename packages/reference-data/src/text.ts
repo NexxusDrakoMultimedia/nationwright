@@ -109,6 +109,39 @@ function withoutParentheses(text: string): string {
   return /\d/.test(stripped) ? stripped : text;
 }
 
+/**
+ * Head count of the first force named, e.g. "approximately 60,000 active ADF personnel".
+ * Leading caveats without numbers ("information varies;") are skipped; ranges give their
+ * midpoint. "40-50,000" means 40,000–50,000; "1.1-1.2 million" applies the multiplier to
+ * both ends; "850,000-1 million" spells the low end out. Later clauses (other forces,
+ * reserves) and parenthesized breakdowns are ignored.
+ */
+export function parseHeadcount(text: string): number | null {
+  const clause = withoutParentheses(text)
+    .replace(/\b(?:19|20)\d{2}\b/g, ' ')
+    .split(';')
+    .find((c) => /\d/.test(c));
+  if (clause === undefined) return null;
+  const match =
+    /(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?))?\s*(thousand|million)?\b/i.exec(
+      clause,
+    );
+  if (match === null) return null;
+  const multiplier = MULTIPLIERS[(match[3] ?? '').toLowerCase()] ?? 1;
+  const toNumber = (s: string) => Number(s.replaceAll(',', ''));
+  const lowText = match[1] ?? '';
+  let low = toNumber(lowText);
+  if (match[2] === undefined) return Number((low * multiplier).toPrecision(15));
+  const high = toNumber(match[2]) * multiplier;
+  if (multiplier > 1) {
+    if (!lowText.includes(',')) low *= multiplier;
+  } else {
+    const missing = match[2].split(',').length - lowText.split(',').length;
+    if (missing > 0 && low * 10 ** (3 * missing) <= high) low *= 10 ** (3 * missing);
+  }
+  return Number(((low + high) / 2).toPrecision(15));
+}
+
 export interface ShareItem {
   readonly label: string;
   /** Percentage (0–100), or null when the item has no percentage. */

@@ -49,13 +49,31 @@ const GOVERNMENT_RULES: readonly (readonly [RegExp, string])[] = [
 
 export interface Border {
   readonly name: string;
+  /** Factbook code of the neighbour, filled in by `resolveBorders`; null if unknown. */
+  readonly code: string | null;
   readonly km: number | null;
 }
+
+/**
+ * Border names that don't match any country's name forms (lowercase). Names with a
+ * parenthetical, e.g. "china (southeast)", are also tried without it.
+ */
+export const BORDER_ALIASES: Readonly<Record<string, string>> = {
+  'gaza strip': 'gz',
+  macedonia: 'mk',
+  'holy see': 'vt',
+  us: 'us',
+  'us naval base at guantanamo bay': 'us',
+  'french guiana': 'fr', // part of France; no separate profile
+  'denmark (greenland)': 'gl',
+};
 
 export interface CountryRecord {
   readonly code: string;
   readonly region: RegionDirectory;
   readonly name: string;
+  /** Every name form in the profile (lowercase), for matching border references. */
+  readonly nameForms: readonly string[];
   readonly kind: EntityKind;
   readonly fields: Readonly<Record<string, Observation>>;
   readonly borders: readonly Border[];
@@ -118,6 +136,7 @@ export function parseProfile(
     code,
     region,
     name: countryName(government),
+    nameForms: nameForms(government),
     kind,
     fields,
     borders: parseBorders(profile['Geography']?.['Land boundaries']),
@@ -139,6 +158,47 @@ function countryName(government: Record<string, unknown>): string {
   return '?';
 }
 
+function nameForms(government: Record<string, unknown>): string[] {
+  const names = government['Country name'] as Record<string, unknown> | undefined;
+  const forms = new Set<string>();
+  for (const key of [
+    'conventional short form',
+    'conventional long form',
+    'local short form',
+    'local long form',
+    'abbreviation',
+  ]) {
+    const text = textAt(names?.[key])?.toLowerCase();
+    if (text !== undefined && text !== 'none' && text !== '') forms.add(text);
+  }
+  return [...forms].sort();
+}
+
+/**
+ * Fills in each border's neighbour code by matching names across all records.
+ * Returns the names that could not be resolved.
+ */
+export function resolveBorders(records: CountryRecord[]): { from: string; name: string }[] {
+  const index = new Map<string, string>();
+  for (const r of records) for (const form of r.nameForms) index.set(form, r.code);
+  const unresolved: { from: string; name: string }[] = [];
+  for (let i = 0; i < records.length; i++) {
+    const record = records[i] as CountryRecord;
+    const borders = record.borders.map((border) => {
+      const key = border.name.toLowerCase();
+      const code =
+        index.get(key) ??
+        BORDER_ALIASES[key] ??
+        index.get(key.replace(/\s*\([^)]*\)\s*$/, '')) ??
+        null;
+      if (code === null) unresolved.push({ from: record.code, name: border.name });
+      return { ...border, code };
+    });
+    records[i] = { ...record, borders };
+  }
+  return unresolved;
+}
+
 function parseBorders(node: unknown): Border[] {
   if (node === null || typeof node !== 'object') return [];
   const entry = Object.entries(node as Record<string, unknown>).find(([key]) =>
@@ -153,8 +213,8 @@ function parseBorders(node: unknown): Border[] {
     .map((part) => {
       const match = /^(.*?)\s+([\d,.]+)\s*km\b/.exec(part);
       return match === null
-        ? { name: part, km: null }
-        : { name: (match[1] ?? '').trim(), km: parseNumber(match[2] ?? '') };
+        ? { name: part, code: null, km: null }
+        : { name: (match[1] ?? '').trim(), code: null, km: parseNumber(match[2] ?? '') };
     });
 }
 

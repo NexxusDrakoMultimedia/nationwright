@@ -6,6 +6,7 @@ import {
   cleanText,
   fractionalization,
   parseEstYear,
+  parseHeadcount,
   parseNumber,
   parsePercent,
   parseShareList,
@@ -61,6 +62,25 @@ describe('parsePercent', () => {
     ['NA', null],
   ])('%s -> %s', (text, value) => {
     expect(parsePercent(text)).toBe(value);
+  });
+});
+
+describe('parseHeadcount', () => {
+  it.each([
+    ['approximately 60,000 active ADF personnel (2025)', 60000],
+    ['information varies; estimated 200,000 active ANP (2025)', 200000],
+    ['estimated 40-50,000 active FAC, including the Gendarmerie (2025)', 45000],
+    ['estimated 3,000-4,000 active Gambian Armed Forces (2025)', 3500],
+    ['estimated 1.1-1.2 million active Armed Forces; estimated 350,000 Guard (2025)', 1150000],
+    [
+      'approximately 2 million active-duty PLA (950,000-1 million Ground; 250,000 Navy) (2025)',
+      2e6,
+    ],
+    ['approximately 500,000 active Armed Forces (365,000 Army; 70,000 Navy) (2025)', 500000],
+    ['estimated 850,000-1 million active Defense Forces (2025)', 925000],
+    ['estimates not available', null],
+  ])('%s -> %s', (text, value) => {
+    expect(parseHeadcount(text)).toBe(value);
   });
 });
 

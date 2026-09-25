@@ -10,7 +10,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { computeBands, type Band } from './bands.ts';
-import { parseProfile, type CountryRecord, type EntityKind } from './country.ts';
+import { parseProfile, resolveBorders, type CountryRecord, type EntityKind } from './country.ts';
 import { FIELDS, type ExtractIssue } from './fields.ts';
 import { projectAll, type ProjectedCountry, type ProjectionOptions } from './project.ts';
 import { REGION_DIRECTORIES, SOURCE } from './source.ts';
@@ -110,6 +110,9 @@ export function runPipeline(
   const records: CountryRecord[] = profiles
     .map((p) => parseProfile(p.code, p.region, p.raw, issues))
     .sort((a, b) => (a.code < b.code ? -1 : 1));
+  for (const { from, name } of resolveBorders(records)) {
+    issues.push({ field: `${from}:geography.borders`, text: name, reason: 'unknown neighbour' });
+  }
   const projected = projectAll(records, options).filter((c) => c.kind !== 'excluded');
 
   const entities: Record<EntityKind, number> = { state: 0, territory: 0, excluded: 0 };

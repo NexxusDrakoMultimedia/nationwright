@@ -6,7 +6,7 @@
  * and how to parse it. Unparsed values are reported, never guessed.
  */
 
-import { cleanText, parseEstYear, parseNumber, parsePercent } from './text.ts';
+import { cleanText, parseEstYear, parseHeadcount, parseNumber, parsePercent } from './text.ts';
 
 /** A Factbook profile with keys trimmed (some keys carry stray spaces, e.g. "total "). */
 export type Profile = Record<string, Record<string, unknown>>;
@@ -19,7 +19,7 @@ export interface Observation {
   readonly history?: readonly { readonly year: number; readonly value: number }[];
 }
 
-export type ParseKind = 'number' | 'percent';
+export type ParseKind = 'number' | 'percent' | 'headcount';
 
 /** How a value may be moved forward in time (DESIGN.md §10.1). */
 export type ProjectionKind =
@@ -375,6 +375,16 @@ export const FIELDS: readonly FieldSpec[] = [
     range: [0, 50],
   },
 
+  {
+    id: 'military.active_personnel',
+    unit: 'people',
+    description: 'Active armed forces (first force listed)',
+    paths: [['Military and Security', 'Military and security service personnel strengths']],
+    parse: 'headcount',
+    projection: 'carry',
+    range: [10, 5e6],
+  },
+
   // Infrastructure
   {
     id: 'energy.electricity_access',
@@ -444,6 +454,7 @@ function locate(profile: Profile, spec: FieldSpec): unknown {
 }
 
 function parseValue(text: string, kind: ParseKind): number | null {
+  if (kind === 'headcount') return parseHeadcount(text);
   return kind === 'percent' ? parsePercent(text) : parseNumber(text);
 }
 

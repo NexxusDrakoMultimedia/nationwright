@@ -453,6 +453,20 @@
       "implausibleAbove": 27.48
     },
     {
+      "id": "military.active_personnel",
+      "unit": "people",
+      "description": "Active armed forces (first force listed)",
+      "n": 173,
+      "lowConfidence": 0,
+      "min": 200,
+      "p10": 2000,
+      "p50": 27500,
+      "p90": 247000,
+      "max": 2000000,
+      "implausibleBelow": -199780,
+      "implausibleAbove": 2199980
+    },
+    {
       "id": "energy.electricity_access",
       "unit": "%",
       "description": "Population with electricity",
@@ -577,6 +591,20 @@
       "max": 14,
       "implausibleBelow": -1.4,
       "implausibleAbove": 15.4
+    },
+    {
+      "id": "military.personnel_per_1000",
+      "unit": "per 1,000 people",
+      "description": "Active armed forces per 1,000 people",
+      "n": 173,
+      "lowConfidence": 0,
+      "min": 0.1660580982,
+      "p10": 0.8998306208,
+      "p50": 2.791718646,
+      "p90": 9.02906056,
+      "max": 49.04096182,
+      "implausibleBelow": -4.721432274,
+      "implausibleAbove": 53.92845219
     }
   ]
 }

@@ -12,6 +12,7 @@ import {
   parseProfile,
   projectAll,
   readProfiles,
+  resolveBorders,
   runPipeline,
   type CountryRecord,
   type ExtractIssue,
@@ -50,7 +51,7 @@ describe('parseProfile', () => {
     });
     expect(au.fields['economy.gdp_nominal']?.value).toBe(521642000000);
     expect(au.borders).toHaveLength(8);
-    expect(au.borders[0]).toEqual({ name: 'Czech Republic', km: 402 });
+    expect(au.borders[0]).toEqual({ name: 'Czech Republic', code: null, km: 402 });
     expect(au.religions[0]).toEqual({ label: 'Roman Catholic', share: 55.2 });
   });
 
@@ -66,6 +67,29 @@ describe('parseProfile', () => {
     expect(parse('europe', 'gi').kind).toBe('territory');
     expect(parse('antarctica', 'bv').kind).toBe('excluded');
     expect(parseProfile('ee', 'europe', fixture('europe', 'ee'), []).kind).toBe('excluded');
+  });
+});
+
+describe('resolveBorders', () => {
+  it('matches names, aliases, and names with a parenthetical', () => {
+    const au = parse('europe', 'au');
+    const records: CountryRecord[] = [
+      {
+        ...au,
+        borders: [
+          { name: 'Nigeria', code: null, km: 1 },
+          { name: 'Monaco (east)', code: null, km: 2 },
+          { name: 'Holy See', code: null, km: 3 },
+          { name: 'Atlantis', code: null, km: 4 },
+        ],
+      },
+      parse('africa', 'ni'),
+      parse('europe', 'mn'),
+    ];
+    expect(resolveBorders(records).filter((u) => u.from === 'au')).toEqual([
+      { from: 'au', name: 'Atlantis' },
+    ]);
+    expect(records[0]?.borders.map((b) => b.code)).toEqual(['ni', 'mn', 'vt', null]);
   });
 });
 

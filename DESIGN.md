@@ -1362,9 +1362,11 @@ Initial mapped indicators: population, growth rate, birth/death rates, TFR, life
 expectancy, infant mortality, median age, urbanization, GDP per capita, real GDP growth,
 sector shares, unemployment, inflation, public debt % GDP, exports/imports % GDP,
 military expenditure % GDP, electricity access, internet users, railway density,
-ethnic/religious fractionalization, and land-neighbour count (41 bands in total; see
-`packages/reference-data/data/report-<year>.md`). The Factbook has no roadways field, and
-personnel strengths are free text, so neither is banded yet.
+ethnic/religious fractionalization, land-neighbour count, and active military personnel
+(total and per 1,000 people): 43 bands in total; see
+`packages/reference-data/data/report-<year>.md`. The Factbook has no roadways field.
+Border references are resolved to Factbook codes, so neighbour relationships are available
+for M1's spatial-similarity statistics.
 
 **Nuclear data is deliberately not used.** The Factbook has no nuclear-weapons field
 anyway (its only "nuclear" field is nuclear *energy*), and nuclear weapons are banned

@@ -46,9 +46,10 @@
     "economy.sector_industry": 0.964,
     "economy.sector_services": 0.964,
     "military.expenditure_share": 0.852,
+    "military.active_personnel": 0.883,
     "energy.electricity_access": 0.99,
     "communications.internet_users": 0.995,
     "transport.railways_km": 0.689
   },
-  "parseIssues": 1
+  "parseIssues": 2
 }

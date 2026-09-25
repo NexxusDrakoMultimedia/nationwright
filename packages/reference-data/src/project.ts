@@ -62,6 +62,11 @@ export const DERIVED_INDICATORS = [
     description: 'Chance two random people have different listed religions',
   },
   { id: 'geography.border_count', unit: 'countries', description: 'Number of land neighbours' },
+  {
+    id: 'military.personnel_per_1000',
+    unit: 'per 1,000 people',
+    description: 'Active armed forces per 1,000 people',
+  },
 ] as const;
 
 export function projectAll(
@@ -237,6 +242,13 @@ function addDerived(record: CountryRecord, fields: Record<string, ProjectedValue
   derived('society.ethnic_fractionalization', fractionalization(record.ethnicGroups), []);
   derived('society.religious_fractionalization', fractionalization(record.religions), []);
   derived('geography.border_count', record.borders.length, []);
+  const troops = fields['military.active_personnel'];
+  const people = fields['population.total'];
+  derived(
+    'military.personnel_per_1000',
+    troops && people ? (1000 * troops.value) / people.value : null,
+    [troops, people],
+  );
 }
 
 /** Rounds away floating-point noise so outputs diff cleanly. */

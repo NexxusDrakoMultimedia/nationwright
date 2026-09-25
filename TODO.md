@@ -75,11 +75,12 @@ off as they land; add new ones as work reveals them.
 - [x] Per-field parsers (value, est_year, series history; percentage lists; borders) with
       trimmed CC0 fixtures
 - [x] Classify entities (196 states, 43 territories, excluded); drop oceans, world, meta
-- [x] Report: coverage, bands, consistency warnings, unparsed values (1 left: Holy See area "0 sq km")
+- [x] Report: coverage, bands, consistency warnings, unparsed values (2 left, both
+      genuine: Libya personnel "not available", Holy See area "0 sq km")
 - [x] Forward projection to the target year (DESIGN.md §10.1); low-confidence flags
-- [x] Snapshot JSON + manifest + validation bands (41 indicators) for 2026, committed
-- [ ] Parse military personnel strengths (free text) into personnel per capita
-- [ ] Map border-country names to Factbook codes (for neighbour-similarity statistics in M1)
+- [x] Snapshot JSON + manifest + validation bands (43 indicators) for 2026, committed
+- [x] Parse military personnel strengths (free text) into personnel per 1,000 people
+- [x] Map border-country names to Factbook codes (all 660 references resolve)
 - [ ] Automatic yearly rebuild reminder (the start year advances even though the data is frozen)
 
 ## M1 — World Generation & Map
