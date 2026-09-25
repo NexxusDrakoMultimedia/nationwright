@@ -1035,8 +1035,9 @@ Nation
     generator_settings (JSON), start_year, reference_snapshot_id, created_at
   - `map_cells`, `map_geometry` — generated once at world creation; only ownership and
     control columns change during play
-  - `snapshot` — the latest full engine state, serialized per system (one row per system,
-    MessagePack blob) for fast load
+  - `snapshot` — the latest full engine state, one row per part (`meta`, `modifiers`,
+    `slice:<key>`). Stored as JSON for now; the `format` column allows a switch to
+    MessagePack later if measurements show a need (D19)
   - `commands` — the append-only player command log (tick, type, payload) for replay and
     branching
   - `indicators` — `(indicator_id, tick, scope, value)` with an index on

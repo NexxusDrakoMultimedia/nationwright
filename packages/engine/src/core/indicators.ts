@@ -21,6 +21,13 @@ export interface IndicatorDefinition {
   readonly owner: SystemId;
 }
 
+export interface IndicatorSeriesDump {
+  readonly id: string;
+  readonly scope: Scope;
+  readonly ticks: readonly number[];
+  readonly values: readonly number[];
+}
+
 export interface Series {
   readonly ticks: readonly number[];
   readonly values: readonly number[];
@@ -75,6 +82,21 @@ export class IndicatorStore {
     series.values.push(value);
   }
 
+  /** Loads saved series into an empty store. Every indicator must already be registered. */
+  restore(series: readonly IndicatorSeriesDump[]): void {
+    if (this.#series.size > 0) throw new Error('Can only restore into an empty indicator store.');
+    for (const s of series) {
+      if (!this.#definitions.has(s.id)) {
+        throw new Error(`Saved indicator "${s.id}" is not registered by any system.`);
+      }
+      assertScope(s.scope);
+      if (s.ticks.length !== s.values.length) {
+        throw new Error(`Saved indicator "${s.id}" (${s.scope}) has mismatched ticks and values.`);
+      }
+      this.#series.set(seriesKey(s.id, s.scope), { ticks: [...s.ticks], values: [...s.values] });
+    }
+  }
+
   series(id: string, scope: Scope): Series {
     return this.#series.get(seriesKey(id, scope)) ?? { ticks: [], values: [] };
   }
@@ -84,7 +106,7 @@ export class IndicatorStore {
   }
 
   /** Every recorded series as plain data, sorted by key, for snapshots and comparisons. */
-  dump(): { id: string; scope: Scope; ticks: number[]; values: number[] }[] {
+  dump(): IndicatorSeriesDump[] {
     return [...this.#series.entries()]
       .sort(([a], [b]) => (a < b ? -1 : 1))
       .map(([key, s]) => {

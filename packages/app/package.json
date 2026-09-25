@@ -1,0 +1,19 @@
+{
+  "name": "@nationwright/app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Nationwright application layer: saves, world creation, command routing, reports.",
+  "license": "GPL-3.0-or-later",
+  "author": "Nexxus Drako Multimedia",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@nationwright/engine": "0.0.0",
+    "better-sqlite3": "^13.0.3"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0"
+  }
+}

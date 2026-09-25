@@ -17,7 +17,7 @@ import {
   type JsonValue,
   type SubmitResult,
 } from './commands.ts';
-import { IndicatorStore } from './indicators.ts';
+import { IndicatorStore, type IndicatorSeriesDump } from './indicators.ts';
 import { addModifier, createModifierState, pruneExpired, resolveModifiers } from './modifiers.ts';
 import { SYSTEM_ORDER, type SystemId } from './pipeline.ts';
 import type { DeepReadonly } from './readonly.ts';
@@ -41,10 +41,18 @@ export interface EngineOptions {
 
 export const RULESET_VERSION = 1;
 
-interface PendingCommand {
+export interface PendingCommand {
   readonly seq: number;
   readonly type: string;
   readonly payload: JsonValue;
+}
+
+/** Everything needed to resume a world exactly where it stopped. */
+export interface SavedWorld {
+  readonly world: WorldState;
+  readonly indicators: readonly IndicatorSeriesDump[];
+  readonly commandLog: readonly CommandLogEntry[];
+  readonly pending: readonly PendingCommand[];
 }
 
 export class Engine {
@@ -58,7 +66,8 @@ export class Engine {
   #pending: PendingCommand[] = [];
   #nextSeq = 1;
 
-  constructor(options: EngineOptions) {
+  /** Creates a new world, or resumes `saved` if given (see `Engine.restore`). */
+  constructor(options: EngineOptions, saved?: SavedWorld) {
     this.#seed = resolveSeed(options.seed);
     if (!Number.isSafeInteger(options.startYear)) {
       throw new RangeError(`startYear must be an integer; got ${options.startYear}.`);
@@ -89,6 +98,16 @@ export class Engine {
     }
     this.#commands = commands;
 
+    if (saved !== undefined) {
+      this.#world = restoreWorld(options, this.#seed, systems, saved);
+      this.#indicators.restore(saved.indicators);
+      this.#log.push(...saved.commandLog);
+      this.#pending = [...saved.pending];
+      const seqs = [...saved.commandLog, ...saved.pending].map((c) => c.seq);
+      this.#nextSeq = Math.max(0, ...seqs) + 1;
+      return;
+    }
+
     this.#world = {
       meta: {
         worldSeed: formatSeed(this.#seed),
@@ -110,6 +129,7 @@ export class Engine {
       };
       setSlice(this.#world, system, system.init(ctx));
     }
+    this.#world.slices = sortedSlices(this.#world.slices);
   }
 
   get seed(): WorldSeed {
@@ -135,8 +155,24 @@ export class Engine {
     return this.#log;
   }
 
-  get pendingCommands(): number {
-    return this.#pending.length;
+  /** Resumes a saved world. The options must describe the same seed, start year, and rules. */
+  static restore(options: EngineOptions, saved: SavedWorld): Engine {
+    return new Engine(options, saved);
+  }
+
+  /** Commands accepted but not yet applied, in submission order. */
+  get pendingCommands(): readonly PendingCommand[] {
+    return this.#pending;
+  }
+
+  /** Everything a save file needs, as independent plain data. */
+  save(): SavedWorld {
+    return {
+      world: this.snapshot(),
+      indicators: this.#indicators.dump(),
+      commandLog: structuredClone(this.#log),
+      pending: structuredClone(this.#pending),
+    };
   }
 
   /** Validates a command now and queues it for the next tick's policy step. */
@@ -222,7 +258,13 @@ export class Engine {
       resolve: (target, scope, base) =>
         resolveModifiers(world.modifiers, tick, target, scope, base),
       chronicle: (entry) => {
-        world.chronicle.push({ ...entry, tick });
+        // Fixed field order, so serialized worlds compare byte for byte.
+        world.chronicle.push({
+          tick,
+          category: entry.category,
+          text: entry.text,
+          refs: [...entry.refs],
+        });
       },
     };
   }
@@ -256,6 +298,44 @@ export function replay(
     engine.advance(1);
   }
   return engine;
+}
+
+function restoreWorld(
+  options: EngineOptions,
+  seed: WorldSeed,
+  systems: ReadonlyMap<SystemId, AnySystem>,
+  saved: SavedWorld,
+): WorldState {
+  const meta = saved.world.meta;
+  const expectedRuleset = options.rulesetVersion ?? RULESET_VERSION;
+  if (meta.worldSeed !== formatSeed(seed)) {
+    throw new Error(`Saved world seed ${meta.worldSeed} does not match ${formatSeed(seed)}.`);
+  }
+  if (meta.startYear !== options.startYear) {
+    throw new Error(`Saved start year ${meta.startYear} does not match ${options.startYear}.`);
+  }
+  if (meta.rulesetVersion !== expectedRuleset) {
+    throw new Error(
+      `Saved ruleset version ${meta.rulesetVersion} does not match ${expectedRuleset}; migrate the save first.`,
+    );
+  }
+  const expected = [...systems.values()].map((s) => s.slice as string).sort();
+  const actual = Object.keys(saved.world.slices).sort();
+  if (JSON.stringify(expected) !== JSON.stringify(actual)) {
+    throw new Error(
+      `Saved slices [${actual.join(', ')}] do not match registered systems [${expected.join(', ')}].`,
+    );
+  }
+  const world = structuredClone(saved.world);
+  world.slices = sortedSlices(world.slices);
+  return world;
+}
+
+/** Slices are kept in key order so serialized worlds compare byte for byte. */
+function sortedSlices(slices: WorldState['slices']): WorldState['slices'] {
+  return Object.fromEntries(
+    Object.entries(slices).sort(([a], [b]) => (a < b ? -1 : 1)),
+  ) as WorldState['slices'];
 }
 
 function resolveSeed(seed: WorldSeed | string): WorldSeed {

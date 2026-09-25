@@ -41,17 +41,25 @@ off as they land; add new ones as work reveals them.
 - [x] Chronicle entries from systems
 
 ### Persistence
-- [ ] Storage interface; `better-sqlite3` implementation
-- [ ] Schema v1: `meta` (seed BLOB + base64url, versions, settings), `snapshot`,
-      `commands`, `indicators`, `entities`, `chronicle`, `reference_bands`
-- [ ] Migrations runner; save/load; autosave; branch via `VACUUM INTO`
-- [ ] Determinism test: same seed + commands ⇒ byte-identical state
+- [x] `SaveFile` (`packages/app`) on `better-sqlite3` 13; the engine never touches SQLite
+- [x] Schema v1: `meta` (seed as 8-byte BLOB + base64url, versions, timestamps), `snapshot`,
+      `commands` (applied and pending), `indicators`, `chronicle`
+- [ ] Schema additions as their data lands: `entities`, `map_*`, `wars`, `reference_bands`,
+      generator version/settings in `meta`
+- [x] Migrations runner (`PRAGMA user_version`); rejects saves from newer versions
+- [x] Save/load with `Engine.save()` / `Engine.restore()`; resume is byte-identical to an
+      uninterrupted run; indicator writes are incremental
+- [x] Branch by copying the file (`VACUUM INTO`)
+- [ ] Branch from an *earlier* tick (replay the command log up to the branch point)
+- [ ] Autosave policy (every N simulated years and before player decisions)
+- [x] Determinism tests: same seed + commands ⇒ byte-identical state (engine and save round-trip)
 
 ### Electron shell
 - [ ] Main process, engine in a utility process, typed IPC over MessagePort
 - [ ] Renderer: React + Vite; `contextIsolation` on, `nodeIntegration` off, strict CSP,
       preload API
-- [ ] `better-sqlite3` rebuilt for Electron's ABI; electron-builder config
+- [ ] Confirm `better-sqlite3` 13 (Node-API, prebuilt binaries) loads in Electron without a
+      rebuild; otherwise add `@electron/rebuild`. electron-builder config
 
 ### CLI
 - [ ] Headless batch runner: create world from seed, simulate N years, dump indicators
