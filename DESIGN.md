@@ -1,6 +1,6 @@
 # Nationwright — Design Document
 
-> Status: **Draft v0.7** · Last updated: 2026-09-25
+> Status: **Draft v0.8** · Last updated: 2026-09-25
 >
 > This document describes what Nationwright is, how the simulation works, and how the
 > software is structured. Settled decisions are listed in §0. Remaining open
@@ -28,11 +28,13 @@
 | D13 | World seed | **Random 64-bit seed, encoded as base64** (unpadded base64url, 11 characters). It is the only randomness input for world generation and simulation | §3.3 |
 | D14 | Ethnicity × religion × language | **Tracked jointly** per cohort cell (one joint distribution, not independent vectors). How the three associate is **randomized** per country from the world seed, within the group counts and shares the guiding variables set | §4.1, §4.12.3 |
 | D15 | Nuclear weapons | **Banned.** They do not exist in the world. There are no arsenals, deterrence, or use, and warfare is conventional only. Nuclear *energy* remains | §4.11 |
-| D16 | Civilian harm | **An outcome, never an action.** It is computed from how wars are fought, with diplomatic, legal, and demographic consequences. No option targets civilians | §4.11.3 |
+| D16 | Civilian harm | *(Superseded by D21.)* Was: an outcome, never an action; no option targets civilians | §4.11.3 |
 | D17 | World size | **No hard limit.** The number of countries has a default (~195) and a recommended range (20–250) | §4.12 |
 | D18 | Backstory | **Keep the burn-in:** a ~30-year diplomacy-and-war pre-run generates history before the start date | §4.12.4 |
 | D19 | Performance targets | **None for now.** No target hardware and no world-creation or simulation time budget; performance is measured and reported, not gated | §1.1, §9 |
 | D20 | License | **GPLv3 or later** (`GPL-3.0-or-later`), copyright Nexxus Drako Multimedia; full text in `LICENSE`. Dependencies must be GPLv3-compatible | §9 |
+| D21 | Civilian targeting | **Allowed, for the player and the AI alike, with no opt-in setting.** Wars can deliberately target civilians through aggregate war policies (strike targeting, blockade scope, occupation policy). Civilian harm is also still an incidental outcome of fighting. Both carry diplomatic, legal, political, and demographic consequences. *(Replaces D16.)* | §4.11.3 |
+| D22 | Fog of war & intelligence | **Foreign countries are seen through intelligence estimates,** not true values. Every country (the player's included) has an intelligence service; knowledge of each other country depends on collection, access, and the target's openness and counterintelligence. The foreign-policy AI decides on its own estimates too. Covert operations exist and can be exposed | §4.13 |
 
 ---
 
@@ -147,28 +149,31 @@ start of the tick plus outputs of systems earlier in the same tick.
  3. Policy            apply player decisions queued since last tick
  4. World             foreign countries' economies, demography, politics, elections;
                       global prices and demand
- 5. Diplomacy         AI foreign-policy decisions, pairwise relations, treaties,
+ 5. Intelligence      collection coverage, covert operations and exposure,
+                      refreshed estimates of every observed country
+ 6. Diplomacy         AI foreign-policy decisions, pairwise relations, treaties,
                       sanctions, alliance calls, war declarations and peace deals
- 6. War               resolve every active front: combat, supply, occupation,
+ 7. War               resolve every active front: combat, supply, occupation,
                       casualties, damage, displacement, war score
- 7. Demography        births, deaths (incl. war casualties), aging, migration
+ 8. Demography        births, deaths (incl. war casualties), aging, migration
                       (internal, international, refugees)
- 8. Education         enrollment, graduation, attainment shifts in cohorts
- 9. Economy           labor supply → output → incomes → prices → trade → public finance
-10. Defense           recruitment, conscription, procurement, readiness, force upkeep
-11. Infrastructure    capacity, utilization, construction/repair, decay, war damage
-12. Cities            urbanization, city growth, service levels
-13. Politics          approval, war weariness, party support, stability, legislation
-14. Elections         run any elections scheduled for this tick
-15. Sports            fixtures, results, standings, season transitions
-16. Events (post)     evaluate condition-triggered events from new state
-17. Indicators        record time series for this tick
-18. Validation        (debug/test builds) check indicators against reference bands
-19. Chronicle         append notable changes and events
+ 9. Education         enrollment, graduation, attainment shifts in cohorts
+10. Economy           labor supply → output → incomes → prices → trade → public finance
+11. Defense           recruitment, conscription, procurement, readiness, force upkeep
+12. Infrastructure    capacity, utilization, construction/repair, decay, war damage
+13. Cities            urbanization, city growth, service levels
+14. Politics          approval, war weariness, party support, stability, legislation
+15. Elections         run any elections scheduled for this tick
+16. Sports            fixtures, results, standings, season transitions
+17. Events (post)     evaluate condition-triggered events from new state
+18. Indicators        record time series for this tick
+19. Validation        (debug/test builds) check indicators against reference bands
+20. Chronicle         append notable changes and events
 ```
 
 Ordering rationale: the world and diplomacy update first, so foreign conditions and the
-set of active wars are fixed for the tick. War resolves next, so its casualties,
+set of active wars are fixed for the tick. Intelligence runs between them, so every
+government's diplomatic decisions use estimates of the world as it stands this tick. War resolves next, so its casualties,
 displacement, and damage feed straight into demography, the economy, and
 infrastructure. Demography produces the people that education and the economy then use.
 The economy funds defense, infrastructure, and politics. Politics reacts to the outcomes
@@ -207,9 +212,9 @@ of everything before it, including war weariness.
   with 32-bit integer operations for speed; `bigint` is used only at the boundaries.
 - **Domain separation:** each consumer derives its own stream as
   `SplitMix64(seed ⊕ hash(domain)) → xoshiro state`, where `domain` is a string such as
-  `worldgen/elevation`, `worldgen/countries`, `sim/demography@tick:123`, or
-  `sim/war/front:45@tick:123`. `hash` is a fixed 64-bit string hash (e.g. FNV-1a 64),
-  pinned in the spec.
+  `worldgen/elevation`, `worldgen/countries`, `sim/demography@tick:123`,
+  `sim/war/front:45@tick:123`, or `sim/intel/estimate:12>34/military@period:7`
+  (§4.13). `hash` is a fixed 64-bit string hash (e.g. FNV-1a 64), pinned in the spec.
   - Adding randomness to one system therefore never shifts outcomes in another.
   - Changing the war model never changes the generated map.
 - No wall-clock time, unordered map iteration, or floating-point non-determinism in the
@@ -579,7 +584,7 @@ generated capital coordinates.
 | Economy | GDP (PPP and nominal), GDP per capita, real growth, inflation, unemployment, sector shares, exports/imports, main export commodities, public debt, defense spending % GDP | Reduced-form |
 | Government | government type, head of state and head of government (named, generated), ruling party/coalition ideology, legislature balance, term schedule, stability, legitimacy | **Full** |
 | Elections | scheduled elections by government type; outcomes from economy, stability, incumbency, and war | **Full** (aggregate vote model, no districts) |
-| Foreign policy | leader traits (aggression, risk tolerance), strategic goals, threat perceptions, alliance commitments | **Full** |
+| Foreign policy | leader traits (aggression, risk tolerance, ruthlessness), strategic goals, threat perceptions, alliance commitments | **Full** |
 | Military | see §4.11 | **Full** |
 | Provinces | 3–6 generated provinces (capital, heartland, border zones facing each neighbor), each with population and economic share | For war only |
 | Society | languages, religions, ethnic groups, literacy | Static shares with slow drift |
@@ -606,9 +611,10 @@ A **relations matrix** covers every pair of countries, the player's nation inclu
 | `trade_tier` | none, MFN, FTA, customs union, single market |
 | `tariffs`, `sanctions` | By direction; sanctions can be targeted (sectors, finance, arms) |
 | `visa_regime` | Closed, visa required, visa-free, free movement |
-| `treaties[]` | Defense pact, non-aggression, arms control, basing rights, border treaty |
+| `treaties[]` | Defense pact, non-aggression, arms control, basing rights, border treaty, intelligence sharing |
 | `claims[]` | Territorial claims on specific regions/provinces, with origin and strength |
 | `diaspora`, `trade_flows`, `fdi_stock` | Economic and human ties (both directions) |
+| `intel` | Directed: the observer's collection effort, coverage, and active covert operations against the target (§4.13) |
 | `history[]` | Log of wars, treaties, incidents: feeds `trust` and narrative |
 
 **Score drift** each tick = f(ideological distance of governments, trade dependence,
@@ -626,10 +632,14 @@ development, and the number and size of blocs are guided by real-world bloc stat
 Each foreign government chooses actions monthly using **utility scoring**:
 
 1. Evaluate state: threats, opportunities (weak neighbors with claims), economic needs,
-   domestic pressure (approval, upcoming election), and alliance obligations.
+   domestic pressure (approval, upcoming election), and alliance obligations. Everything
+   about *other* countries is read from the government's own intelligence estimates
+   (§4.13), so a poorly informed government can misjudge a rival and start, or avoid,
+   the wrong war.
 2. Generate candidate actions: improve/worsen relations, propose or leave treaties, set
    tariffs, impose or lift sanctions, arms buildup, join or leave blocs, issue
-   ultimatums, declare war, offer or accept peace, send aid, host or boycott events.
+   ultimatums, declare war, offer or accept peace, send aid, host or boycott events, set
+   intelligence priorities, launch covert operations, and set war policies (§4.11.3).
 3. Score each action with the leader's traits and the government's goals; add seeded
    noise; take the best action above a threshold (at most K actions per month).
 
@@ -654,6 +664,7 @@ work roughly linear in n.
 | Security | Threat from hostile states raises defense spending pressure; alliance calls to war; invasion | Budget, stability, War §4.11 |
 | Foreign wars | Wars between third countries disrupt trade and commodity prices, send refugees, and can drag in allies | Economy, demography, diplomacy |
 | Sport | International fixtures and tournaments; boycotts and bans follow relations | Sports §4.8 |
+| Intelligence | Foreign collection and covert operations against the nation; exposed operations become incidents | Relations, stability, economy |
 | Diplomacy | Player actions (§8.3) and foreign AI actions | Relations → all above |
 
 **Pull strength** is weighted by `partner size × proximity × trade intensity`. Large,
@@ -695,7 +706,7 @@ country has them, can build them, or can use them, and there is no deterrent mec
 Warfare is entirely conventional. Civilian nuclear *energy* remains an ordinary
 infrastructure category (§4.7).
 
-**Defense system (tick step 10):** the budget funds upkeep, procurement, and training.
+**Defense system (tick step 11):** the budget funds upkeep, procurement, and training.
 Underfunding erodes readiness and equipment. Conscription draws from the
 military-age cohorts (§4.1), which removes labor from the economy.
 
@@ -732,20 +743,24 @@ Each tick, for each front:
 1. **Force allocation:** each belligerent distributes land/air power across its fronts
    and home defense (AI or player posture: defend, hold, advance, all-out).
 2. **Engagement:** Lanchester-style attrition with modifiers for terrain, fortification,
-   air superiority, supply, weather/season, and commander skill.
+   air superiority, supply, weather/season, commander skill, and **battlefield
+   intelligence** (§4.13): the side that knows the other's dispositions better fights
+   with a bonus, and a well-concealed attack gains surprise in its first month.
    `losses_A = k · power_B · mod_B`, `losses_B = k · power_A · mod_A`, with seeded noise.
 3. **Control shift:** a sustained power ratio above a threshold moves the node's
    **control** (0–100%). At 100% the node is occupied.
 4. **Naval theater:** blockades cut the target's trade (§4.3) and sea supply; naval
    strength decides sea control.
-5. **Air/strike campaigns:** damage infrastructure (§4.7) and industry in reachable nodes.
+5. **Air/strike campaigns:** damage infrastructure (§4.7), industry, and, depending on
+   the belligerent's strike targeting policy (see below), population centers in
+   reachable nodes.
 
 **Consequences feed every system:**
 
 | Effect | Target |
 |---|---|
 | Military deaths and wounded, by age and sex of the forces | Demography cohorts §4.1 |
-| Civilian harm (casualties, injuries), an **outcome**, not an action (D16; see below) | Demography |
+| Civilian harm (casualties, injuries), both incidental and deliberate (D21; see below) | Demography |
 | Displacement: internal (between regions) and refugees (to neighbors) | Demography, foreign countries |
 | Infrastructure destruction in contested nodes | Infrastructure §4.7 |
 | Mobilization pulls labor; war spending, debt, inflation; trade collapse with the enemy | Economy §4.3 |
@@ -755,22 +770,44 @@ Each tick, for each front:
 | Sports: suspended leagues, international bans | Sports §4.8 |
 | Third-country reactions: sanctions, aid, arms supply, joining the war | Diplomacy §4.10 |
 
-**Civilian harm is an outcome, never an action (D16).** No player or AI option targets
-civilians. Civilian harm is computed as an aggregate result of combat intensity,
-population density and urbanization of the contested node, duration of fighting,
-strike campaigns on infrastructure, force discipline (derived from training, command
-quality, and legitimacy), and occupation/insurgency levels. It is recorded in the war
-report and the chronicle, and it has consequences:
-- world relations and trust toward the responsible belligerent fall;
-- bloc resolutions, sanctions, and, after the war, international-tribunal events;
-- domestic legitimacy and war weariness on both sides;
+**Civilian harm and civilian targeting (D21).** Civilian harm comes from two sources,
+and both are computed in aggregate per node and month, like every other war outcome:
+
+- **Incidental harm** follows from combat intensity, population density and
+  urbanization of the contested node, duration of fighting, strike campaigns on
+  infrastructure, force discipline (derived from training, command quality, and
+  legitimacy), and occupation/insurgency levels.
+- **Deliberate targeting** follows from a belligerent's **war policies**. The player and
+  every AI government set them per war, and there is no opt-in setting that disables
+  them:
+
+| War policy | Levels | Military/economic effect | Civilian effect |
+|---|---|---|---|
+| Strike targeting | military only · + dual-use infrastructure (power, fuel, transport) · + population centers | Cuts the enemy's war production, logistics, and morale | Rises steeply with each level |
+| Blockade scope | contraband only · general trade · total, including food and medicine | Stronger economic pressure on the target | Shortages raise mortality, above all among the young and old |
+| Occupation policy | standard administration · harsh (requisitions, collective punishment) · reprisals and forced displacement | Faster control and short-term suppression of insurgency | Casualties and displaced people in occupied nodes; insurgency grows back stronger |
+
+The AI chooses war policies with the same utility scoring as other actions (§4.10.3).
+A leader's **ruthlessness** trait, the government type, how the war is going, and
+expected international reaction weigh the choice. Harm is reported as statistics in the
+war report and the chronicle, never depicted graphically. Whatever its source, it has
+consequences, and deliberate targeting multiplies them:
+- world relations and trust toward the responsible belligerent fall, faster and further
+  for deliberate targeting, which third countries attribute through their own
+  intelligence (§4.13);
+- bloc resolutions, sanctions, arms embargoes, and, after the war, international-tribunal
+  events that name the leaders and commanders responsible;
+- domestic legitimacy and approval shift by the governing coalition's ideology; own
+  force morale and discipline fall, and commanders may refuse orders, which raises coup
+  risk;
+- the targeted population's war support may harden rather than break, and occupied
+  nodes carry lasting insurgency and revanchist claims (§4.11.4);
 - refugee flows and long-term demographic scars (lost cohorts, orphans, disability
   index).
 
-The player can **reduce** expected harm through choices that make sense on their own
-(force training and discipline budget, rules-of-engagement posture, protecting
-infrastructure, humanitarian corridors in peace talks), but can never choose to increase
-it.
+The player can also **reduce** incidental harm through choices that make sense on their
+own (force training and discipline budget, rules-of-engagement posture, protecting
+infrastructure, humanitarian corridors in peace talks).
 
 **War score** (−100…+100) summarizes occupation, casualties ratio, blockade, and war-goal
 progress, and drives peace negotiations.
@@ -951,7 +988,8 @@ The map is a first-class screen, not decoration:
 | Infrastructure | Roads, rail, ports, airports, grid coverage |
 | Flows | Trade, migration, and refugee arcs, weighted by volume |
 | Diplomacy | Relations with a selected country, blocs, alliances, sanctions |
-| War | Fronts, control/occupation shading, force positions, blockades |
+| War | Fronts, control/occupation shading, force positions (estimated, with uncertainty, for other countries' forces), blockades, civilian harm by node |
+| Intelligence | The player's coverage of each country by category; detected foreign operations |
 | Elections | Results by district or region, swing |
 | Sport | Team locations, champions by city |
 
@@ -966,6 +1004,108 @@ Across many world seeds, the generated world must match the reference:
 Kolmogorov–Smirnov tests per variable, correlation-matrix distance, category-frequency
 differences, and neighbor-count distributions, all within tolerances (§10).
 
+### 4.13 Intelligence & Fog of War
+
+The engine always holds every country's true state, but no government sees it (D22).
+Each government, the player's included, sees the rest of the world through
+**estimates** produced by its own intelligence service. The player never sees another
+country's true values in normal play; the UI shows the player's estimates, with their
+uncertainty. What a government knows about its *own* country is exact.
+
+#### 4.13.1 Intelligence services
+
+Every country has an intelligence service, generated with the military (§4.11.1) and
+funded from the budget:
+
+| Field | Meaning |
+|---|---|
+| Budget | Share of spending; underfunding erodes capability over years |
+| Collection | Capability (0–1) to gather information abroad: human sources, signals, imagery, open sources, in aggregate |
+| Counterintelligence | Capability (0–1) to deny information to others and to detect foreign operations at home |
+| Covert action | Capability (0–1) to run operations abroad |
+| Priorities | Collection effort spread across target countries (AI or player) |
+
+Starting capabilities are derived from GDP per capita, defense spending, government
+type, and threat environment, like the armed forces. They then follow the budget
+slowly: an agency takes years to build and years to decay.
+
+#### 4.13.2 Knowledge model
+
+For each ordered pair (observer, target), a **coverage** value (0–1) summarizes how
+well the observer knows the target. Each month it moves toward a target level set by:
+
+- the observer's collection capability and the effort it assigns to that target;
+- **access:** embassy presence (relations above a threshold), trade and travel
+  (`trade_flows`, `visa_regime`), diaspora ties, proximity, and shared borders;
+- **intelligence-sharing treaties**, through which allies pool coverage (discounted by
+  `trust`);
+- the target's counterintelligence and its **openness** (press freedom and statistical
+  transparency, from government type).
+
+Coverage is **per category**, because some things are easier to learn than others:
+
+| Category | Contents | Base visibility |
+|---|---|---|
+| Public | Population, GDP, trade, published statistics, government, leaders, election results | High: published figures, which closed or low-transparency governments may distort |
+| Military | Force strengths, equipment, readiness, deployments, stockpiles | Medium |
+| Political | Stability, legitimacy, coup and revolution risk, faction strength | Medium–low |
+| Intentions | Leader traits, strategic goals, war plans, war policies (§4.11.3), covert operations | Low |
+
+**Estimates.** For each category, an estimate of a true value `x` is
+`x · (1 + σ · z)`. The error width `σ` falls as coverage rises. `z` is a standard normal
+draw that is redrawn once per estimate period and carried over between periods as a
+slow AR(1) process, so estimates drift instead of jittering. Each (observer, target,
+category) triple uses its own domain-separated stream (§3.3), so adding an observer
+never changes anyone else's estimates. Estimates are refreshed monthly for salient
+pairs and annually for the rest, following the salience tiers (§4.10.3).
+Low-transparency governments add a **reporting bias** to their published figures (for
+example, overstated growth), which only coverage can see through.
+
+Estimates are derived from the stored coverage values and the seeded stream rather than
+stored, so the cost grows with the number of salient pairs, not with n² × fields.
+
+#### 4.13.3 Covert operations
+
+The player and AI governments can run operations against a target country. Each costs
+covert-action capacity, succeeds or fails on capability versus the target's
+counterintelligence (with seeded noise), and carries an **exposure** risk:
+
+| Operation | Effect on success |
+|---|---|
+| Collection surge | Raises coverage of one category for a period |
+| Counterintelligence sweep (at home) | Raises the chance of detecting foreign operations; expels foreign agents |
+| Sabotage | Damages military or industrial assets and infrastructure (§4.7) |
+| Political interference | Shifts party support, stability, or legitimacy; funds opposition or rebels |
+| Disinformation | Lowers the target's coverage of the operator, or distorts its estimates |
+
+**Exposure** creates an incident: `score` and `trust` fall, the target may expel
+diplomats or impose sanctions, and the chronicle records it. An operation discovered
+years later still counts.
+
+#### 4.13.4 Fog of war in wars
+
+- **Enemy forces** on each front are shown as estimates with ranges; the war map draws
+  them with uncertainty (§4.12.5).
+- **Battlefield intelligence** modifies engagements, and concealed offensives gain
+  surprise (§4.11.3).
+- **Mobilization and war plans** can be detected in advance with enough military and
+  intentions coverage, which gives warning before an attack.
+- **Attribution:** third countries judge a belligerent's conduct, including deliberate
+  civilian targeting (D21), through their own coverage of it. Well-hidden conduct draws
+  a weaker reaction until it comes to light.
+- Casualty and war-score figures for foreign belligerents in the war report are
+  estimates; the player's own figures are exact.
+
+#### 4.13.5 What the player sees
+
+- Every foreign figure in reports, profiles, and map layers is the player's estimate.
+  Tables show a range or a confidence mark, and charts show a band.
+- The **World Comparison** report ranks the nation against the player's estimates of
+  other countries. Validation against reference bands (§10.1) always uses true values.
+- **Sandbox mode** (§8.3) can reveal true values. Saves that use it are flagged, as with
+  other sandbox edits.
+- The engine process sends the renderer only the player's view of foreign countries.
+  True foreign values do not cross the IPC boundary outside sandbox mode.
 `npm run worldgen:validate` generates 200 worlds at the default settings (about a minute)
 and writes `docs/validation/worldgen.md`. It checks island, landlocked, and
 neighbour-archetype agreement shares against sampling ranges; the neighbour-count
@@ -998,7 +1138,7 @@ The main cross-system feedback loops:
 
                  ┌──────────── World / foreign countries ────────────┐
                  │ trade · commodities · capital · migration ·       │
-                 │ ideas · security · sport                          │
+                 │ ideas · security · intelligence · sport           │
                  └──┬──────────┬──────────┬──────────┬───────────────┘
                     ▼          ▼          ▼          ▼
                  Economy   Demography  Politics    Sports
@@ -1028,10 +1168,13 @@ World
 │        province_id, control), continents[], subregions[], sea_lanes graph
 ├── global: commodity_prices{}, world_demand, reference_currency, blocs[]
 ├── countries[]: id, generated name, culture_family, archetype, capital_cell,
-│               provinces[], government, military, state (§4.10, §4.11)
+│               provinces[], government, military, intelligence service,
+│               state (§4.10, §4.11, §4.13)
 │               (the player's nation is also listed here, flagged is_player)
-├── relations: pairwise matrix over countries (§4.10.2)
-├── wars[]: belligerents, war goals, fronts[], war_score, start/end, peace terms
+├── relations: pairwise matrix over countries (§4.10.2), including directed
+│              intelligence coverage and covert operations (§4.13)
+├── wars[]: belligerents, war goals, war policies per belligerent, fronts[],
+│           war_score, start/end, peace terms
 └── nation: Nation (full-depth state for the player's country)
 
 Nation
@@ -1121,7 +1264,8 @@ from the engine.
 | **Sports Almanac** | Standings, champions, records, team histories | Per season |
 | **Foreign Relations** | Relations table, trade by partner, migration by origin/destination, treaties, diaspora | Annual + on demand |
 | **World Comparison** | The nation ranked against all generated countries on any indicator, and its percentile against the real-world reference distribution | Always available |
-| **War Report** | Belligerents, fronts and control over time, casualties (military/civilian), displacement, costs, war score, peace terms | Monthly during war + final |
+| **War Report** | Belligerents, war policies, fronts and control over time, casualties (military/civilian, incidental/deliberate), displacement, costs, war score, peace terms; foreign figures are estimates | Monthly during war + final |
+| **Intelligence Assessment** | Coverage by country and category, estimates with confidence, detected foreign operations, own operations and their outcomes, warnings of mobilization | Quarterly + on demand |
 | **Defense Review** | Forces by branch, readiness, equipment, spending, threat assessment | Annual |
 | **World Atlas** | Map layers (§4.12.5), country profiles, blocs, world seed and generator info | Always available |
 | **Yearbook** | Narrative summary of the year: key events, statistics, milestones | Annual |
@@ -1200,13 +1344,18 @@ character inside it. Concretely:
   ultimatums, and ambassadorial stance (improve/worsen relations) per country.
 - **Defense & war:** defense budget split (personnel, procurement, readiness), conscription
   model, doctrine, arms purchases, and basing agreements. Declaring war (subject to war
-  powers, §4.11.2), front postures, war goals, and accepting or offering peace terms.
+  powers, §4.11.2), front postures, war goals, war policies (strike targeting, blockade
+  scope, occupation policy, §4.11.3), and accepting or offering peace terms.
+- **Intelligence:** agency budget split (collection, counterintelligence, covert
+  action), collection priorities per country, intelligence-sharing treaties, and covert
+  operations (§4.13).
 - **Projects:** infrastructure, new universities, stadiums, new cities.
 - **Politics:** propose laws, call snap elections (if the constitution allows), propose
   constitutional amendments.
 - **Events:** respond to choice events.
-- **Sandbox mode (optional toggle):** directly edit any value; saves are flagged as
-  modified and excluded from validation statistics.
+- **Sandbox mode (optional toggle):** directly edit any value and reveal true values of
+  foreign countries (§4.13.5); saves are flagged as modified and excluded from
+  validation statistics.
 
 ---
 
@@ -1431,8 +1580,8 @@ screen still acknowledges the CIA World Factbook and the factbook.json project.
 | **M1 — World Generation & Map** | Guiding-variable fitting (marginals, copulas, archetypes); map generator (cells, terrain, climate, rivers, countries, provinces, cities); culture/name packs; nation statistics sampling; generator statistical tests; map screen with political, physical, and choropleth layers |
 | **M2 — People & Places** | Demography (full cohort grid + culture shares), regions from the map, cities, internal migration, census report, population pyramid, validation against bands. Performance measurements (world creation and simulation time by world size; reported, not gated) |
 | **M3 — Economy & World** | Sectors, labor market, public finance; foreign country mid-depth model, trade/commodities/migration/capital channels; economic survey, budget, and world comparison reports; flows map layer |
-| **M4 — Politics, Elections & Diplomacy** | Constitution, parties, approval, FPTP + list PR, government formation, election report; foreign governments and elections; pairwise relations, blocs, foreign-policy AI; foreign relations report |
-| **M5 — Military & War** | Armed forces, defense budget, path to war, theater graph and front resolution, occupation, casualties/displacement feeding demography, peace terms, territory transfer, civil wars, civilian-harm outcomes and consequences, burn-in backstory; war report, defense review, war map layer; war sanity tests |
+| **M4 — Politics, Elections & Diplomacy** | Constitution, parties, approval, FPTP + list PR, government formation, election report; foreign governments and elections; pairwise relations, blocs, foreign-policy AI; intelligence services, coverage and estimates (the AI decides on estimates), intelligence-sharing treaties; foreign relations and intelligence assessment reports; intelligence map layer |
+| **M5 — Military & War** | Armed forces, defense budget, path to war, theater graph and front resolution, occupation, casualties/displacement feeding demography, peace terms, territory transfer, civil wars, war policies and civilian harm (incidental and deliberate) with their consequences, covert operations, battlefield intelligence and surprise, burn-in backstory; war report, defense review, war map layer; war sanity tests |
 | **M6 — Education & Infrastructure** | Education pipeline, human capital link, infrastructure assets and projects, war damage and repair; infrastructure map layer |
 | **M7 — Events & Chronicle** | Data-driven event engine, choices, modifier registry with explanations, yearbook |
 | **M8 — Sports** | Sports/leagues/teams data model, match engine, seasons, international competitions, almanac |
@@ -1445,8 +1594,12 @@ Each milestone ends with a playable build and updated golden-master tests.
 
 ## 12. Open Questions
 
-All questions raised so far are resolved as D1–D20 (§0). There are currently no open
-design questions. New ones are added here as implementation raises them.
+Questions raised so far are resolved as D1–D22 (§0). New ones are added here as
+implementation raises them.
+
+- **Civilian targeting outside war:** D21 covers wars, including civil wars. Whether
+  governments can also target civilians in peacetime (e.g. repressing protests) is not
+  decided.
 
 ---
 
@@ -1477,6 +1630,8 @@ design questions. New ones are added here as implementation raises them.
   variable's quantile function.
 - **Archetype** — a cluster of statistically similar real countries, used as a template
   for generating fictional ones.
+- **Coverage** — how well one government knows another country, per category (0–1);
+  it sets the error of that government's estimates (§4.13).
 - **Lanchester model** — attrition equations in which each side's losses scale with the
   opponent's combat power.
 - **Voronoi cell** — the region of the plane closer to one seed point than to any

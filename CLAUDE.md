@@ -9,7 +9,7 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
 
 ## Source of truth
 
-- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D20)**
+- **DESIGN.md** is authoritative for how things work. Its **§0 Decisions Log (D1–D22)**
   records settled choices.
 - **GOALS.md** says why and what. **TODO.md** is the working task list.
 - **Never reverse or reinterpret a logged decision on your own.** If a task seems to
@@ -47,8 +47,12 @@ When scaffolding starts (TODO.md, M0), update the **Commands** section below.
   aggregated statistics (guiding variables and validation bands).
 - **No nuclear weapons (D15).** Don't add arsenals, deterrence, or nuclear use in code,
   content, or events. Nuclear *energy* is fine.
-- **Civilian harm is an outcome only (D16).** Never add a player or AI action that
-  targets civilians.
+- **Civilian targeting is allowed (D21, replacing D16).** Player and AI war policies may
+  target civilians, always with consequences; there is no opt-in toggle. Keep it
+  aggregate and statistical, never graphic.
+- **Fog of war (D22).** Governments see other countries only through their own
+  intelligence estimates. The AI must decide on its estimates, not true state, and the
+  renderer receives only the player's view outside sandbox mode.
 - **Current year only (D7):** no historical start dates and no era system.
 - **Culture tracking (D14):** ethnicity × religion × language is one joint
   distribution per cohort cell, stored sparsely. Associations are randomized per

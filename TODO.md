@@ -147,15 +147,19 @@ off as they land; add new ones as work reveals them.
 - [ ] Electoral systems: FPTP, list PR (D'Hondt, Sainte-Laguë); coalition formation
 - [ ] Foreign governments, elections, coups/revolutions
 - [ ] Pairwise relations matrix, blocs/alliances, salience tiers
-- [ ] Foreign-policy AI (utility scoring); overseer autopilot hook
-- [ ] Election and foreign relations reports
+- [ ] Foreign-policy AI (utility scoring), deciding on its own estimates; overseer autopilot hook
+- [ ] Intelligence services, per-category coverage, seeded estimates (DESIGN.md §4.13);
+      intelligence-sharing treaties; renderer gets only the player's view
+- [ ] Election, foreign relations, and intelligence assessment reports; intelligence map layer
 
 ## M5 — Military & War
 - [ ] Armed forces, defense budget, conscription (conventional only; no nuclear weapons)
 - [ ] Path to war, war powers, alliance calls
 - [ ] Theater graph from the map; monthly front resolution; naval/air
 - [ ] Casualties, displacement, damage feeding other systems
-- [ ] Civilian harm as an outcome, with its consequences
+- [ ] War policies (strike targeting, blockade scope, occupation policy); incidental and
+      deliberate civilian harm with its consequences (D21)
+- [ ] Covert operations and exposure; battlefield intelligence and surprise; attribution
 - [ ] Peace terms, territory transfer, insurgency, civil war
 - [ ] Burn-in backstory (~30 years)
 - [ ] War report, defense review, war map layer; war sanity tests
