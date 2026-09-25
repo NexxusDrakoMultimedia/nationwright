@@ -10,6 +10,11 @@ it lands in a milestone.
 
 - [ ] Fog of war and intelligence: what the player can see about foreign countries and
       how accurate it is, and intelligence gathering. Must respect D15 and D16.
+- [ ] Optional "war criminal mode" (opt-in checkbox at world creation) that allows
+      actions targeting civilians. This would amend D16 ("no option targets
+      civilians"), so it needs a new `D<n>` row, plus updates to DESIGN.md §4.11.3,
+      the CLAUDE.md hard constraints, and the AI's rules. D16 applies as written until
+      then.
 
 ## M0 — Skeleton
 
