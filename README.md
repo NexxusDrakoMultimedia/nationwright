@@ -5,26 +5,41 @@ policies, advance time, and watch it evolve through detailed statistical reports
 tables, economic surveys, election results, league standings, war reports, and an annual
 yearbook.
 
-> **Status: early development.** World generation and the map work: a new world has
-> 196 generated countries (by default) with terrain, climate, rivers, borders, provinces,
-> cities, names, cultures, and statistics drawn from real-world distributions. You can
-> explore it on the map, save it, and advance time. Your nation's population is
-> simulated month by month (births, deaths, ageing, schooling, ethnicity × religion ×
-> language, migration between regions, cities), with a census report. The other systems
-> below (economy, politics, and the rest) are designed but not built yet. See
-> [TODO.md](TODO.md) for progress and [DESIGN.md](DESIGN.md) for the full design.
+> **Status: early development.** A new world has 196 generated countries (by default)
+> with terrain, climate, rivers, resource deposits, borders, provinces, cities, names,
+> cultures, and statistics drawn from real-world distributions. You can explore it on
+> the map, save it, and advance time:
+>
+> - your nation's **population** is simulated month by month (births, deaths, ageing,
+>   schooling, ethnicity × religion × language, migration between regions, cities), with
+>   a census report;
+> - its **economy** runs too (production, jobs, prices, public finance and debt, the
+>   exchange rate), trading with every other country and exposed to world commodity
+>   prices;
+> - **foreign countries** grow, age, and trade on simplified models, and people migrate
+>   between them and your nation, carrying their cultures and sending money home.
+>
+> Politics, war, education, infrastructure, events, and sport are designed but not built
+> yet. See [TODO.md](TODO.md) for progress and [DESIGN.md](DESIGN.md) for the full design.
 
-## What it will simulate
+## What it simulates
+
+Built so far:
 
 - **Population & demographics:** cohort-component model by region, urban/rural, age,
   sex, and education, with a joint ethnicity × religion × language distribution
-- **Cities**, **economy**, **education**, and **infrastructure**
+- **Cities** and **economy**, with trade, commodities, and migration between countries
+- **A world of fictional countries** growing, ageing, and trading on simplified models
+
+Designed, not built yet:
+
+- **Education** and **infrastructure** as systems of their own
 - **Political institutions & elections:** constitutions, parties, coalitions, and
   pluggable electoral systems
 - **Sports leagues:** clubs, seasons, promotion/relegation, and international
   tournaments
-- **Foreign relations & war:** a world of fictional countries with their own
-  governments, pairwise diplomacy, and operational-level conventional warfare
+- **Foreign relations & war:** governments for every country, pairwise diplomacy, and
+  operational-level conventional warfare
 - **Intelligence & fog of war:** other countries are seen through your intelligence
   service's estimates; covert operations can be exposed
 - **Historical events:** data-driven random, triggered, and scheduled events, recorded
@@ -65,6 +80,8 @@ Other useful commands:
 | `npm run nw -- census world.nwsave` | Print your nation's census |
 | `npm run ui:package -- --linux AppImage` | Build an installer into `packages/ui/dist/` |
 | `npm run worldgen:validate` | Check 200 generated worlds against real-world statistics |
+| `npm run sim:validate` | Simulate 50 nations for 30 years and check them against real-world ranges (about 12 minutes) |
+| `npm run perf:measure` | Time world creation, simulation, and saves by world size |
 
 [CLAUDE.md](CLAUDE.md#commands) lists every command.
 
@@ -81,12 +98,16 @@ packages/
   ui/              Electron app: main process, preload, engine worker, React renderer
   cli/             headless command-line runner
   reference-data/  factbook.json ingest → guiding variables and validation bands
-scripts/           license check, map renderer, world-generator validation
-docs/validation/   latest world-generator validation report
+scripts/           license check, map renderer, validation and performance scripts
+docs/validation/   latest reports: world generator, simulation, performance
 ```
 
 A `content/` folder of YAML data packs (events, sports, culture and name packs,
 tuning) is planned.
+
+**Versions:** there are no numbered releases yet. The first will be 1.0.0, after the
+last planned milestone, following [Semantic Versioning](https://semver.org/) (D24).
+Until then CI builds unversioned development installers for Linux and Windows.
 
 ## Documents
 
