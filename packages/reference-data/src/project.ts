@@ -63,6 +63,31 @@ export const DERIVED_INDICATORS = [
   },
   { id: 'geography.border_count', unit: 'countries', description: 'Number of land neighbours' },
   {
+    id: 'economy.revenue_share_gdp',
+    unit: '% of GDP',
+    description: 'Central government revenues as a share of GDP',
+  },
+  {
+    id: 'economy.expenditure_share_gdp',
+    unit: '% of GDP',
+    description: 'Central government expenditures as a share of GDP',
+  },
+  {
+    id: 'economy.budget_balance_share',
+    unit: '% of GDP',
+    description: 'Central government budget balance (revenues − expenditures)',
+  },
+  {
+    id: 'economy.labor_participation',
+    unit: '% of people 15+',
+    description: 'Labor force as a share of people aged 15 and over',
+  },
+  {
+    id: 'economy.current_account_share',
+    unit: '% of GDP',
+    description: 'Current account balance as a share of GDP',
+  },
+  {
     id: 'military.personnel_per_1000',
     unit: 'per 1,000 people',
     description: 'Active armed forces per 1,000 people',
@@ -242,6 +267,29 @@ function addDerived(record: CountryRecord, fields: Record<string, ProjectedValue
   derived('society.ethnic_fractionalization', fractionalization(record.ethnicGroups), []);
   derived('society.religious_fractionalization', fractionalization(record.religions), []);
   derived('geography.border_count', record.borders.length, []);
+  const revenues = fields['economy.budget_revenues'];
+  const expenditures = fields['economy.budget_expenditures'];
+  derived('economy.revenue_share_gdp', share(revenues, nominal), [revenues, nominal]);
+  derived('economy.expenditure_share_gdp', share(expenditures, nominal), [expenditures, nominal]);
+  derived(
+    'economy.budget_balance_share',
+    revenues && expenditures && nominal
+      ? (100 * (revenues.value - expenditures.value)) / nominal.value
+      : null,
+    [revenues, expenditures, nominal],
+  );
+  const labor = fields['economy.labor_force'];
+  const population = fields['population.total'];
+  const young = fields['population.age_0_14_share'];
+  derived(
+    'economy.labor_participation',
+    labor && population && young
+      ? (100 * labor.value) / (population.value * (1 - young.value / 100))
+      : null,
+    [labor, population, young],
+  );
+  const account = fields['economy.current_account'];
+  derived('economy.current_account_share', share(account, nominal), [account, nominal]);
   const troops = fields['military.active_personnel'];
   const people = fields['population.total'];
   derived(

@@ -153,6 +153,9 @@ off as they land; add new ones as work reveals them.
       `docs/validation/performance.md`)
 
 ## M3 — Economy & World
+- [x] Reference data for the economy: budget revenues and expenditures, tax revenue, GDP by
+      end use, Gini, labour force, remittances, current account (16 new bands); guiding
+      model v3 with 7 more variables (40); generator v4
 - [ ] Sectors, production, labor market, prices, public finance, exchange rate
 - [ ] Foreign country mid-depth model
 - [ ] Trade (gravity), commodities, capital, international migration channels

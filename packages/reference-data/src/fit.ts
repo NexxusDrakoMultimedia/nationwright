@@ -36,7 +36,7 @@ import type { ProjectedCountry } from './project.ts';
 import { quantile } from './stats.ts';
 
 /** Bump when the model or its output format changes. */
-export const GUIDING_MODEL_VERSION = 2;
+export const GUIDING_MODEL_VERSION = 3;
 export const ARCHETYPE_COUNT = 6;
 const KMEANS_RESTARTS = 20;
 const KMEANS_ITERATIONS = 200;
@@ -229,6 +229,48 @@ export const MODEL_VARIABLES: readonly ModelVariable[] = [
     unit: 'years',
     description: 'Expected years of schooling',
     read: field('education.school_life_expectancy'),
+  },
+  {
+    id: 'economy.revenue_share_gdp',
+    unit: '% of GDP',
+    description: 'Central government revenues',
+    read: field('economy.revenue_share_gdp'),
+  },
+  {
+    id: 'economy.budget_balance_share',
+    unit: '% of GDP',
+    description: 'Central government budget balance',
+    read: field('economy.budget_balance_share'),
+  },
+  {
+    id: 'economy.investment_share',
+    unit: '% of GDP',
+    description: 'Investment in fixed capital',
+    read: field('economy.investment_share'),
+  },
+  {
+    id: 'economy.government_consumption_share',
+    unit: '% of GDP',
+    description: 'Government consumption',
+    read: field('economy.government_consumption_share'),
+  },
+  {
+    id: 'economy.gini',
+    unit: 'index 0–100',
+    description: 'Gini index of family income',
+    read: field('economy.gini'),
+  },
+  {
+    id: 'economy.labor_participation',
+    unit: '% of people 15+',
+    description: 'Labor force participation',
+    read: field('economy.labor_participation'),
+  },
+  {
+    id: 'economy.remittances_share',
+    unit: '% of GDP',
+    description: 'Remittances received',
+    read: field('economy.remittances_share'),
   },
   {
     id: 'military.expenditure_share',

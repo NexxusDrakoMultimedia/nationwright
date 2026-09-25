@@ -168,6 +168,24 @@ export function makeConsistent(raw: Readonly<Record<string, number>>): Record<st
       get('population.net_migration_rate')) /
     10;
 
+  // Public finance and labour: a few real sources are anomalous (revenues far above
+  // GDP, labour forces counting non-resident workers), so keep draws plausible.
+  if (s['economy.labor_participation'] !== undefined) {
+    s['economy.labor_participation'] = Math.max(
+      25,
+      Math.min(90, get('economy.labor_participation')),
+    );
+  }
+  if (s['economy.revenue_share_gdp'] !== undefined) {
+    s['economy.revenue_share_gdp'] = Math.max(3, Math.min(70, get('economy.revenue_share_gdp')));
+  }
+  if (s['economy.budget_balance_share'] !== undefined) {
+    s['economy.budget_balance_share'] = Math.max(
+      -20,
+      Math.min(20, get('economy.budget_balance_share')),
+    );
+  }
+
   // Totals.
   s['population.total'] = Math.max(1000, Math.round(get('population.total')));
   s['economy.gdp_ppp_real'] = s['population.total'] * get('economy.gdp_per_capita_ppp');
